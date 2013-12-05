@@ -27,13 +27,16 @@ Se recomienda tener el repositorio en /samples/Laboratorio_Redes_01_02
 (o el nombre de preferencia) de la carpeta de OMNet++ para que sea más directa
 la compilación y la sincronización de los archivos.
 
+--- GIT BASH
+
 Para Empezar a trabajar deben hacer un clone del proyecto, pueden presionar
 la opción que se encuentra arriba o usar:
    git clone https://Theby@bitbucket.org/Theby/lab-redes-de-comunicaci-n-i-ii.git
-Como comando directamente en la consola Git Bash.
+como comando directamente en la consola Git Bash.
 RECORDAR: Hacer la copia en la carpeta samples/nombre_carpeta dentro de la 
 carpeta de OMNet++.
-Luego pueden realizar un push para actualizar información:
+Luego pueden realizar un push para actualizar información, aunque esto
+no es necesario la primera vez:
    git push origin master
       -> introduzco clave
 
@@ -54,7 +57,7 @@ actualizar el contenido de sus pc con el contenido actual del repositorio:
    git pull origin master
       -> introduzco clave
 
-Si van a realizar pruebas que pueden arruinar todo les recomiendo hacer
+Si van a realizar pruebas que pueden arruinar todo, les recomiendo hacer
 un Fork/Branch del Proyecto para hacer un merge después, si es que
 todo funciona bien.
 
@@ -63,6 +66,15 @@ y por lo tanto presenta errores, es ALTAMENTE recomendable que creen un
 Issue en la pestaña Issue de Bitbucket, para que no se nos pasen errores
 sin darnos cuenta. Tenganlo presente!!.
 
+
+
+
+--- GIT GUI:
+
+Esto permite trabajar con interfaz grafica, todo esta allí, solo deben elegir
+la carpeta del respositorio y todo se hace por botones.
+
+En lo personal prefiero GIT BASH
 
 
 
