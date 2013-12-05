@@ -56,3 +56,12 @@ actualizar el contenido de sus pc con el contenido actual del repositorio:
 Si van a realizar pruebas que pueden arruinar todo les recomiendo hacer
 un Fork/Branch del Proyecto para hacer un merge después, si es que
 todo funciona bien.
+
+Si encuentran algun error/bug o suben contenido que aún no esta terminado
+y por lo tanto presenta errores, es ALTAMENTE recomendable que creen un
+Issue en la pestaña Issue de Bitbucket, para que no se nos pasen errores
+sin darnos cuenta. Tenganlo presente!!.
+
+
+
+
