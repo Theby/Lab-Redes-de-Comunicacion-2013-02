@@ -9,9 +9,9 @@ sin espacios.
 En omnetpp-4.3.1\doc\InstallGuide.pdf pueden encontrar todas las instrucciones
 para instalar el programa.
 
-En la sección de Bitbucket pueden encontrar una Guía practica para empezar con 
+En la sección de Bitbucket pueden encontrar una Guía práctica para empezar con 
 OMNet++, también existe un ejemplo que es bastante similar a lo que tenemos que
-desarrollar, sin embargo el ejemplo esta escrito en una versión anterior a la 3.X,
+desarrollar, sin embargo el ejemplo está escrito en una versión anterior a la 3.X,
 por lo que hay tener cuidado al re-programar el ejemplo.
 
 En el siguiente link pueden encontrar toda la información relevante a la
@@ -34,9 +34,9 @@ RECORDAR: Hacer la copia en la carpeta samples/nombre_carpeta dentro de la
 carpeta de OMNet++.
 Luego pueden realizar un push para actualizar información:
    git push origin master
-      -> introdusco clave
+      -> introduzco clave
 
-No olviden realizar un commit claro cada vez que realizen un push.
+No olviden realizar un commit claro cada vez que realicen un push.
    Ejemplo:
       (agrega todos los archivos modificados y no actualizados)
       git add --all 
@@ -46,16 +46,13 @@ No olviden realizar un commit claro cada vez que realizen un push.
 		
       git commit -m "Explicando que cambio se ha realizado"
 	  git push origin master
-         -> introdusco clave
+         -> introduzco clave
 			
 Antes de empezar a trabajar en algo nuevo recuerden hacer un pull para
-actualizar el contenido de sus pc con el contenido actual del respositorio:
+actualizar el contenido de sus pc con el contenido actual del repositorio:
    git pull origin master
-      -> introdusco clave
+      -> introduzco clave
 
 Si van a realizar pruebas que pueden arruinar todo les recomiendo hacer
 un Fork/Branch del Proyecto para hacer un merge después, si es que
 todo funciona bien.
-
-
-
