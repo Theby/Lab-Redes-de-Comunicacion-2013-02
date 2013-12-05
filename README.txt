@@ -26,31 +26,36 @@ Se recomienda tener el repositorio en /samples/Laboratorio_Redes_01_02
 (o el nombre de preferencia) de la carpeta de OMNet++ para que sea más directa
 la compilación y la sincronización de los archivos.
 
-Para Empezar a trabajar deben hacer un clone del proyecto, pueden presionar la opción arriba o usar
-	git clone https://Theby@bitbucket.org/Theby/lab-redes-de-comunicaci-n-i-ii.git
+Para Empezar a trabajar deben hacer un clone del proyecto, pueden presionar
+la opción que se encuentra arriba o usar:
+   git clone https://Theby@bitbucket.org/Theby/lab-redes-de-comunicaci-n-i-ii.git
 Como comando directamente en la consola Git Bash.
-RECORDAR: Hacer la copia en la carpeta sambles/nombre_carpeta dentro de la carpeta de OMNet++
+RECORDAR: Hacer la copia en la carpeta sambles/nombre_carpeta dentro de la 
+carpeta de OMNet++.
 Luego pueden realizar un push para actualizar información:
-	git push origin master
-			-> introdusco clave
+   git push origin master
+      -> introdusco clave
 
 No olviden realizar un commit claro cada vez que realizen un push.
-	Ejemplo:
-		git add --all (agrega todos los archivos modificados y que no se han subido al repositorio)
-			o bien
-		git add nombre.asdf
+   Ejemplo:
+      (agrega todos los archivos modificados y no actualizados)
+      git add --all 
+         o bien
+      (agrega el archivo especificado)
+      git add nombre.asdf
 		
-		git commit -m "Explico que cambio/funcionalidad/error corregido/etc se ha realizado o modificado"
-		git push origin master
-			-> introdusco clave
+      git commit -m "Explicando que cambio se ha realizado"
+	  git push origin master
+         -> introdusco clave
 			
-Antes de empezar a trabajar en algo nuevo recuerden hacer un pull para actualizar el contenido de sus pc
-con el contenido actual del respositorio:
-		git pull origin master
-			-> introdusco clave
+Antes de empezar a trabajar en algo nuevo recuerden hacer un pull para
+actualizar el contenido de sus pc con el contenido actual del respositorio:
+   git pull origin master
+      -> introdusco clave
 
-Si van a realizar pruebas que pueden arruinar todo les recomiendo hacer un Fork/Branch
-del Proyecto para hacer un merge después, si es que todo funciona bien.
+Si van a realizar pruebas que pueden arruinar todo les recomiendo hacer
+un Fork/Branch del Proyecto para hacer un merge después, si es que
+todo funciona bien.
 
 
 
