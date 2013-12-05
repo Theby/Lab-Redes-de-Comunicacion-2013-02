@@ -12,7 +12,8 @@ para instalar el programa.
 En la sección de Bitbucket pueden encontrar una Guía práctica para empezar con 
 OMNet++, también existe un ejemplo que es bastante similar a lo que tenemos que
 desarrollar, sin embargo el ejemplo está escrito en una versión anterior a la 3.X,
-por lo que hay tener cuidado al re-programar el ejemplo.
+por lo que hay tener cuidado al re-programar el ejemplo. Existe un archivo en la 
+sección de descargas donde se pueden ver las principales diferencias de versiones.
 
 En el siguiente link pueden encontrar toda la información relevante a la
 programación en OMNet++ 4.3.1: http://omnetpp.org/doc/omnetpp/manual/usman.html
