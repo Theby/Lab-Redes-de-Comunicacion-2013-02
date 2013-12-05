@@ -1,23 +1,56 @@
 Laboratorio de Redes de Comunicación I/II
 Entrega Lab 01: Miércoles 11 de Diciembre 2013
 
-El programa se desarrollará en OMNet++ 4.3.1
+El programa se desarrollará en OMNet++ 4.3.1 usado JRE
 http://www.omnetpp.org/
 
-Tras descargar el archivo deben asegurarse de descomprimirlo en una ruta de acceso sin espacios.
-En omnetpp-4.3.1\doc\InstallGuide.pdf pueden encontrar todas las instrucciones para instalar el programa.
+Tras descargar el archivo deben asegurarse de descomprimirlo en una ruta de acceso
+sin espacios.
+En omnetpp-4.3.1\doc\InstallGuide.pdf pueden encontrar todas las instrucciones
+para instalar el programa.
 
-En la sección de Bitbucket pueden encontrar una Guía practica para empezar con OMNet++, también existe un ejemplo que es bastante similar a lo que tenemos que desarrollar, sin embargo el ejemplo esta escrito en una versión anterior a la 3.X, por lo que hay tener cuidado al re-programar el ejemplo.
+En la sección de Bitbucket pueden encontrar una Guía practica para empezar con 
+OMNet++, también existe un ejemplo que es bastante similar a lo que tenemos que
+desarrollar, sin embargo el ejemplo esta escrito en una versión anterior a la 3.X,
+por lo que hay tener cuidado al re-programar el ejemplo.
 
-En el siguiente link pueden encontrar toda la información relevante a la programación en OMNet++ 4.3.1:
-http://omnetpp.org/doc/omnetpp/manual/usman.html
+En el siguiente link pueden encontrar toda la información relevante a la
+programación en OMNet++ 4.3.1: http://omnetpp.org/doc/omnetpp/manual/usman.html
 
 El enunciado del Laboratorio está en la sección Downloads.
 
 *************** IMPORTANTE ***************
-El contenido de este Bitbucket corresponde a el Project/Workspace de OMNet++, por lo que no se recomienda agregar archivos externos al IDE en el repositorio.
-Se recomienda tener el repositorio en /samples/Laboratorio_Redes_01_02 (o el nombre de preferencia) de la carpeta de OMNet++ para que sea más directa la compilación y la sincronización de los archivos.
+El contenido de este Bitbucket corresponde a el Project/Workspace de OMNet++,
+por lo que no se recomienda agregar archivos externos al IDE en el repositorio.
+Se recomienda tener el repositorio en /samples/Laboratorio_Redes_01_02
+(o el nombre de preferencia) de la carpeta de OMNet++ para que sea más directa
+la compilación y la sincronización de los archivos.
+
+Para Empezar a trabajar deben hacer un clone del proyecto, pueden presionar la opción arriba o usar
+	git clone https://Theby@bitbucket.org/Theby/lab-redes-de-comunicaci-n-i-ii.git
+Como comando directamente en la consola Git Bash.
+RECORDAR: Hacer la copia en la carpeta sambles/nombre_carpeta dentro de la carpeta de OMNet++
+Luego pueden realizar un push para actualizar información:
+	git push origin master
+			-> introdusco clave
 
 No olviden realizar un commit claro cada vez que realizen un push.
-Si van a realizar pruebas que pueden arruinar todo les recomiendo hacer un Fork del Proyecto para hacer un merge después, si es que todo funciona bien.
+	Ejemplo:
+		git add --all (agrega todos los archivos modificados y que no se han subido al repositorio)
+			o bien
+		git add nombre.asdf
+		
+		git commit -m "Explico que cambio/funcionalidad/error corregido/etc se ha realizado o modificado"
+		git push origin master
+			-> introdusco clave
+			
+Antes de empezar a trabajar en algo nuevo recuerden hacer un pull para actualizar el contenido de sus pc
+con el contenido actual del respositorio:
+		git pull origin master
+			-> introdusco clave
+
+Si van a realizar pruebas que pueden arruinar todo les recomiendo hacer un Fork/Branch
+del Proyecto para hacer un merge después, si es que todo funciona bien.
+
+
 
