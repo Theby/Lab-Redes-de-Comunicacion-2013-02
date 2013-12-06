@@ -18,6 +18,11 @@ sección de descargas donde se pueden ver las principales diferencias de versione
 En el siguiente link pueden encontrar toda la información relevante a la
 programación en OMNet++ 4.3.1: http://omnetpp.org/doc/omnetpp/manual/usman.html
 
+También existe un transformador de archivos para pasar las versiones antiguas
+a la nueva, para ello deben ingresar con la consola de OMNet++ a la carpeta
+migrate/ y ejecutar la aplicación migrate que corresponde, la que transformará
+los archivos iterativamente.
+
 El enunciado del Laboratorio está en la sección Downloads.
 
 *************** IMPORTANTE ***************
@@ -26,6 +31,9 @@ por lo que no se recomienda agregar archivos externos al IDE en el repositorio.
 Se recomienda tener el repositorio en /samples/Laboratorio_Redes_01_02
 (o el nombre de preferencia) de la carpeta de OMNet++ para que sea más directa
 la compilación y la sincronización de los archivos.
+
+Para bajar GIT:
+https://code.google.com/p/msysgit/downloads/list
 
 --- GIT BASH
 
