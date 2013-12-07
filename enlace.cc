@@ -34,7 +34,7 @@ void enlace::handleMessage(cMessage *msg)
     //Sino, el mensaje viene desde intermedio
     else
     {
-        //Procesarlo como si vieje desde arriba
+        //Procesarlo como si viene desde arriba
         processMsgFromHigherLayer(msg);
     }
 }
