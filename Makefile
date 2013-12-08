@@ -121,7 +121,8 @@ $O/aplicacion.o: aplicacion.cc \
 	DataFrame_m.h \
 	aplicacion.h
 $O/enlace.o: enlace.cc \
-	DataFrame_m.h
+	DataFrame_m.h \
+	enlace.h
 $O/intermedio.o: intermedio.cc \
 	DataFrame_m.h \
 	intermedio.h
