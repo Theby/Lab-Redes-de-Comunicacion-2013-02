@@ -4,3 +4,6 @@ El protocolo usado en esta simulación tendrá las siguientes caracteristicas.
 
 Estación combinada - Balanceada
 Modo Balanceado Asíncrono (ABM)
+
+Usaremos tramas completas de información y tramas de comando y respuesta.
+Se manipulará la información a modo bit en arreglos int.
