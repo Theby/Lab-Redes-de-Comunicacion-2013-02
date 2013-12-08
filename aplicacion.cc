@@ -4,69 +4,55 @@
 */
 
 #include <string.h>
-
-//librería de OMNeT++
 #include <omnetpp.h>
-
 #include <cstdlib>
 #include <iostream>
 
+#include <DataFrame_m.h>
+#include <aplicacion.h>
+
 using namespace std;
 
-//Nombre de la clase y tipo de la librería omnetpp.h
-class aplicacion : public cSimpleModule
-{
-    //Métodos de la clase
-    public:
-        //Inicializar módulo
-        virtual void initialize();
-
-        //Manejador de mensajes
-        virtual void handleMessage(cMessage *msg);
-
-        //Generador de palabras
-        virtual void generaPalabraInfo();
-};
-
-//Entero que define quien está enviando y quien está recibiendo
+//Entero para dar turno de transmisión
 int turno=0;
 
-//Definición de las funciones de aplicación
-Define_Module(aplicacion);
+//Define la clase para trabajar directamente con el modulo de aplicacion
+Define_Module( aplicacion );
 
-//Inicializar
 void aplicacion::initialize()
 {
     //Si es mi turno
     if(turno==0)
     {
         //Generar palabra para envío
-        generaPalabraInfo();
+        generaInfo();
         //Entregar el turno
         turno=1;
     }
 }
 
-//Manejar mensajes
-void aplicacion::handleMessage(cMessage *msg)
+void aplicacion::handleMessage(cMessage* msg)
     {
     //Si el mensaje ha llegado desde intermedio
     if (msg->arrivedOn("desde_abajo"))
     {
         //Borrar el mensaje
-        delete msg;//cuando llega un mensaje solo se descarta
+        DataFrame* tramaInformacion = check_and_cast<DataFrame *>(msg);
+        ev<<"Dato "<< tramaInformacion->getAddress() <<" recibido. Nombre " << tramaInformacion->getName();
+        delete msg;
     }
     //Generar un mensaje de respuesta
-    generaPalabraInfo();
+    generaInfo();
 }
 
-//Generador de palabras/tramas
-void aplicacion::generaPalabraInfo()
+void aplicacion::generaInfo()
 {
-    //Se entrega la dirección
+    //Obtiene la dirección del Host en el que se esta ejecutando, la cual es seteada por sistema.ned
     int direccion = par("direccion");
-    //Se entrega el tamaño
+
+    //Obtiene el tamaño de la trama, el cual por defecto es 4 en sistema.ned
     int tamT = par("tamTrama");
+
     //Puntero al mensaje
     char *mens;
 
@@ -82,12 +68,12 @@ void aplicacion::generaPalabraInfo()
         strcat(mens, "0");
     }
 
-    //Se crea el mensaje
-    cMessage *palabra = new cMessage(mens);
+    DataFrame *tramaInformacion = new DataFrame(mens);
+    tramaInformacion->setAddress(1011);
 
-    //Se envia el mensaje a intermedio hacia abajo
-    send(palabra, "hacia_abajo");
+    //Se envia el mensaje a intermedio
+    send(tramaInformacion, "hacia_abajo");
 
     //Se informa al usuario de que se envió la palabra
-    ev<<"Host "<<direccion<<" - LA PALABRA QUE SE ENVIO DESDE APLICACION ES: "<<mens;
+    ev<<"Host "<<direccion<<" - LA PALABRA QUE SE ENVIO DESDE APLICACION ES: "<< mens << " DE TAMAÑO: " << tamT;
 }

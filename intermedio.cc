@@ -5,26 +5,15 @@
 #include <string.h>
 #include <omnetpp.h>
 
-//Nombre de la clase y tipo
-class intermedio : public cSimpleModule
-{
-    //Métodos
-    protected:
-        //Procesador de mensajes desde la capa superior
-        virtual void processMsgFromHigherLayer(cMessage *packet);
+#include <DataFrame_m.h>
+#include <intermedio.h>
 
-        //Procesador de mensajes desde la capa inferior
-        virtual void processMsgFromLowerLayer(cMessage *packet);
+using namespace std;
 
-        //Receptor de mensajes
-        virtual void handleMessage(cMessage *msg);
-};
-
-//Definición de funciones
+//Define la clase para trabajar directamente con el modulo intermedio
 Define_Module( intermedio );
 
-//Manejador de mensajes
-void intermedio::handleMessage(cMessage *msg)
+void intermedio::handleMessage(cMessage* msg)
 {
     //Si el mensaje viene desde enlace
     if (msg->arrivedOn("desde_abajo"))
@@ -36,14 +25,12 @@ void intermedio::handleMessage(cMessage *msg)
         processMsgFromHigherLayer(msg);
 }
 
-//Procesador desde arriba
 void intermedio::processMsgFromHigherLayer(cMessage *packet)
 {
     //Envia el paquete hacia la capa de enlace
     send(packet,"hacia_abajo");
 }
 
-//Procesador desde abajo
 void intermedio::processMsgFromLowerLayer(cMessage *packet)
 {
     //Envía el paquete hacia la capa de aplicación
