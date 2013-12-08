@@ -21,7 +21,9 @@ module host
     //parámetros
     parameters:
         //dirección del host
-        int direccion;
+        int direccion_host;
+        //direccion del destino
+        int direccion_dest;
         //tamaño de trama
         int tamTrama;
         @display("bgl=10;i=device/server2;is=n;bgb=130,335");
@@ -38,7 +40,8 @@ module host
             //parámetros del nivel
             parameters:
                 tamTrama = tamTrama;
-                direccion = direccion;
+                direccion_host = direccion_host;
+                direccion_dest = direccion_dest;
                 @display("p=67,50");
         }
         //Llamado al nivel intermedio
@@ -52,7 +55,8 @@ module host
             //parámetros del nivel
             parameters:
                 tamTrama = tamTrama;
-                direccion = direccion;
+                direccion_host = direccion_host;
+                direccion_dest = direccion_dest;
                 @display("p=67,266");
         }
     connections:

@@ -19,24 +19,21 @@
  * Class generated from <tt>DataFrame.msg</tt> by opp_msgc.
  * <pre>
  * message DataFrame {
- *     int flags_1;
- *     int address;
- *     int control;
- *     int information;
- *     int FCS;
- *     int flags_2;
+ *     int address[8];
+ * 	int control[8];
+ *     int information[];    
+ *     int FCS[16];
  * }
  * </pre>
  */
 class DataFrame : public ::cMessage
 {
   protected:
-    int flags_1_var;
-    int address_var;
-    int control_var;
-    int information_var;
-    int FCS_var;
-    int flags_2_var;
+    int address_var[8];
+    int control_var[8];
+    int *information_var; // array ptr
+    unsigned int information_arraysize;
+    int FCS_var[16];
 
   private:
     void copy(const DataFrame& other);
@@ -55,18 +52,19 @@ class DataFrame : public ::cMessage
     virtual void parsimUnpack(cCommBuffer *b);
 
     // field getter/setter methods
-    virtual int getFlags_1() const;
-    virtual void setFlags_1(int flags_1);
-    virtual int getAddress() const;
-    virtual void setAddress(int address);
-    virtual int getControl() const;
-    virtual void setControl(int control);
-    virtual int getInformation() const;
-    virtual void setInformation(int information);
-    virtual int getFCS() const;
-    virtual void setFCS(int FCS);
-    virtual int getFlags_2() const;
-    virtual void setFlags_2(int flags_2);
+    virtual unsigned int getAddressArraySize() const;
+    virtual int getAddress(unsigned int k) const;
+    virtual void setAddress(unsigned int k, int address);
+    virtual unsigned int getControlArraySize() const;
+    virtual int getControl(unsigned int k) const;
+    virtual void setControl(unsigned int k, int control);
+    virtual void setInformationArraySize(unsigned int size);
+    virtual unsigned int getInformationArraySize() const;
+    virtual int getInformation(unsigned int k) const;
+    virtual void setInformation(unsigned int k, int information);
+    virtual unsigned int getFCSArraySize() const;
+    virtual int getFCS(unsigned int k) const;
+    virtual void setFCS(unsigned int k, int FCS);
 };
 
 inline void doPacking(cCommBuffer *b, DataFrame& obj) {obj.parsimPack(b);}

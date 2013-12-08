@@ -32,8 +32,9 @@ module sistema
             //Parámetros
             parameters:
                 tamTrama = tamTrama;
-                //Se suministra la dirección que le corresponde al host
-                direccion = 1;
+                //Se suministra la dirección que le corresponde al host y al destino
+                direccion_host = 00000000;
+                direccion_dest = 00000001;
                 @display("p=70,50");
         }
         //Definición del host 2
@@ -41,8 +42,9 @@ module sistema
             //Parámetros
             parameters:
                 tamTrama = tamTrama;
-                //Se suministra la dirección que le corresponde al host
-                direccion = 2;
+                //Se suministra la dirección que le corresponde al host y al destino
+                direccion_host = 00000001;
+                direccion_dest = 00000000;
                 @display("p=170,50");
         }
     //Conexiones de la red

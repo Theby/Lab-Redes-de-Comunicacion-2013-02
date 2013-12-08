@@ -17,10 +17,8 @@
 // TODO generated message class
 //
 message DataFrame {
-    int flags_1;
-    int address;
-    int control;
-    int information;
-    int FCS;
-    int flags_2;
+    int address[8];
+	int control[8];
+    int information[];    
+    int FCS[16];
 }

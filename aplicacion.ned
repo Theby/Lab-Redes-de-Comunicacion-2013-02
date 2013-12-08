@@ -21,11 +21,11 @@ simple aplicacion
     parameters:
         //Tamaño de la trama
         int tamTrama;
+        //Dirección del Host
+        int direccion_host;
         //Dirección de Destino
-        int direccion;
-        //Conexiones permitidas
-
-    @display("i=block/cogwheel;is=n");
+        int direccion_dest;
+    	@display("i=block/cogwheel;is=n");
     
     gates:
         //Recepción de datos desde abajo

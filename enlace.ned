@@ -19,12 +19,14 @@ simple enlace
 {
     //Parámetros del nivel de Enlace
     parameters:
-        //Dirección de destino
-        int direccion;
+        //Dirección de Host
+        int direccion_host;
+		//Dirección de Destino
+        int direccion_dest;
         //Tamaño de trama
         int tamTrama;
-        //Conexiones
         @display("i=block/ifcard;is=n");
+        
     gates:
         //Con el nivel inferior
         input desde_fisico;
