@@ -1,6 +1,6 @@
 # Partial Tkenv config file -- see $HOME/.tkenvrc as well
-inspector "red" "red" "2" "565x342+449+395:normal"
 inspector "red.Host_2" "host" "2" "565x342+782+2:normal"
+inspector "red" "red" "2" "565x342+449+395:normal"
 inspector "red.Host_1" "host" "2" "565x342+67+1:normal"
 inspector "red.Host_2.varEnlace.0000" "DataFrame" "1" "460x314+127+94:normal"
 
