@@ -1,0 +1,6 @@
+High-Level Data Link Control - HDLC
+
+El protocolo usado en esta simulación tendrá las siguientes caracteristicas.
+
+Estación combinada - Balanceada
+Modo Balanceado Asíncrono (ABM)
