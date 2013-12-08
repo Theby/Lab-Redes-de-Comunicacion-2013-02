@@ -37,9 +37,8 @@ https://code.google.com/p/msysgit/downloads/list
 
 --- GIT BASH
 
-Para Empezar a trabajar deben hacer un clone del proyecto, pueden presionar
-la opción que se encuentra arriba o usar:
-   git clone https://Theby@bitbucket.org/Theby/lab-redes-de-comunicaci-n-i-ii.git
+Para Empezar a trabajar deben hacer un clone del proyecto, para ello tienen que
+presionar la opción que se encuentra arriba y escribirla en el Git.
 como comando directamente en la consola Git Bash.
 RECORDAR: Hacer la copia en la carpeta samples/nombre_carpeta dentro de la 
 carpeta de OMNet++.
