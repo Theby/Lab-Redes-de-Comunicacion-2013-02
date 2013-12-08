@@ -13,41 +13,56 @@
 
 using namespace std;
 
-//Entero para dar turno de transmisión
-int turno=0;
+//Identificador del iniciador de la transmisión
+int master;
 
 //Define la clase para trabajar directamente con el modulo de aplicacion
 Define_Module( aplicacion );
 
 void aplicacion::initialize()
 {
-    //Si es mi turno
-    if(turno==0)
-    {
+    //obtiene el valor de maste para saber quien parte
+    master = par("starter");
+
+    //obtiene el valor del host en el que se ubica
+    int address_host = par("direccion_host");
+
+    //Es el turno de quien tenga la misma address que numero de master
+    if(address_host == master){
+        //Ya nadie es el master
+        master=42;
+
         //Generar palabra para envío
         generaInfo();
-        //Entregar el turno
-        turno=1;
     }
 }
 
-void aplicacion::handleMessage(cMessage* msg)
-    {
+void aplicacion::handleMessage(cMessage* msg){
+    string ack = "ACK";
+    string dato = "DATO";
+    string msg_name = msg->getName();
+
     //Si el mensaje ha llegado desde intermedio
-    if (msg->arrivedOn("desde_abajo"))
-    {
-        //Borrar el mensaje
-        DataFrame* tramaInformacion = check_and_cast<DataFrame *>(msg);
-        delete msg;
+    if (msg->arrivedOn("desde_abajo")){
+        if(msg_name == ack){
+            ev << "El mensaje: " << msg_name << " correctamente recivido." << endl;
+            delete msg;
+            generaInfo();
+        }else if(msg_name == dato){
+            ev << "El dato: " << msg_name << " correctamente recivido." << endl;
+            delete msg;
+        }else{
+            ev << "El mensaje: " << msg_name << " No es valido y ha sido eliminado" << endl;
+            delete msg;
+        }
+    }else{
+        ev << "Mensaje llegado desde un lugar desconocido" << endl;
     }
-    //Generar un mensaje de respuesta
-    generaInfo();
 }
 
 void aplicacion::generaInfo()
 {
-    //Obtiene la dirección del Host en el que se esta ejecutando, la cual es seteada por sistema.ned
-    int address_home = par("direccion_host");
+    //Obtiene la dirección del destino al cual se le enviará la información, la cual es seteada por sistema.ned
     int address_dest = par("direccion_dest");
 
     //Obtiene el tamaño de la trama, el cual por defecto es 4 en sistema.ned
@@ -72,7 +87,7 @@ void aplicacion::generaInfo()
     //Inicio Address
         //Asigna la direccion al sector address de la trama
         for(unsigned int i=0;i<8;i++){
-            if(address_home<pow(10,(8-(i+1)))){
+            if(address_dest<pow(10,(8-(i+1)))){
                 tramaInformacion->setAddress(i,0);
             }else{
                 tramaInformacion->setAddress(i,1);
@@ -115,6 +130,6 @@ void aplicacion::generaInfo()
     //Se envia el mensaje a intermedio
     send(tramaInformacion, "hacia_abajo");
 
-    //Se informa al usuario de que se envió la palabra
-    ev<<"Host: "<<address_home<<" - Destino: "<< address_dest;
+    //Informando al Usuario el dato enviado
+    ev <<"Destino: "<< address_dest;
 }

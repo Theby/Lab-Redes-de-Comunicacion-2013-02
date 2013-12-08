@@ -22,10 +22,19 @@ module host
     parameters:
         //dirección del host
         int direccion_host;
+        
         //direccion del destino
         int direccion_dest;
+        
         //tamaño de trama
         int tamTrama;
+        
+        //número de tramas
+        int numTramas;
+        
+        //define cual host(0 o 1) comienza la ejecucion
+        int starter;
+        
         @display("bgl=10;i=device/server2;is=n;bgb=130,335");
     //Puertas de enlace
     gates:
@@ -42,6 +51,8 @@ module host
                 tamTrama = tamTrama;
                 direccion_host = direccion_host;
                 direccion_dest = direccion_dest;
+                starter = starter;
+                numTramas = numTramas;
                 @display("p=67,50");
         }
         //Llamado al nivel intermedio

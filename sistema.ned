@@ -23,6 +23,8 @@ module sistema
     //Parámetros
     parameters:
         volatile int tamTrama;
+        volatile int numTramas;
+        volatile int starter;
 
         @display("i=device/lan;is=n");
     //Submódulos que lo componen
@@ -32,6 +34,8 @@ module sistema
             //Parámetros
             parameters:
                 tamTrama = tamTrama;
+                numTramas = numTramas;
+                starter = starter;
                 //Se suministra la dirección que le corresponde al host y al destino
                 direccion_host = 00000000;
                 direccion_dest = 00000001;
@@ -42,6 +46,8 @@ module sistema
             //Parámetros
             parameters:
                 tamTrama = tamTrama;
+                numTramas = numTramas;
+                starter = starter;
                 //Se suministra la dirección que le corresponde al host y al destino
                 direccion_host = 00000001;
                 direccion_dest = 00000000;
@@ -69,5 +75,7 @@ network red extends sistema
 {
     //Parámetros
     parameters:
-        tamTrama @prompt("Ingrese el largo de la palabra, entero mayor a cero:") = default(4);
+        tamTrama @prompt("Ingrese el largo en bits que tendrá la información enviada por cada Trama") = default(4);
+        numTramas @prompt("Ingrese el número de tramas a enviar") = default(1);
+        starter @prompt("Ingrese cual host comenzará la transmisión: 0 o 1") = default(0);
 }

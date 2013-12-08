@@ -21,10 +21,19 @@ simple aplicacion
     parameters:
         //Tamaño de la trama
         int tamTrama;
-        //Dirección del Host
-        int direccion_host;
+        
         //Dirección de Destino
         int direccion_dest;
+        
+        //Dirección de Destino
+        int direccion_host;
+        
+        //Número de tramas a enviar
+        int numTramas;
+        
+        //Define cual host(0 o 1) comienza la comunicación
+        int starter;
+        
     	@display("i=block/cogwheel;is=n");
     
     gates:

@@ -21,10 +21,13 @@ simple enlace
     parameters:
         //Dirección de Host
         int direccion_host;
+        
 		//Dirección de Destino
         int direccion_dest;
+        
         //Tamaño de trama
         int tamTrama;
+
         @display("i=block/ifcard;is=n");
         
     gates:
