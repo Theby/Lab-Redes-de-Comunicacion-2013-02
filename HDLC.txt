@@ -7,5 +7,3 @@ Modo Balanceado Asíncrono (ABM)
 
 Usaremos tramas completas de información y tramas de comando y respuesta.
 Se manipulará la información a modo bit en arreglos int.
-
-Cualquier mensaje interno entre modulos y que sea de tipo cMessage tendrá kind 42.

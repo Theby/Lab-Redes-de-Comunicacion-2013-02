@@ -1,12 +1,12 @@
 #
-# OMNeT++/OMNEST Makefile for Laboratorio_01_02
+# OMNeT++/OMNEST Makefile for lab-redes-de-comunicaci-n-i-ii
 #
 # This file was generated with the command:
 #  opp_makemake -f --deep -O out
 #
 
 # Name of target to be created (-o option)
-TARGET = Laboratorio_01_02$(EXE_SUFFIX)
+TARGET = lab-redes-de-comunicaci-n-i-ii$(EXE_SUFFIX)
 
 # User interface (uncomment one) (-u option)
 USERIF_LIBS = $(ALL_ENV_LIBS) # that is, $(TKENV_LIBS) $(CMDENV_LIBS)
@@ -105,7 +105,7 @@ msgheaders: $(MSGFILES:.msg=_m.h)
 clean:
 	$(qecho) Cleaning...
 	$(Q)-rm -rf $O
-	$(Q)-rm -f Laboratorio_01_02 Laboratorio_01_02.exe libLaboratorio_01_02.so libLaboratorio_01_02.a libLaboratorio_01_02.dll libLaboratorio_01_02.dylib
+	$(Q)-rm -f lab-redes-de-comunicaci-n-i-ii lab-redes-de-comunicaci-n-i-ii.exe liblab-redes-de-comunicaci-n-i-ii.so liblab-redes-de-comunicaci-n-i-ii.a liblab-redes-de-comunicaci-n-i-ii.dll liblab-redes-de-comunicaci-n-i-ii.dylib
 	$(Q)-rm -f ./*_m.cc ./*_m.h
 
 cleanall: clean
@@ -122,9 +122,11 @@ $O/Informacion_m.o: Informacion_m.cc \
 	Informacion_m.h
 $O/aplicacion.o: aplicacion.cc \
 	DataFrame_m.h \
+	Informacion_m.h \
 	aplicacion.h
 $O/enlace.o: enlace.cc \
 	DataFrame_m.h \
+	Informacion_m.h \
 	enlace.h
 $O/intermedio.o: intermedio.cc \
 	DataFrame_m.h \

@@ -9,6 +9,7 @@
 #include <iostream>
 
 #include <DataFrame_m.h>
+#include <Informacion_m.h>
 #include <aplicacion.h>
 
 using namespace std;
@@ -40,14 +41,28 @@ void aplicacion::handleMessage(cMessage* msg){
     string ack = "ACK";
     string dato = "DATO";
     string msg_name = msg->getName();
-    int msg_kind = msg->getKind();
 
     //Si el mensaje ha llegado desde intermedio
     if (msg->arrivedOn("desde_abajo")){
-        if(msg_name == ack){
-            ev << "El mensaje: " << msg_name << " fue correctamente recivido." << endl;
+        if(msg_name[0] == ack[0] && msg_name[1] == ack[1] && msg_name[2] == ack[2]){
+            //para guardar el valor del mensaje que debe ser enviado
+            int msg_ack_id=0;
+
+            //para guardar el tamaño del msg_ack_id (ejemplo: 10-> tamaño :2)
+            int tam_msg_ack_id = msg_name.length()-4;
+
+            char* nombre;
+            nombre = (char*)malloc(sizeof(char)*tam_msg_ack_id);
+
+            for(unsigned int i=4;i<msg_name.length();i++){
+                nombre[i-4] = msg_name[i];
+            }
+
+            msg_ack_id = atoi(nombre);
+
             delete msg;
-            generaInfo(msg_kind);
+            ev << "El mensaje: " << msg_name << " fue correctamente recivido." << endl;
+            generaInfo(msg_ack_id);
         }else if(msg_name == dato){
             ev << "El dato: " << msg_name << " fue correctamente recivido." << endl;
             delete msg;
@@ -64,83 +79,60 @@ void aplicacion::generaInfo(int trama_id){
     //Si es primera vez que se inicia
     if(trama_id == -1){
         //creando un mensaje START
-        cMessage *start = new cMessage("START",10000);
+        cMessage *start = new cMessage("START");
 
         //Enviando el mensaje a Enlace
         send(start, "hacia_abajo");
         ev << "Enviando mensaje START a Enlace" << endl;
     }else{
-        /*
-        //Obtiene la dirección del destino al cual se le enviará la información, la cual es seteada por sistema.ned
-        int address_dest = par("direccion_dest");
+        //Numero maximo de tramas a enviar
+        int numTramas = par("numTramas");
 
-        //Obtiene el tamaño de la trama, el cual por defecto es 4 en sistema.ned
-        int tamTrama = par("tamTrama");
+        if(numTramas == trama_id){
+            //creando un mensaje END
+            cMessage *end = new cMessage("END");
 
-        //Puntero al mensaje
-        char *mens;
-            //Reserva de memoria para el mensaje
-            mens = (char*)malloc(sizeof(char)*tamTrama);
+            //Enviando el mensaje a Enlace
+            send(end, "hacia_abajo");
+            ev << "Enviando mensaje END a Enlace" << endl;
+        }else{
+            //Obtiene la dirección del destino al cual se le enviará la información, la cual es seteada por sistema.ned
+            int address_dest = par("direccion_dest");
 
-            //Se crea el mensaje solo con valores 0
-            strcpy(mens, "0");
+            //Obtiene el tamaño de la trama, el cual por defecto es 4 en sistema.ned
+            int tamTrama = par("tamTrama");
 
-            //Se concatenan ceros al mensaje
-            for(int i=1;i<tamTrama;i++){
-                strcat(mens, "0");
-            }
+            //Para el nombre de la trama
+            stringstream buffer;
+            buffer << "DATO " << trama_id;
 
-        //Creando tramas completas
-        DataFrame *tramaInformacion = new DataFrame(mens);
+            //Creando trama de comunicación con enlace
+            Informacion *tramaComunicacion = new Informacion((buffer.str()).c_str());
 
-        //Inicio Address
-            //Asigna la direccion al sector address de la trama
-            for(unsigned int i=0;i<8;i++){
-                if(address_dest<pow(10,(8-(i+1)))){
-                    tramaInformacion->setAddress(i,0);
-                }else{
-                    tramaInformacion->setAddress(i,1);
+            //Inicio Address
+                //Asigna la direccion al sector address de la trama
+                for(unsigned int i=0;i<8;i++){
+                    if(address_dest<pow(10,(8-(i+1)))){
+                        tramaComunicacion->setAddress_dest(i,0);
+                    }else{
+                        tramaComunicacion->setAddress_dest(i,1);
+                    }
                 }
-            }
-        //Fin Address
+            //Fin Address
 
-        //Inicio Control
-            //De informacion: control[0] = 0
-            tramaInformacion->setControl(0,0);
+            //Inicio Informacion
+                tramaComunicacion->setInformacionArraySize(tamTrama);
 
-            //N(S)
-            tramaInformacion->setControl(1,0);
-            tramaInformacion->setControl(2,0);
-            tramaInformacion->setControl(3,0);
+                for(int i=0;i<tamTrama;i++){
+                    tramaComunicacion->setInformacion(i,1);
+                }
+            //Fin Informacion
 
-            //bit P/F
-            tramaInformacion->setControl(4,0);
+            //Se envia el mensaje a intermedio
+            send(tramaComunicacion, "hacia_abajo");
 
-            //N(R)
-            tramaInformacion->setControl(5,0);
-            tramaInformacion->setControl(6,0);
-            tramaInformacion->setControl(7,0);
-        //Fin Control
-
-        //Inicio Informacion
-            tramaInformacion->setInformationArraySize(tamTrama);
-
-            for(int i=0;i<tamTrama;i++){
-                tramaInformacion->setInformation(i,1);
-            }
-        //Fin Informacion
-
-        //Inicio FCS
-            for(int i=0;i<16;i++){
-                tramaInformacion->setFCS(i,0);
-            }
-        //Fin FCS
-
-        //Se envia el mensaje a intermedio
-        send(tramaInformacion, "hacia_abajo");
-
-        //Informando al Usuario el dato enviado
-        ev <<"Destino: "<< address_dest;
-        */
+            //Informando al Usuario el dato enviado
+            ev <<"Destino: "<< address_dest;
+        }
     }
 }
