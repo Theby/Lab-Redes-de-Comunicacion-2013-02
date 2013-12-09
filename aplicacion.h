@@ -26,7 +26,7 @@ class aplicacion : public ::cSimpleModule
         virtual void handleMessage(cMessage *msg);
 
         //Generador de la información
-        virtual void generaInfo();
+        virtual void generaInfo(int trama_id);
 };
 
 
