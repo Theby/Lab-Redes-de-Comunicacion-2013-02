@@ -30,7 +30,7 @@ module sistema
     //Submódulos que lo componen
     submodules:
         //Definición del host 1
-        Host_1: host {
+        Host_0: host {
             //Parámetros
             parameters:
                 tamTrama = tamTrama;
@@ -42,7 +42,7 @@ module sistema
                 @display("p=70,50");
         }
         //Definición del host 2
-        Host_2: host {
+        Host_1: host {
             //Parámetros
             parameters:
                 tamTrama = tamTrama;
@@ -56,9 +56,9 @@ module sistema
     //Conexiones de la red
     connections:
         //Desde el Host 1 hacia el Host 2
-        Host_1.salida --> canal --> Host_2.entrada;
+        Host_0.salida --> canal --> Host_1.entrada;
         //Desde el Host 2 hacia el Host 1
-        Host_2.salida --> canal --> Host_1.entrada;
+        Host_1.salida --> canal --> Host_0.entrada;
 }
 
 //Definición del canal de transmisión
