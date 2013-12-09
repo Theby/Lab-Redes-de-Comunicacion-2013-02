@@ -7,3 +7,8 @@ Modo Balanceado Asíncrono (ABM)
 
 Usaremos tramas completas de información y tramas de comando y respuesta.
 Se manipulará la información a modo bit en arreglos int.
+
+Links sobre HDLC:
+http://es.wikipedia.org/wiki/High-Level_Data_Link_Control#Estructura
+http://books.google.cl/books?id=w9saZvhhgzIC&printsec=frontcover#v=onepage&q&f=false
+http://unalm-construcion2010.wikispaces.com/file/view/K)+H.D.L.C.pdf
