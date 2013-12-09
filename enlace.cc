@@ -35,6 +35,7 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
     if(nombre_dato == "START"){
         delete dato;
 
+        //Trama Comando SABM
         DataFrame *tramaComando = new DataFrame("Trama Comando SABM");
 
         //Inicio Address
@@ -106,8 +107,8 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
             tramaInformacion->setAddress(i,informacion->getAddress_dest(i));
         }
 
-        //Inicio Control: Unnumbered UA
-            //Unnumbered
+        //Inicio Control: Informacion
+            //Informacion
             tramaInformacion->setControl(0,0);
 
             //N(S)
@@ -139,7 +140,6 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
         //Fin FCS
 
         delete informacion;
-
         send(tramaInformacion,"hacia_fisico");
     }
 }

@@ -44,6 +44,7 @@ void aplicacion::handleMessage(cMessage* msg){
 
     //Si el mensaje ha llegado desde intermedio
     if (msg->arrivedOn("desde_abajo")){
+        //Es ACK
         if(msg_name[0] == ack[0] && msg_name[1] == ack[1] && msg_name[2] == ack[2]){
             //para guardar el valor del mensaje que debe ser enviado
             int msg_ack_id=0;
