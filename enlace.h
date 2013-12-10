@@ -32,7 +32,7 @@ class enlace : public cSimpleModule
          * Donde NOMBRE puede ser ACK, DATO, I, RR, etc.
          * Y N corresponde a la trama que corresponde
          */
-        static void nombrandoTrama();
+        //static const char* nombrandoTrama(string nombre_original,string nombre,int id);
 };
 
 

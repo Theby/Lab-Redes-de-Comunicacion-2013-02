@@ -256,9 +256,9 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
 
                 //Para el nombre de la trama
                 stringstream buffer;
-                buffer << "ACK " << msg_ack_id;
+                buffer << "ACK," << msg_ack_id;
 
-                //Mandar un ACK N al modulo de aplicación
+                //Mandar un ACK,N al modulo de aplicación
                 cMessage *ack = new cMessage((buffer.str()).c_str());
 
                 send(ack,"hacia_arriba");
@@ -279,7 +279,7 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                     cMessage *ack = new cMessage("ACK,0");
 
                     send(ack,"hacia_arriba");
-                    ev << "Mandando ACK 0 al modulo de aplicación" << endl;
+                    ev << "Mandando ACK,0 al modulo de aplicación" << endl;
                 }
             }else if(M1 == 1){
 
