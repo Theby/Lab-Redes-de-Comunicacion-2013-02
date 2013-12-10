@@ -276,7 +276,7 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                 //Se recibe un UA
                 if(M2 == 6){
                     //Mandar un ACK N al modulo de aplicación
-                    cMessage *ack = new cMessage("ACK 0");
+                    cMessage *ack = new cMessage("ACK,0");
 
                     send(ack,"hacia_arriba");
                     ev << "Mandando ACK 0 al modulo de aplicación" << endl;
