@@ -14,6 +14,8 @@ using namespace std;
 //Define la clase para trabajar directamente con el modulo de enlace
 Define_Module( enlace );
 
+int tamVentana;
+
 void enlace::handleMessage(cMessage *msg)
 {
     //Si el mensaje llega desde el otro Host
@@ -34,6 +36,9 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
 
     if(nombre_dato == "START"){
         delete dato;
+
+        //Se ingresa el tamaño máximo de la ventana
+        tamVentana = par("tamVentana");
 
         //Trama Comando SABM
         DataFrame *tramaComando = new DataFrame("Trama Comando SABM");
