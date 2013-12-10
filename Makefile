@@ -28,7 +28,13 @@ PROJECTRELATIVE_PATH =
 O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 
 # Object files for local .cc and .msg files
-OBJS = $O/aplicacion.o $O/enlace.o $O/intermedio.o $O/DataFrame_m.o $O/Informacion_m.o
+OBJS = \
+    $O/aplicacion.o \
+    $O/enlace.o \
+    $O/FuncionesExtras.o \
+    $O/intermedio.o \
+    $O/DataFrame_m.o \
+    $O/Informacion_m.o
 
 # Message files
 MSGFILES = \
@@ -118,10 +124,13 @@ depend:
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 $O/DataFrame_m.o: DataFrame_m.cc \
 	DataFrame_m.h
+$O/FuncionesExtras.o: FuncionesExtras.cc \
+	FuncionesExtras.h
 $O/Informacion_m.o: Informacion_m.cc \
 	Informacion_m.h
 $O/aplicacion.o: aplicacion.cc \
 	DataFrame_m.h \
+	FuncionesExtras.h \
 	Informacion_m.h \
 	aplicacion.h
 $O/enlace.o: enlace.cc \
