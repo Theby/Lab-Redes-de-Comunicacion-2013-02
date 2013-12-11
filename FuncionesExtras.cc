@@ -41,7 +41,7 @@ int FuncionesExtras::getValorId(const char* input_complete_name){
             nombre[i-rest_tam_msg] = nombre_completo[i];
         }
     }
-    cout << "OBTENIDO:" << atoi(nombre) << endl;
+
     //Lo transforma a entero
     return atoi(nombre);
 }
@@ -83,7 +83,7 @@ int FuncionesExtras::getValorPF(const char* input_complete_name){
             nombre[i-rest_tam_msg] = nombre_completo[i];
         }
     }
-    cout << "OBTENIDO:" << atoi(nombre) << endl;
+
     //Lo transforma a entero
     return atoi(nombre);
 }
@@ -129,7 +129,7 @@ const char* FuncionesExtras::intToString(int numero){
 
     //Numero real
     string real_numero;
-    cout << "RECIBI: " << numero;
+
     if(numero !=0 ){
         //caracter auxiliar para calcular cada digito
         char digito;
@@ -147,6 +147,6 @@ const char* FuncionesExtras::intToString(int numero){
     }else{
         real_numero.push_back(48);
     }
-   cout << " y lo transforme a:" << real_numero << endl;
+
     return real_numero.c_str();
 }

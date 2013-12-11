@@ -36,6 +36,9 @@ module host
 
         //define cual host(0 o 1) comienza la ejecucion
         int starter;
+        
+        //Numero de tramas libres
+        int tramas_libres;
 
         @display("bgl=10;i=device/server2,black;is=n;bgb=130,335;bgi=background/terrain");
     //Puertas de enlace
@@ -70,6 +73,7 @@ module host
                 tamTrama = tamTrama;
                 direccion_host = direccion_host;
                 direccion_dest = direccion_dest;
+                tramas_libres = tramas_libres;
                 @display("p=67,266");
         }
     connections:

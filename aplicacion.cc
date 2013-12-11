@@ -133,18 +133,21 @@ void aplicacion::handleMessage(cMessage* msg){
             delete msg;
         }else if(msg_name == "CONNECT"){
             if (ev.isGUI()) bubble("Conectado!");
+            delete msg;
         }else if(msg_name == "DISCONNECT"){
             if (ev.isGUI()){
                 //Negro de desconectado
                 getDisplayString().setTagArg("i",1,"black");
                 bubble("Desconectado!");
             }
+            delete msg;
         }else{
             ev << "El mensaje: " << msg_name << " no es valido y ha sido eliminado" << endl;
             delete msg;
         }
     }else{
         ev << "Mensaje llegado desde un lugar desconocido" << endl;
+        delete msg;
     }
 }
 
