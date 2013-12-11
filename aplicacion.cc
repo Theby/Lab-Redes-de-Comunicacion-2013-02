@@ -30,6 +30,12 @@ void aplicacion::generaInfo(int trama_id){
         int numTramas = par("numTramas");
 
         if(numTramas == trama_id){
+            //Negro de desconectado
+            if (ev.isGUI()){
+                getDisplayString().setTagArg("i",1,"black");
+                bubble("Desconectado!");
+            }
+
             //creando un mensaje END
             cMessage *end = new cMessage("END");
 
@@ -69,7 +75,7 @@ void aplicacion::generaInfo(int trama_id){
             send(tramaComunicacion, "hacia_abajo");
 
             //Informando al Usuario el dato enviado
-            ev <<"Destino: "<< address_dest;
+            ev <<"Enviado trama " << trama_id << "al modulo de enlace" << address_dest;
         }
     }
 }
@@ -86,14 +92,14 @@ void aplicacion::initialize(){
 
     //Es el turno de quien tenga la misma address que numero de master
     if(address_host == master){
-        //Ya nadie es el master
-        master=42;
+        //Les da un color de conectado al modulo de aplicación
+        if (ev.isGUI()) getDisplayString().setTagArg("i",1,"green");
 
         //Generar palabra para envío
         generaInfo(-1);
     }else if(master == 2){
-        //Ya nadie es el master
-        master=42;
+        //Les da un color de conectado al modulo de aplicación
+        if (ev.isGUI()) getDisplayString().setTagArg("i",1,"green");
 
         //Ambos generan mensajes
         generaInfo(-1);
@@ -105,11 +111,19 @@ void aplicacion::handleMessage(cMessage* msg){
     string dato = "DATO";
     string msg_name = msg->getName();
 
+    //Normal de activo
+    if (ev.isGUI()) getDisplayString().setTagArg("i",1,"");
+
     //Si el mensaje ha llegado desde intermedio
     if (msg->arrivedOn("desde_abajo")){
         //Es ACK
         if(msg_name[0] == ack[0] && msg_name[1] == ack[1] && msg_name[2] == ack[2]){
             delete msg;
+
+            //Mensaje de conectado
+            if(msg_name[4] == '0'){
+                if (ev.isGUI()) bubble("Conectado!");
+            }
 
             ev << "El mensaje: " << msg_name << " fue correctamente recivido." << endl;
             generaInfo(FuncionesExtras::getValorId(msg_name.c_str()));
@@ -117,6 +131,14 @@ void aplicacion::handleMessage(cMessage* msg){
         }else if(msg_name[0] == dato[0] && msg_name[1] == dato[1] && msg_name[2] == dato[2] && msg_name[3] == dato[3]){
             ev << "El dato: " << msg_name << " fue correctamente recivido." << endl;
             delete msg;
+        }else if(msg_name == "CONNECT"){
+            if (ev.isGUI()) bubble("Conectado!");
+        }else if(msg_name == "DISCONNECT"){
+            if (ev.isGUI()){
+                //Negro de desconectado
+                getDisplayString().setTagArg("i",1,"black");
+                bubble("Desconectado!");
+            }
         }else{
             ev << "El mensaje: " << msg_name << " no es valido y ha sido eliminado" << endl;
             delete msg;

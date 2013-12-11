@@ -39,6 +39,12 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
     if(nombre_dato == "START"){
         delete dato;
 
+        //Verde de esperando confirmación
+        if (ev.isGUI()){
+            getDisplayString().setTagArg("i",1,"green");
+            bubble("Esperando Confirmación");
+        }
+
         //Se envia una trama SABM al otro host
         respuesta_a = "SABM";
         //Trama Comando SABM
@@ -78,6 +84,12 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
                 tramaComando->setFCS(i,0);
             }
         //Fin FCS
+
+        //Verde de esperando
+        if (ev.isGUI()){
+            getParentModule()->getDisplayString().setTagArg("i",1,"green");
+            getParentModule()->bubble("Esperando Confirmación");
+        }
 
         send(tramaComando,"hacia_fisico");
         ev << "Enviado Unnumbered SABM a Host: " << address_dest;
@@ -284,6 +296,11 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
             if(M1 == 0){
                 //Se recibe un DISC
                 if(M2 == 2){
+                    //Negro de desconectado
+                    if (ev.isGUI()){
+                        getDisplayString().setTagArg("i",1,"black");
+                        bubble("Desconectado!");
+                    }
                     //Se manda de respuesta un UA Frame y se desconecta
                     dataframe->setName("Trama Comando UA");
 
@@ -313,6 +330,20 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                         //Queda igual
                     //Fin FCS
 
+                    //Negro de desconectado
+                    if (ev.isGUI()){
+                        getParentModule()->getDisplayString().setTagArg("i",1,"black");
+                        getParentModule()->bubble("Desconectado!");
+
+                        int master = getParentModule()->par("starter");
+                        int address_host = par("direccion_host");
+                        if(master != address_host && master!= 2){
+                            cMessage *disconnect = new cMessage("DISCONNECT");
+
+                            send(disconnect,"hacia_arriba");
+                        }
+                    }
+
                     send(dataframe,"hacia_fisico");
                     ev << "Enviado Unnumbered UA a Host: " << address_dest;
 
@@ -322,13 +353,26 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                 else if(M2 == 6){
                     delete dataframe;
                     if(respuesta_a == "SABM"){
+                        //Normal de activo
+                        if (ev.isGUI()){
+                            getDisplayString().setTagArg("i",1,"");
+                            bubble("Conectado!");
+                            getParentModule()->getDisplayString().setTagArg("i",1,"");
+                            getParentModule()->bubble("Conectado!");
+                        }
                         //Mandar un ACK N al modulo de aplicación
                         cMessage *ack = new cMessage("ACK,0");
 
                         send(ack,"hacia_arriba");
                         ev << "Mandando ACK,0 al modulo de aplicación" << endl;
                     }else if(respuesta_a == "DISC"){
-                        //Se disconecta
+                        //Negro de desconectado
+                        if (ev.isGUI()){
+                            getDisplayString().setTagArg("i",1,"black");
+                            bubble("Desconectado!");
+                            getParentModule()->getDisplayString().setTagArg("i",1,"black");
+                            getParentModule()->bubble("Desconectado!");
+                        }
                     }
                 }
             }else if(M1 == 1){
@@ -338,6 +382,12 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
             }else if(M1 == 3){
                 //Se recibe un SABM
                 if(M2 == 4){
+                    //Normal de activo
+                    if (ev.isGUI()){
+                        getDisplayString().setTagArg("i",1,"");
+                        bubble("Conectado!");
+                    }
+
                     //Se manda de respuesta un UA Frame
                     dataframe->setName("Trama Comando UA");
 
@@ -366,6 +416,20 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                     //Inicio FCS
                         //Queda igual
                     //Fin FCS
+
+                    //Normal de conectado
+                    if (ev.isGUI()){
+                        getParentModule()->getDisplayString().setTagArg("i",1,"");
+                        getParentModule()->bubble("Conectado!");
+
+                        int master = getParentModule()->par("starter");
+                        int address_host = par("direccion_host");
+                        if(master != address_host && master!= 2){
+                            cMessage *connect = new cMessage("CONNECT");
+
+                            send(connect,"hacia_arriba");
+                        }
+                    }
 
                     send(dataframe,"hacia_fisico");
                     ev << "Enviado Unnumbered UA a Host: " << address_dest;
