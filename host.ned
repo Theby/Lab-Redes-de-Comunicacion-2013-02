@@ -34,6 +34,9 @@ module host
         //número de tramas
         int numTramas;
 
+		//tamaño máximo de ventana
+        int tamVentana;
+
         //define cual host(0 o 1) comienza la ejecucion
         int starter;
         
@@ -71,9 +74,11 @@ module host
             //parámetros del nivel
             parameters:
                 tamTrama = tamTrama;
+                tamVentana = tamVentana;
                 direccion_host = direccion_host;
                 direccion_dest = direccion_dest;
-                tramas_libres = tramas_libres;
+                tramas_libres = tramas_libres;                
+                numTramas = numTramas;
                 @display("p=67,266");
         }
     connections:

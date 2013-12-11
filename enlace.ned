@@ -28,6 +28,12 @@ simple enlace
         //Tamaño de trama
         int tamTrama;
         
+        //Número de Tramas
+        int numTramas;
+        
+        //Tamaño de ventana
+        int tamVentana;
+        
         //Numero de tramas libres
         int tramas_libres;
         
@@ -36,6 +42,7 @@ simple enlace
         
         //ultima trama recibida
         volatile int ult_trama_recibida = default(0);
+        
 
         @display("i=block/ifcard,black;is=n");
 
