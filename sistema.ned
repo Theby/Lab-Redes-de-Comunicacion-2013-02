@@ -77,5 +77,5 @@ network red extends sistema
     parameters:
         tamTrama @prompt("Ingrese el largo en bits que tendrá la información enviada por cada Trama") = default(4);
         numTramas @prompt("Ingrese el número de tramas a enviar") = default(1);
-        starter @prompt("Ingrese cual host comenzará la transmisión: 0 o 1") = default(0);
+        starter @prompt("Ingrese cual host comenzará la transmisión: 0 o 1; si selecciona 2 comenzarán los dos al mismo tiempo.") = default(0);
 }
