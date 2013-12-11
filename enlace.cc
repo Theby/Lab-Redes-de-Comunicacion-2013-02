@@ -22,6 +22,7 @@ int lastFrameTransmited = -1;
 int lastFrameAck = -1;
 //Cantidad máxima de tramas por ventana
 unsigned int tamVentana;
+int numTramas;
 
 
 void enlace::handleMessage(cMessage *msg)
@@ -44,7 +45,8 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
 
     if(nombre_dato == "START"){
         delete dato;
-
+        //Se ingresa el número de tramas a enviar
+        numTramas = par("numTramas");
         //Se ingresa el tamaño máximo de la ventana
         tamVentana = par("tamVentana");
 
@@ -333,8 +335,16 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
             if(M1 == 0){
                 //Se recibe un UA
                 if(M2 == 6){
-                    //Se envian tantos ack como elementos pueda contener la ventana.
-                    for(unsigned int i=0; i<tamVentana; i++){
+                    int tramasPedidas;
+                    //Se setea la cantidad de tramas que se enviarán en un comienzo
+                    if(numTramas<tamVentana){
+                        tramasPedidas = numTramas;
+                    }
+                    else{
+                        tramasPedidas = tamVentana;
+                    }
+                    //Se envian tantos ack como elementos pueda contener la ventana y el max de tramas.
+                    for(unsigned int i=0; i<tramasPedidas; i++){
                         //Mandar un ACK N al modulo de aplicación
                         stringstream buffer;
                         buffer.str("");

@@ -28,6 +28,9 @@ simple enlace
         //Tamaño de trama
         int tamTrama;
         
+        //Número de Tramas
+        int numTramas;
+        
         //Tamaño de ventana
         int tamVentana;
 

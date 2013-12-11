@@ -70,6 +70,7 @@ module host
             parameters:
                 tamTrama = tamTrama;
                 tamVentana = tamVentana;
+                numTramas = numTramas;
                 direccion_host = direccion_host;
                 direccion_dest = direccion_dest;
                 @display("p=67,266");
