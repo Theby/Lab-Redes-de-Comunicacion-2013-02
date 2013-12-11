@@ -81,6 +81,7 @@ network red extends sistema
 {
     //Parámetros
     parameters:
+        numTramas @prompt("Ingrese el número de tramas a enviar") = default(1);
         tamTrama @prompt("Ingrese el largo en bits que tendrá la información enviada por cada Trama") = default(4);
         tramas_libres @prompt("Ingrese el número de tramas que se enviarán antes de recibir un Asentimiento RR") = default(1);
         tamVentana @prompt("Ingrese el número máximo de tramas por ventana") = default(5);
