@@ -43,6 +43,9 @@ module host
         //Numero de tramas libres
         int tramas_libres;
 
+		//define cual es la probabilidad de error
+        int error;
+
         @display("bgl=10;i=device/server2,black;is=n;bgb=130,335;bgi=background/terrain");
     //Puertas de enlace
     gates:
@@ -79,6 +82,7 @@ module host
                 direccion_dest = direccion_dest;
                 tramas_libres = tramas_libres;                
                 numTramas = numTramas;
+                error=error;
                 @display("p=67,266");
         }
     connections:

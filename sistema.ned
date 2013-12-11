@@ -27,6 +27,7 @@ module sistema
         volatile int tamVentana;
         volatile int starter;       
         volatile int tramas_libres;
+        volatile int error;
 
         @display("i=device/lan;is=n");
     //Submódulos que lo componen
@@ -40,6 +41,7 @@ module sistema
                 tamVentana = tamVentana;
                 starter = starter;                
                 tramas_libres = tramas_libres;
+                error = error;
                 //Se suministra la dirección que le corresponde al host y al destino
                 direccion_host = 00000000;
                 direccion_dest = 00000001;
@@ -54,6 +56,7 @@ module sistema
                 tamVentana = tamVentana;
                 starter = starter;
                 tramas_libres = tramas_libres;
+                error = error;
                 //Se suministra la dirección que le corresponde al host y al destino
                 direccion_host = 00000001;
                 direccion_dest = 00000000;
@@ -87,6 +90,7 @@ network red extends sistema
         tamTrama @prompt("Ingrese el largo en bits que tendrá la información enviada por cada Trama") = default(4);
         tramas_libres @prompt("Ingrese el número de tramas que se enviarán antes de recibir un Asentimiento RR") = default(1);
         tamVentana @prompt("Ingrese el número máximo de tramas por ventana") = default(5);
-        starter @prompt("Ingrese cual host comenzará la transmisión: 0 o 1; si selecciona 2 comenzarán los dos al mismo tiempo.") = default(0);        
+        starter @prompt("Ingrese cual host comenzará la transmisión: 0 o 1; si selecciona 2 comenzarán los dos al mismo tiempo.") = default(0);
+        error @prompt("Ingrese cual es la probabilidad de que la trama posea un error (de 0 a 99)") = default(7);        
         @display("bgi=background/green,t");
 }

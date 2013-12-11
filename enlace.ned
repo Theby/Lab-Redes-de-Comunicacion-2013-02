@@ -35,7 +35,7 @@ simple enlace
         int tamVentana;
         
         //Numero de tramas libres
-        int tramas_libres;
+        int tramas_libres;      
         
         //numero de tramas no asentidas
         volatile int tramas_no_asentidas = default(0);
