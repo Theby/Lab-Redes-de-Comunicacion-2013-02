@@ -24,8 +24,8 @@ module sistema
     parameters:
         volatile int tamTrama;
         volatile int numTramas;
-        volatile int starter;
         volatile int tamVentana;
+        volatile int starter;       
         volatile int tramas_libres;
 
         @display("i=device/lan;is=n");
@@ -37,8 +37,8 @@ module sistema
             parameters:
                 tamTrama = tamTrama;
                 numTramas = numTramas;
-                starter = starter;
                 tamVentana = tamVentana;
+                starter = starter;                
                 tramas_libres = tramas_libres;
                 //Se suministra la dirección que le corresponde al host y al destino
                 direccion_host = 00000000;
@@ -51,8 +51,8 @@ module sistema
             parameters:
                 tamTrama = tamTrama;
                 numTramas = numTramas;
-                starter = starter;
                 tamVentana = tamVentana;
+                starter = starter;
                 tramas_libres = tramas_libres;
                 //Se suministra la dirección que le corresponde al host y al destino
                 direccion_host = 00000001;
