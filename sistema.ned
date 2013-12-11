@@ -89,3 +89,4 @@ network red extends sistema
         tamVentana @prompt("Ingrese el número máximo de tramas por ventana") = default(5);
         starter @prompt("Ingrese cual host comenzará la transmisión: 0 o 1; si selecciona 2 comenzarán los dos al mismo tiempo.") = default(0);        
         @display("bgi=background/green,t");
+}
