@@ -2,6 +2,8 @@
 * y recibe las palabras que llegan desde el otro host y las envía al nivel superior
 */
 
+#include <time.h>
+#include <stdlib.h>
 #include <string.h>
 #include <omnetpp.h>
 
@@ -186,6 +188,13 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
 
     }else{
         //Se recibe un DATO,N por lo que se envia una trama de informacion al otro frame
+        srand(time(NULL));
+        int error = rand()%100;
+
+        // Instancia de probabilidad de error para las tramas que se envian
+        int prob_error = par("error");
+        // Instancia de probabilidad que la tramase pierda durante el envio
+        int prob_noEnvio = prob_error;
 
         //Para el bit P/F
         int bit_pf;
@@ -194,9 +203,18 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
         //Para guardar el id del dato recibido
         int id_dato;
 
+        DataFrame *tramaInformacion;
+        if (error > prob_error)
+            //Se recibe un DATO,N por lo que se envia una trama de informacion al otro frame
+            //Pasar los datos de un paquete a otro (Informacion -> DataFrame)
+            tramaInformacion = new DataFrame(FuncionesExtras::nombrandoTrama(nombre_dato.c_str(),"I,"));
+        else{
+            //Si no supera el umbral de error, la trama se setea como errornea.
+            tramaInformacion = new DataFrame(FuncionesExtras::nombrandoTrama(nombre_dato.c_str(),"ERROR,"));
+            ev << "La trama "<< nombre_dato.c_str() << " se ha generado con error.";
+        }
 
         //Pasar los datos de un paquete a otro (Informacion -> DataFrame)
-        DataFrame *tramaInformacion = new DataFrame(FuncionesExtras::nombrandoTrama(nombre_dato.c_str(),"I,"));
         Informacion *informacion = check_and_cast<Informacion *>(dato);
 
         //Obtiene el valor del bit pf para esta trama
@@ -251,7 +269,15 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
         //Fin FCS
 
         delete informacion;
-        send(tramaInformacion,"hacia_fisico");
+        //srand(time(NULL));
+        //error = rand()%100;
+        //En caso de ser menor a la prob_noEnvio, la trama no se envia para error de trama no recibida
+        //if (error > prob_noEnvio){
+            send(tramaInformacion,"hacia_fisico");
+        /*}else{
+            ev << "La trama "<< nombre_dato.c_str() << " se ha perdido.";*/
+        //}
+
         ev << "Mandando trama de Información " << id_dato << " al host: " << address_dest;
 
         //Guarda el valor de las tramas enviadas y que no han recibido asentimiento RR
@@ -274,12 +300,17 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
 void enlace::processMsgFromLowerLayer(cMessage *packet){
     int address_dest = par("direccion_dest");
     string packet_name = packet->getName();
+    int bandera = 0;
 
     //Se transforma el mensaje que ingresa en tipo DataFrame
     DataFrame *dataframe = check_and_cast<DataFrame *>(packet);
 
     //Si el dataframe corresponde a una trama de informacion
     if(dataframe->getControl(0) == 0){
+        if (packet_name == "ERROR"){
+            bandera = 1; // bandera de error
+        }
+        if (bandera == 0){
         //Se envia la información recibida a aplicacion
             //Crea el packete de informacion para mandarlo a Aplicacion
             Informacion *tramaComunicacion = new Informacion(FuncionesExtras::nombrandoTrama(packet_name.c_str(),"DATO,"));
@@ -302,51 +333,50 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
             send(tramaComunicacion,"hacia_arriba");
             ev << "Mandando mensaje recibido a aplicacion";
 
+            //Si se recibe el bit P/F en 1 se responde con un RR,N,1
+                if(dataframe->getControl(4) == 1){
+                    //Se envia RR N al otro host
+                    //Usando dataframe para modificar la informacion
 
-        //Si se recibe el bit P/F en 1 se responde con un RR,N,1
-            if(dataframe->getControl(4) == 1){
-                //Se envia RR N al otro host
-                //Usando dataframe para modificar la informacion
+                        //Para asignar el valor_id
+                        int valor_id;
+                        valor_id = FuncionesExtras::getValorId(packet_name.c_str());
+                        valor_id++;
+                        dataframe->setName(FuncionesExtras::nombrando("RR,",valor_id));
 
-                    //Para asignar el valor_id
-                    int valor_id;
-                    valor_id = FuncionesExtras::getValorId(packet_name.c_str());
-                    valor_id++;
-                    dataframe->setName(FuncionesExtras::nombrando("RR,",valor_id));
+                    //Inicio Address
+                        //Queda igual
+                    //Fin Address
 
-                //Inicio Address
-                    //Queda igual
-                //Fin Address
+                    //Inicio Control: Supervisory RR
+                        //Supervisory
+                        dataframe->setControl(0,1);
+                        dataframe->setControl(1,0);
 
-                //Inicio Control: Supervisory RR
-                    //Supervisory
-                    dataframe->setControl(0,1);
-                    dataframe->setControl(1,0);
+                        //Supervisory Funcion bits
+                        dataframe->setControl(2,0);
+                        dataframe->setControl(3,0);
 
-                    //Supervisory Funcion bits
-                    dataframe->setControl(2,0);
-                    dataframe->setControl(3,0);
+                        //bit P/F en 1 para dar respuesta
+                        dataframe->setControl(4,1);
+                        //Asignando nombre completo
+                            packet_name = dataframe->getName();
+                            packet_name += ',';
+                            dataframe->setName(FuncionesExtras::nombrando(packet_name.c_str(),dataframe->getControl(4)));
 
-                    //bit P/F en 1 para dar respuesta
-                    dataframe->setControl(4,1);
-                    //Asignando nombre completo
-                        packet_name = dataframe->getName();
-                        packet_name += ',';
-                        dataframe->setName(FuncionesExtras::nombrando(packet_name.c_str(),dataframe->getControl(4)));
+                        //N(R)
+                        dataframe->setControl(5,1);
+                        dataframe->setControl(6,1);
+                        dataframe->setControl(7,0);
+                    //Fin Control
 
-                    //N(R)
-                    dataframe->setControl(5,1);
-                    dataframe->setControl(6,1);
-                    dataframe->setControl(7,0);
-                //Fin Control
+                    //Inicio FCS
+                        //Queda igual
+                    //Fin FCS
 
-                //Inicio FCS
-                    //Queda igual
-                //Fin FCS
-
-                send(dataframe,"hacia_fisico");
-                ev << "Enviado Supervisory RR" << " a Host: " << address_dest;
-                par("tramas_no_asentidas").setLongValue(0);
+                    send(dataframe,"hacia_fisico");
+                    ev << "Enviado Supervisory RR" << " a Host: " << address_dest;
+                    par("tramas_no_asentidas").setLongValue(0);
             }else{
                 //Asigna el valor de la última trama recibida
                 int ult_trama_recibida = par("ult_trama_recibida");
@@ -355,6 +385,40 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                 par("ult_trama_recibida").setLongValue(ult_trama_recibida);
                 delete dataframe;
             }
+        }else{
+            //Usando dataframe para modificar la informacion
+            dataframe->setName(FuncionesExtras::nombrando("REJ,",FuncionesExtras::getValorId(packet_name.c_str())));
+
+            //Inicio Address
+                //Queda igual
+            //Fin Address
+
+            //Inicio Control: Supervisory RR
+                //Supervisory
+                dataframe->setControl(0,1);
+                dataframe->setControl(1,0);
+
+                //Supervisory Funcion bits
+                dataframe->setControl(2,0);
+                dataframe->setControl(3,1);
+
+                //bit P/F en 1 para dar respuesta
+                dataframe->setControl(4,1);
+                //Asignando nombre completo
+                    packet_name = dataframe->getName();
+                    packet_name += ',';
+                    dataframe->setName(FuncionesExtras::nombrando(packet_name.c_str(),dataframe->getControl(4)));
+
+                //N(R)
+                dataframe->setControl(5,0);
+                dataframe->setControl(6,0);
+                dataframe->setControl(7,0);
+            //Fin Control
+
+            //Inicio FCS
+                //Queda igual
+            //Fin FCS
+        }
     }
     else{
         //Si el dataframe corresponde a una trama supervisora
@@ -417,6 +481,43 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                         ev << "Se envia trama DISC" << endl;
                     }
                 }
+            }else if(M1 == 1){
+                //Recibe un REJ
+                //Retransmite la trama deseada
+
+                dataframe->setName(FuncionesExtras::nombrandoTrama(packet_name.c_str(),"I,"));
+
+                //Inicio Address
+                   //Sin cambios
+                //Fin Address
+
+                //Inicio Control: Informacion
+                    //Informacion
+                    dataframe->setControl(0,0);
+
+                    //N(S)
+                    dataframe->setControl(1,0);
+                    dataframe->setControl(2,0);
+                    dataframe->setControl(3,0);
+
+                    //bit P/F en 1 para solicitar respuesta
+                        dataframe->setControl(4,1);
+                        //Asignando nombre completo
+                        packet_name = dataframe->getName();
+                        packet_name += ',';
+                            dataframe->setName(FuncionesExtras::nombrando(packet_name.c_str(),dataframe->getControl(4)));
+
+                    //N(R)
+                        dataframe->setControl(5,0);
+                        dataframe->setControl(6,0);
+                        dataframe->setControl(7,0);
+                //Fin Control
+
+                //Inicio FCS
+                    //Sin cambios
+                //Fin FCS
+                    send(dataframe,"hacia_fisico");
+
             }
         }
         //Si el dataframe corresponde a una trama no-numerada (Unnumbered)

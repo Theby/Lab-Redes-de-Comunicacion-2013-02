@@ -27,8 +27,6 @@ class aplicacion : public ::cSimpleModule
 
         //Generador de la información
         virtual void generaInfo(int trama_id);
-
-        //virtual int asdfasdf(const char* sss);
 };
 
 

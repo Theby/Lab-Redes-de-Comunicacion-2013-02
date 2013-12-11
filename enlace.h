@@ -26,13 +26,6 @@ class enlace : public cSimpleModule
         virtual void processMsgFromLowerLayer(cMessage *packet);
 
         virtual void handleMessage(cMessage *msg);
-
-        /*
-         * Para nombrar la trama de acuerdo al mensaje recibido, de modo "NOMBRE N"
-         * Donde NOMBRE puede ser ACK, DATO, I, RR, etc.
-         * Y N corresponde a la trama que corresponde
-         */
-        //static const char* nombrandoTrama(string nombre_original,string nombre,int id);
 };
 
 

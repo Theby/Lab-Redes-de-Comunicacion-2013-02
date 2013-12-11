@@ -86,11 +86,11 @@ network red extends sistema
 {
     //Parámetros
     parameters:
-        numTramas @prompt("Ingrese el número de tramas a enviar") = default(1);
+        numTramas @prompt("Ingrese el máximo número de tramas que puede enviar un host") = default(1);
         tamTrama @prompt("Ingrese el largo en bits que tendrá la información enviada por cada Trama") = default(4);
         tramas_libres @prompt("Ingrese el número de tramas que se enviarán antes de recibir un Asentimiento RR") = default(1);
         tamVentana @prompt("Ingrese el número máximo de tramas por ventana") = default(5);
-        starter @prompt("Ingrese cual host comenzará la transmisión: 0 o 1; si selecciona 2 comenzarán los dos al mismo tiempo.") = default(0);
+        starter @prompt("Ingrese cual host comenzará la transmisión: 0 o 1; si selecciona 2, comenzarán los dos al mismo tiempo.") = default(0);
         error @prompt("Ingrese cual es la probabilidad de que la trama posea un error (de 0 a 99)") = default(7);        
         @display("bgi=background/green,t");
 }
