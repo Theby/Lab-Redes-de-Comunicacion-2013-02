@@ -32,6 +32,9 @@ module host
         //número de tramas
         int numTramas;
         
+        //tamaño máximo de ventana
+        int tamVentana;
+        
         //define cual host(0 o 1) comienza la ejecucion
         int starter;
         

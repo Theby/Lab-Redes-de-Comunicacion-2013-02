@@ -9,12 +9,20 @@
 #include <Informacion_m.h>
 #include <enlace.h>
 
+#include <vector>
+
 using namespace std;
 
 //Define la clase para trabajar directamente con el modulo de enlace
 Define_Module( enlace );
 
+//Ventana deslizante
+vector<int> ventana;
+int lastFrameTransmited = -1;
+int lastFrameAck = -1;
+//Cantidad máxima de tramas por ventana
 int tamVentana;
+
 
 void enlace::handleMessage(cMessage *msg)
 {
