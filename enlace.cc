@@ -333,11 +333,14 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
             if(M1 == 0){
                 //Se recibe un UA
                 if(M2 == 6){
-                    //Mandar un ACK N al modulo de aplicación
-                    cMessage *ack = new cMessage("ACK 0");
+                    //Se envian tantos ack como elementos pueda contener la ventana.
+                    for(unsigned int i=0; i<tamVentana; i++){
+                        //Mandar un ACK N al modulo de aplicación
+                        cMessage *ack = new cMessage("ACK %i",i);
 
-                    send(ack,"hacia_arriba");
-                    ev << "Mandando ACK 0 al modulo de aplicación" << endl;
+                        send(ack,"hacia_arriba");
+                        ev << "Mandando ACK "<< i <<" al modulo de aplicación" << endl;
+                    }
                 }
             }else if(M1 == 1){
 
