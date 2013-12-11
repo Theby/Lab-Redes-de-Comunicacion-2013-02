@@ -69,6 +69,7 @@ module host
             //parámetros del nivel
             parameters:
                 tamTrama = tamTrama;
+                tamVentana = tamVentana;
                 direccion_host = direccion_host;
                 direccion_dest = direccion_dest;
                 @display("p=67,266");

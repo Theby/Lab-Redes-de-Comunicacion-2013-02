@@ -9,7 +9,7 @@
 #include <Informacion_m.h>
 #include <enlace.h>
 
-#include <vector>
+#include <deque>
 
 using namespace std;
 
@@ -17,11 +17,11 @@ using namespace std;
 Define_Module( enlace );
 
 //Ventana deslizante
-vector<int> ventana;
+deque<cMessage> ventana;
 int lastFrameTransmited = -1;
 int lastFrameAck = -1;
 //Cantidad máxima de tramas por ventana
-int tamVentana;
+unsigned int tamVentana;
 
 
 void enlace::handleMessage(cMessage *msg)
@@ -92,6 +92,9 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
         delete dato;
 
     }else{
+        //Se almacena en la cola de la ventana la trama recivida desde nivel intermedio
+        ventana.push_back(*dato);
+
         //Pasar los datos de un paquete a otro (Informacion -> DataFrame)
         //para guardar el valor del mensaje que debe ser enviado
         int msg_ack_id=0;
@@ -153,6 +156,8 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
         //Fin FCS
 
         delete informacion;
+        //Se marca el id del último paquete de información I transmitido a otro host
+        lastFrameTransmited = msg_ack_id;
         send(tramaInformacion,"hacia_fisico");
     }
 }
@@ -267,15 +272,55 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
 
                 msg_ack_id = atoi(nombre);
 
-                //Para el nombre de la trama
-                stringstream buffer;
-                buffer << "ACK " << msg_ack_id;
+                //Se requiere verificar error si el id del RR corresponde al orden de la secuencia
+                //de los DataFrame ya enviados. Si no quizas hay perdida de paquetes.
 
-                //Mandar un ACK N al modulo de aplicación
-                cMessage *ack = new cMessage((buffer.str()).c_str());
+                //Se marca cual es el id del último RR recivido
+                lastFrameAck = msg_ack_id;
 
-                send(ack,"hacia_arriba");
-                ev << "Mandando ACK al modulo de aplicación" << endl;
+                //para guardar el valor del id de la trama de la ventana
+                int trama_ventana_id=0;
+
+                //Se procede a correr la ventana hasta el lastFrameAck
+                do{
+                    cMessage temp = ventana.front();
+                    string name_trama_ventana_id = temp.getName();
+
+                    //para guardar el tamaño del trama_ventana_id (ejemplo: 10-> tamaño :2)
+                    int tam_trama_ventana_id = name_trama_ventana_id.length()-5;
+
+                    char* nombre;
+                    nombre = (char*)malloc(sizeof(char)*tam_trama_ventana_id);
+
+                    for(unsigned int i=5;i<name_trama_ventana_id.length();i++){
+                        nombre[i-5] = name_trama_ventana_id[i];
+                    }
+
+                    trama_ventana_id = atoi(nombre);
+                    //hasta llegar al paquete con id sucesor al lastFrameAck
+                    if(lastFrameAck==trama_ventana_id-1){
+                        break;
+                    }
+                    //Se hace pop al frente de la cola ventana
+                    ventana.pop_front();
+                }while((ventana.size()!=0) && (lastFrameAck!= trama_ventana_id - 1));
+
+                //Si el tamaño de la ventana no supera el máximo determinado por tamVentana y
+                //la posisión del último frame transmitido es menor que el último por
+                //transmitir segun la posición de la presente ventana.
+                //Se envía ack hacia la aplicación.
+                if((ventana.size()<tamVentana) && (lastFrameTransmited<(lastFrameAck+tamVentana))){
+
+                    //Para el nombre de la trama
+                    stringstream buffer;
+                    buffer << "ACK " << msg_ack_id;
+
+                    //Mandar un ACK N al modulo de aplicación
+                    cMessage *ack = new cMessage((buffer.str()).c_str());
+
+                    send(ack,"hacia_arriba");
+                    ev << "Mandando ACK al modulo de aplicación" << endl;
+                }
             }
         }
         //Si el dataframe corresponde a una trama no-numerada (Unnumbered)

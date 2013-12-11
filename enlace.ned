@@ -27,6 +27,9 @@ simple enlace
         
         //Tamaño de trama
         int tamTrama;
+        
+        //Tamaño de ventana
+        int tamVentana;
 
         @display("i=block/ifcard;is=n");
         
