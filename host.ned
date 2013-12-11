@@ -16,25 +16,25 @@
 package laboratorio_01_02;
 
 //
-// Definici髇 del Host
+// Definici贸n del Host
 //
 module host
 {
-    //par醡etros
+    //par谩metros
     parameters:
-        //direcci髇 del host
+        //direcci贸n del host
         int direccion_host;
 
         //direccion del destino
         int direccion_dest;
 
-        //tama駉 de trama
+        //tama艅o de trama
         int tamTrama;
 
-        //n鷐ero de tramas
+        //n煤mero de tramas
         int numTramas;
 
-		//tama駉 m醲imo de ventana
+		//tama艅o m谩ximo de ventana
         int tamVentana;
 
         //define cual host(0 o 1) comienza la ejecucion
@@ -50,11 +50,11 @@ module host
         input entrada;
         //puerta de salida
         output salida;
-    //Llamado a Subm骴ulos        
+    //Llamado a Subm贸dulos        
     submodules:
-        //Llamado al nivel de aplicaci髇
+        //Llamado al nivel de aplicaci贸n
         Modulo_Aplicacion: aplicacion {
-            //par醡etros del nivel
+            //par谩metros del nivel
             parameters:
                 tamTrama = tamTrama;
                 direccion_host = direccion_host;
@@ -65,13 +65,13 @@ module host
         }
         //Llamado al nivel intermedio
         Modulo_Intermedio: intermedio {
-            //par醡etros del nivel
+            //par谩metros del nivel
             parameters:
                 @display("p=67,158");
         }
         //Llamado al nivel de enlace
         Modulo_Enlace: enlace {
-            //par醡etros del nivel
+            //par谩metros del nivel
             parameters:
                 tamTrama = tamTrama;
                 tamVentana = tamVentana;
@@ -84,7 +84,7 @@ module host
     connections:
         //Desde aplicacion hacia intermedio
         Modulo_Aplicacion.hacia_abajo --> Modulo_Intermedio.desde_arriba;
-        //Desde intermedio a aplicaci髇
+        //Desde intermedio a aplicaci贸n
         Modulo_Intermedio.hacia_arriba --> Modulo_Aplicacion.desde_abajo;
         //Desde intermedio a enlace
         Modulo_Intermedio.hacia_abajo --> Modulo_Enlace.desde_arriba;
