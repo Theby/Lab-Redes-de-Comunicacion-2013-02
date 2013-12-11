@@ -16,6 +16,8 @@ using namespace std;
 //Define la clase para trabajar directamente con el modulo de enlace
 Define_Module( enlace );
 
+string respuesta_a;
+
 void enlace::handleMessage(cMessage *msg)
 {
     //Si el mensaje llega desde el otro Host
@@ -37,6 +39,8 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
     if(nombre_dato == "START"){
         delete dato;
 
+        //Se envia una trama SABM al otro host
+        respuesta_a = "SABM";
         //Trama Comando SABM
         DataFrame *tramaComando = new DataFrame("Trama Comando SABM");
 
@@ -80,7 +84,9 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
     }else if(nombre_dato == "END"){
         delete dato;
 
-        //Envia una trama de comando DISC
+        //Envia una trama de comando DISC al otro host
+        respuesta_a = "DISC";
+        //Trama commando DISC
         DataFrame *tramaComando = new DataFrame("Trama Comando DISC");
 
         //Inicio Address
@@ -122,15 +128,18 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
         ev << "Enviado Unnumbered DISC a Host: " << address_dest;
 
     }else{
+        //Se recibe un DATO,N por lo que se envia una trama de informacion al otro frame
         //Pasar los datos de un paquete a otro (Informacion -> DataFrame)
 
         DataFrame *tramaInformacion = new DataFrame(FuncionesExtras::nombrandoTrama(nombre_dato.c_str(),"I,"));
         Informacion *informacion = check_and_cast<Informacion *>(dato);
 
-        //Copiando Address
-        for(int i=0;i<8;i++){
-            tramaInformacion->setAddress(i,informacion->getAddress_dest(i));
-        }
+        //Inicio Address
+            //Copiando Address
+            for(int i=0;i<8;i++){
+                tramaInformacion->setAddress(i,informacion->getAddress_dest(i));
+            }
+        //Fin Address
 
         //Inicio Control: Informacion
             //Informacion
@@ -204,42 +213,48 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
             send(tramaComunicacion,"hacia_arriba");
             ev << "Mandando mensaje recibido a aplicacion";
 
-        //Se envia RR N al otro host
-            //Usando dataframe para modificar la informacion
-            dataframe->setName(FuncionesExtras::nombrando("RR,",1+FuncionesExtras::getValorId(packet_name.c_str())));
 
-            //Inicio Address
-                //Queda igual
-            //Fin Address
+        //Si se recibe el bit P/F en 1 se responde con un RR,N,1
+            if(dataframe->getControl(4) == 1){
+                //Se envia RR N al otro host
+                //Usando dataframe para modificar la informacion
+                    dataframe->setName(FuncionesExtras::nombrando("RR,",1+FuncionesExtras::getValorId(packet_name.c_str())));
 
-            //Inicio Control: Unnumbered UA
-                //Supervisory
-                dataframe->setControl(0,1);
-                dataframe->setControl(1,0);
+                //Inicio Address
+                    //Queda igual
+                //Fin Address
 
-                //Supervisory Funcion bits
-                dataframe->setControl(2,0);
-                dataframe->setControl(3,0);
+                //Inicio Control: Supervisory RR
+                    //Supervisory
+                    dataframe->setControl(0,1);
+                    dataframe->setControl(1,0);
 
-                //bit P/F en 1 para solicitar respuesta
-                dataframe->setControl(4,1);
-                //Asignando nombre completo
-                    packet_name = dataframe->getName();
-                    packet_name += ',';
-                    dataframe->setName(FuncionesExtras::nombrando(packet_name.c_str(),dataframe->getControl(4)));
+                    //Supervisory Funcion bits
+                    dataframe->setControl(2,0);
+                    dataframe->setControl(3,0);
 
-                //N(R)
-                dataframe->setControl(5,1);
-                dataframe->setControl(6,1);
-                dataframe->setControl(7,0);
-            //Fin Control
+                    //bit P/F en 1 para dar respuesta
+                    dataframe->setControl(4,1);
+                    //Asignando nombre completo
+                        packet_name = dataframe->getName();
+                        packet_name += ',';
+                        dataframe->setName(FuncionesExtras::nombrando(packet_name.c_str(),dataframe->getControl(4)));
 
-            //Inicio FCS
-                //Queda igual
-            //Fin FCS
+                    //N(R)
+                    dataframe->setControl(5,1);
+                    dataframe->setControl(6,1);
+                    dataframe->setControl(7,0);
+                //Fin Control
 
-            send(dataframe,"hacia_fisico");
-            ev << "Enviado Supervisory RR" << " a Host: " << address_dest;
+                //Inicio FCS
+                    //Queda igual
+                //Fin FCS
+
+                send(dataframe,"hacia_fisico");
+                ev << "Enviado Supervisory RR" << " a Host: " << address_dest;
+            }else{
+                delete dataframe;
+            }
     }
     else{
         //Si el dataframe corresponde a una trama supervisora
@@ -250,6 +265,8 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
 
             //Se recibe un RR
             if(M1 == 0){
+                delete dataframe;
+
                 //Mandar un ACK,N al modulo de aplicación
                 cMessage *ack = new cMessage(FuncionesExtras::nombrando("ACK,",FuncionesExtras::getValorId(packet_name.c_str())));
 
@@ -265,21 +282,15 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
             M2 = pow(2,2)*dataframe->getControl(5) + pow(2,1)*dataframe->getControl(6) + pow(2,0)*dataframe->getControl(7);
 
             if(M1 == 0){
-                //Se recibe un UA
-                if(M2 == 6){
-                    //Mandar un ACK N al modulo de aplicación
-                    cMessage *ack = new cMessage("ACK,0");
+                //Se recibe un DISC
+                if(M2 == 2){
+                    //Se manda de respuesta un UA Frame y se desconecta
+                    dataframe->setName("Trama Comando UA");
 
-                    send(ack,"hacia_arriba");
-                    ev << "Mandando ACK,0 al modulo de aplicación" << endl;
-                }
-            }else if(M1 == 1){
+                    //Inicio Address
+                        //Queda igual
+                    //Fin Address
 
-            }else if(M1 == 2){
-
-            }else if(M1 == 3){
-                //Se recibe un SABM
-                if(M2 == 4){
                     //Inicio Control: Unnumbered UA
                         //Unnumbered
                         dataframe->setControl(0,1);
@@ -289,7 +300,7 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                         dataframe->setControl(2,0);
                         dataframe->setControl(3,0);
 
-                        //bit P/F en 1 para solicitar respuesta
+                        //bit P/F en 1 para dar respuesta
                         dataframe->setControl(4,1);
 
                         //Unnumbered Funcion bits
@@ -298,12 +309,68 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                         dataframe->setControl(7,0);
                     //Fin Control
 
+                    //Inicio FCS
+                        //Queda igual
+                    //Fin FCS
+
+                    send(dataframe,"hacia_fisico");
+                    ev << "Enviado Unnumbered UA a Host: " << address_dest;
+
+                    //Se disconecta
+                }
+                //Se recibe un UA
+                else if(M2 == 6){
+                    delete dataframe;
+                    if(respuesta_a == "SABM"){
+                        //Mandar un ACK N al modulo de aplicación
+                        cMessage *ack = new cMessage("ACK,0");
+
+                        send(ack,"hacia_arriba");
+                        ev << "Mandando ACK,0 al modulo de aplicación" << endl;
+                    }else if(respuesta_a == "DISC"){
+                        //Se disconecta
+                    }
+                }
+            }else if(M1 == 1){
+
+            }else if(M1 == 2){
+
+            }else if(M1 == 3){
+                //Se recibe un SABM
+                if(M2 == 4){
+                    //Se manda de respuesta un UA Frame
+                    dataframe->setName("Trama Comando UA");
+
+                    //Inicio Address
+                        //Queda igual
+                    //Fin Address
+
+                    //Inicio Control: Unnumbered UA
+                        //Unnumbered
+                        dataframe->setControl(0,1);
+                        dataframe->setControl(1,1);
+
+                        //Unnumbered Funcion bits
+                        dataframe->setControl(2,0);
+                        dataframe->setControl(3,0);
+
+                        //bit P/F en 1 para dar respuesta
+                        dataframe->setControl(4,1);
+
+                        //Unnumbered Funcion bits
+                        dataframe->setControl(5,1);
+                        dataframe->setControl(6,1);
+                        dataframe->setControl(7,0);
+                    //Fin Control
+
+                    //Inicio FCS
+                        //Queda igual
+                    //Fin FCS
+
                     send(dataframe,"hacia_fisico");
                     ev << "Enviado Unnumbered UA a Host: " << address_dest;
                 }
             }
         }
     }
-
-    //send(packet,"hacia_arriba");
 }
