@@ -15,20 +15,22 @@
 
 package laboratorio_01_02;
 
+//
 // Definición del Host
+//
 module host
 {
     //parámetros
     parameters:
         //dirección del host
         int direccion_host;
-        
+
         //direccion del destino
         int direccion_dest;
-        
-        //tamaño de trama
+
+        //tamańo de trama
         int tamTrama;
-        
+
         //número de tramas
         int numTramas;
 
@@ -38,7 +40,10 @@ module host
         //define cual host(0 o 1) comienza la ejecucion
         int starter;
         
-        @display("bgl=10;i=device/server2;is=n;bgb=130,335");
+        //Numero de tramas libres
+        int tramas_libres;
+
+        @display("bgl=10;i=device/server2,black;is=n;bgb=130,335;bgi=background/terrain");
     //Puertas de enlace
     gates:
         //puerta de entrada
@@ -48,7 +53,7 @@ module host
     //Llamado a Submódulos        
     submodules:
         //Llamado al nivel de aplicación
-        varAplicacion: aplicacion {
+        Modulo_Aplicacion: aplicacion {
             //parámetros del nivel
             parameters:
                 tamTrama = tamTrama;
@@ -59,7 +64,7 @@ module host
                 @display("p=67,50");
         }
         //Llamado al nivel intermedio
-        varIntermedio: intermedio {
+        Modulo_Intermedio: intermedio {
             //parámetros del nivel
             parameters:
                 @display("p=67,158");
@@ -78,15 +83,15 @@ module host
         }
     connections:
         //Desde aplicacion hacia intermedio
-        varAplicacion.hacia_abajo --> { } --> varIntermedio.desde_arriba;
+        Modulo_Aplicacion.hacia_abajo --> Modulo_Intermedio.desde_arriba;
         //Desde intermedio a aplicación
-        varIntermedio.hacia_arriba --> { } --> varAplicacion.desde_abajo;
+        Modulo_Intermedio.hacia_arriba --> Modulo_Aplicacion.desde_abajo;
         //Desde intermedio a enlace
-        varIntermedio.hacia_abajo --> { } --> varEnlace.desde_arriba;
+        Modulo_Intermedio.hacia_abajo --> Modulo_Enlace.desde_arriba;
         //Desde enlace a intermedio
-        varEnlace.hacia_arriba --> { } --> varIntermedio.desde_abajo;
-        //Desde enlace a la salida del host
-        varEnlace.hacia_fisico --> { } --> salida;
+        Modulo_Enlace.hacia_arriba --> Modulo_Intermedio.desde_abajo;
+        //Modulo_Enlace enlace a la salida del host
+        Modulo_Enlace.hacia_fisico --> salida;
         //Desde la salida del host hacia enlace
-        entrada --> { } --> varEnlace.desde_fisico;
+        entrada --> Modulo_Enlace.desde_fisico;
 }
