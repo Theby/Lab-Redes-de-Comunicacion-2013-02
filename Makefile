@@ -135,6 +135,7 @@ $O/aplicacion.o: aplicacion.cc \
 	aplicacion.h
 $O/enlace.o: enlace.cc \
 	DataFrame_m.h \
+	FuncionesExtras.h \
 	Informacion_m.h \
 	enlace.h
 $O/intermedio.o: intermedio.cc \
