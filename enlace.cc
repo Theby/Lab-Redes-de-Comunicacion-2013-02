@@ -1,5 +1,5 @@
-/* Env韆 las palabras desde la capa intermedia al otro host
-* y recibe las palabras que llegan desde el otro host y las env韆 al nivel superior
+/* Env铆a las palabras desde la capa intermedia al otro host
+* y recibe las palabras que llegan desde el otro host y las env铆a al nivel superior
 */
 
 #include <string.h>
@@ -42,10 +42,10 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
         par("tramas_no_asentidas").setLongValue(0);
         par("ult_trama_recibida").setLongValue(0);
 
-        //Verde de esperando confirmaci髇
+        //Verde de esperando confirmaci贸n
         if (ev.isGUI()){
             getDisplayString().setTagArg("i",1,"green");
-            bubble("Esperando Confirmaci髇");
+            bubble("Esperando Confirmaci贸n");
         }
 
         //Se envia una trama SABM al otro host
@@ -91,7 +91,7 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
         //Verde de esperando
         if (ev.isGUI()){
             getParentModule()->getDisplayString().setTagArg("i",1,"green");
-            getParentModule()->bubble("Esperando Confirmaci髇");
+            getParentModule()->bubble("Esperando Confirmaci贸n");
         }
 
         send(tramaComando,"hacia_fisico");
@@ -237,7 +237,7 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
         //Fin Control
 
         //Inicio Informacion
-            //Copiando Informaci髇
+            //Copiando Informaci贸n
             tramaInformacion->setInformationArraySize(informacion->getInformacionArraySize());
             for(unsigned int i=0;i<tramaInformacion->getInformationArraySize();i++){
                 tramaInformacion->setInformation(i,informacion->getInformacion(i));
@@ -252,7 +252,7 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
 
         delete informacion;
         send(tramaInformacion,"hacia_fisico");
-        ev << "Mandando trama de Informaci髇 " << id_dato << " al host: " << address_dest;
+        ev << "Mandando trama de Informaci贸n " << id_dato << " al host: " << address_dest;
 
         //Guarda el valor de las tramas enviadas y que no han recibido asentimiento RR
         int tramas_no_asentidas = par("tramas_no_asentidas");
@@ -261,12 +261,12 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
         par("tramas_no_asentidas").setLongValue(tramas_no_asentidas);
 
         if(bit_pf == 0){
-            //Mandar un ACK,N al modulo de aplicaci髇
+            //Mandar un ACK,N al modulo de aplicaci贸n
             int valor_id = 1 + id_dato;
             cMessage *ack = new cMessage(FuncionesExtras::nombrando("ACK,",valor_id));
 
             send(ack,"hacia_arriba");
-            ev << "Mandando ACK al modulo de aplicaci髇" << endl;
+            ev << "Mandando ACK al modulo de aplicaci贸n" << endl;
         }
     }
 }
@@ -280,7 +280,7 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
 
     //Si el dataframe corresponde a una trama de informacion
     if(dataframe->getControl(0) == 0){
-        //Se envia la informaci髇 recibida a aplicacion
+        //Se envia la informaci贸n recibida a aplicacion
             //Crea el packete de informacion para mandarlo a Aplicacion
             Informacion *tramaComunicacion = new Informacion(FuncionesExtras::nombrandoTrama(packet_name.c_str(),"DATO,"));
 
@@ -348,7 +348,7 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                 ev << "Enviado Supervisory RR" << " a Host: " << address_dest;
                 par("tramas_no_asentidas").setLongValue(0);
             }else{
-                //Asigna el valor de la 鷏tima trama recibida
+                //Asigna el valor de la 煤ltima trama recibida
                 int ult_trama_recibida = par("ult_trama_recibida");
                 ult_trama_recibida = FuncionesExtras::getValorId(packet_name.c_str());
 
@@ -370,11 +370,11 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                     if(dataframe->getControl(4) == 1){
                         delete dataframe;
 
-                        //Mandar un ACK,N al modulo de aplicaci髇
+                        //Mandar un ACK,N al modulo de aplicaci贸n
                         cMessage *ack = new cMessage(FuncionesExtras::nombrando("ACK,",FuncionesExtras::getValorId(packet_name.c_str())));
 
                         send(ack,"hacia_arriba");
-                        ev << "Mandando ACK al modulo de aplicaci髇" << endl;
+                        ev << "Mandando ACK al modulo de aplicaci贸n" << endl;
 
                         //Reinicia el valor de las tramas asentidas
                         int tramas_no_asentidas = par("tramas_no_asentidas");
@@ -486,7 +486,7 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                 }
                 //Se recibe un UP
                 else if(M2 == 4){
-                    //Se responde con la 鷏tima RR
+                    //Se responde con la 煤ltima RR
                     int ult_trama_recibida = par("ult_trama_recibida");
 
                     //Usando dataframe para modificar la informacion
@@ -540,11 +540,11 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                             getParentModule()->getDisplayString().setTagArg("i",1,"");
                             getParentModule()->bubble("Conectado!");
                         }
-                        //Mandar un ACK N al modulo de aplicaci髇
+                        //Mandar un ACK N al modulo de aplicaci贸n
                         cMessage *ack = new cMessage("ACK,0");
 
                         send(ack,"hacia_arriba");
-                        ev << "Mandando ACK,0 al modulo de aplicaci髇" << endl;
+                        ev << "Mandando ACK,0 al modulo de aplicaci贸n" << endl;
                     }else if(respuesta_a == "DISC"){
                         respuesta_a == "NONE";
                         //Negro de desconectado
