@@ -76,7 +76,9 @@ channel canal extends ned.DatarateChannel
     datarate = 128000bps;
 }
 
-//Instanciación de la red
+//
+// Instanciación de la red
+//
 network red extends sistema
 {
     //Parámetros
