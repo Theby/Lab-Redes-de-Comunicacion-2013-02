@@ -336,7 +336,11 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                     //Se envian tantos ack como elementos pueda contener la ventana.
                     for(unsigned int i=0; i<tamVentana; i++){
                         //Mandar un ACK N al modulo de aplicación
-                        cMessage *ack = new cMessage("ACK %i",i);
+                        stringstream buffer;
+                        buffer.str("");
+                        buffer.clear();
+                        buffer << "ACK " << i;
+                        cMessage *ack = new cMessage((buffer.str()).c_str());
 
                         send(ack,"hacia_arriba");
                         ev << "Mandando ACK "<< i <<" al modulo de aplicación" << endl;
