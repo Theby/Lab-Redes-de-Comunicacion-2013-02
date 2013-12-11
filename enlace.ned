@@ -21,15 +21,15 @@ simple enlace
     parameters:
         //Dirección de Host
         int direccion_host;
-        
+
 		//Dirección de Destino
         int direccion_dest;
-        
+
         //Tamaño de trama
         int tamTrama;
 
-        @display("i=block/ifcard;is=n");
-        
+        @display("i=block/ifcard,black;is=n");
+
     gates:
         //Con el nivel inferior
         input desde_fisico;

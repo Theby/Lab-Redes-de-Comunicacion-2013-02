@@ -17,7 +17,7 @@ package laboratorio_01_02;
 
 simple intermedio
 {
-    @display("i=block/layer;is=n");
+    @display("i=block/layer,black;is=n");
     //Conexiones
     gates:
         //Hacia el nivel superior
