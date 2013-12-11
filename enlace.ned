@@ -35,7 +35,10 @@ simple enlace
         int tamVentana;
         
         //Numero de tramas libres
-        int tramas_libres;      
+        int tramas_libres;     
+        
+        //define cual es la probabilidad de error
+        int error; 
         
         //numero de tramas no asentidas
         volatile int tramas_no_asentidas = default(0);
