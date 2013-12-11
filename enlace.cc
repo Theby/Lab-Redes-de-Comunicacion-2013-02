@@ -262,7 +262,8 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
 
         if(bit_pf == 0){
             //Mandar un ACK,N al modulo de aplicación
-            cMessage *ack = new cMessage(FuncionesExtras::nombrando("ACK,",1+id_dato));
+            int valor_id = 1 + id_dato;
+            cMessage *ack = new cMessage(FuncionesExtras::nombrando("ACK,",valor_id));
 
             send(ack,"hacia_arriba");
             ev << "Mandando ACK al modulo de aplicación" << endl;

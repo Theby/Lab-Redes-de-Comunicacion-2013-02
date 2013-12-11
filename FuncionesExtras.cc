@@ -29,21 +29,23 @@ int FuncionesExtras::getValorId(const char* input_complete_name){
     //Obtiene el tamaño
     tam_msg_id = nombre_completo.length()-rest_tam_msg;
 
-    char* nombre;
-    nombre = (char*)malloc(sizeof(char)*tam_msg_id);
+    //char* nombre;
+    //nombre = (char*)malloc(sizeof(char)*tam_msg_id);
+    string nombre;
     if(nombre_completo[0] == 'A' || nombre_completo[0] == 'D'){
         //Obtiene el ID y lo guarda en "nombre"
         for(unsigned int i=rest_tam_msg;i<nombre_completo.length();i++){
-            nombre[i-rest_tam_msg] = nombre_completo[i];
+            nombre.push_back(nombre_completo[i]);
         }
     }else{
         for(unsigned int i=rest_tam_msg;nombre_completo[i]!=',';i++){
-            nombre[i-rest_tam_msg] = nombre_completo[i];
+            //nombre[i-rest_tam_msg] = nombre_completo[i];
+            nombre.push_back(nombre_completo[i]);
         }
     }
 
     //Lo transforma a entero
-    return atoi(nombre);
+    return atoi(nombre.c_str());
 }
 
 int FuncionesExtras::getValorPF(const char* input_complete_name){
