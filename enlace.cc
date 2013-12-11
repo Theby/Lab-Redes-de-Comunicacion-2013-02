@@ -1,5 +1,5 @@
-/* Env韆 las palabras desde la capa intermedia al otro host
-* y recibe las palabras que llegan desde el otro host y las env韆 al nivel superior
+/* Env铆a las palabras desde la capa intermedia al otro host
+* y recibe las palabras que llegan desde el otro host y las env铆a al nivel superior
 */
 
 #include <string.h>
@@ -11,23 +11,12 @@
 
 #include <FuncionesExtras.h>
 
-#include <deque>
-
 using namespace std;
 
 //Define la clase para trabajar directamente con el modulo de enlace
 Define_Module( enlace );
 
 string respuesta_a;
-
-//Ventana deslizante
-deque<cMessage> ventana;
-int lastFrameTransmited = -1;
-int lastFrameAck = -1;
-//Cantidad m醲ima de tramas por ventana
-unsigned int tamVentana;
-int numTramas;
-
 
 void enlace::handleMessage(cMessage *msg)
 {
@@ -49,11 +38,18 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
 
     if(nombre_dato == "START"){
         delete dato;
-        //Se ingresa el n鷐ero de tramas a enviar
-        numTramas = par("numTramas");
-        //Se ingresa el tama駉 m醲imo de la ventana
-        tamVentana = par("tamVentana");
 
+        par("tramas_no_asentidas").setLongValue(0);
+        par("ult_trama_recibida").setLongValue(0);
+
+        //Verde de esperando confirmaci贸n
+        if (ev.isGUI()){
+            getDisplayString().setTagArg("i",1,"green");
+            bubble("Esperando Confirmaci贸n");
+        }
+
+        //Se envia una trama SABM al otro host
+        respuesta_a = "SABM";
         //Trama Comando SABM
         DataFrame *tramaComando = new DataFrame("Trama Comando SABM");
 
@@ -92,42 +88,131 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
             }
         //Fin FCS
 
+        //Verde de esperando
+        if (ev.isGUI()){
+            getParentModule()->getDisplayString().setTagArg("i",1,"green");
+            getParentModule()->bubble("Esperando Confirmaci贸n");
+        }
+
         send(tramaComando,"hacia_fisico");
         ev << "Enviado Unnumbered SABM a Host: " << address_dest;
     }else if(nombre_dato == "END"){
         delete dato;
+        //Revisa si faltan tramas por asentir
+        int tramas_no_asentidas = par("tramas_no_asentidas");
+
+        if(tramas_no_asentidas == 0){
+            //Envia una trama de comando DISC al otro host
+            respuesta_a = "DISC";
+            //Trama commando DISC
+            DataFrame *tramaComando = new DataFrame("Trama Comando DISC");
+
+            //Inicio Address
+                //Asigna la direccion al sector address de la trama
+                for(unsigned int i=0;i<8;i++){
+                    if(address_dest<pow(10,(8-(i+1)))){
+                        tramaComando->setAddress(i,0);
+                    }else{
+                        tramaComando->setAddress(i,1);
+                    }
+                }
+            //Fin Address
+
+            //Inicio Control: Unnumbered DISC
+                //Unnumbered
+                tramaComando->setControl(0,1);
+                tramaComando->setControl(1,1);
+
+                //Unnumbered Funcion bits
+                tramaComando->setControl(2,0);
+                tramaComando->setControl(3,0);
+
+                //bit P/F en 1 para solicitar respuesta
+                tramaComando->setControl(4,1);
+
+                //Unnumbered Funcion bits
+                tramaComando->setControl(5,0);
+                tramaComando->setControl(6,1);
+                tramaComando->setControl(7,0);
+            //Fin Control
+
+            //Inicio FCS
+                for(int i=0;i<16;i++){
+                    tramaComando->setFCS(i,0);
+                }
+            //Fin FCS
+
+            send(tramaComando,"hacia_fisico");
+            ev << "Enviado Unnumbered DISC a Host: " << address_dest;
+        }else{
+            DataFrame *unnumberedFrame = new DataFrame("Trama Comando UP");
+            //Si faltan tramas por ser asentidas por un RR se manda un UP
+
+            //Inicio Address
+                for(unsigned int i=0;i<8;i++){
+                    if(address_dest<pow(10,(8-(i+1)))){
+                        unnumberedFrame->setAddress(i,0);
+                    }else{
+                        unnumberedFrame->setAddress(i,1);
+                    }
+                }
+            //Fin Address
+
+            //Inicio Control: Unnumbered UP
+                //Unnumbered
+                unnumberedFrame->setControl(0,1);
+                unnumberedFrame->setControl(1,1);
+
+                //Unnumbered Funcion bits
+                unnumberedFrame->setControl(2,0);
+                unnumberedFrame->setControl(3,0);
+
+                //bit P/F en 1 para dar respuesta
+                unnumberedFrame->setControl(4,1);
+
+                //Unnumbered Funcion bits
+                unnumberedFrame->setControl(5,1);
+                unnumberedFrame->setControl(6,0);
+                unnumberedFrame->setControl(7,0);
+            //Fin Control
+
+            //Inicio FCS
+                //Queda igual
+            //Fin FCS
+
+            send(unnumberedFrame,"hacia_fisico");
+            ev << "Se envia UP para confirmar las ultimas tramas" << endl;
+        }
 
     }else{
-        //Se almacena en la cola de la ventana la trama recivida desde nivel intermedio
-        ventana.push_back(*dato);
+        //Se recibe un DATO,N por lo que se envia una trama de informacion al otro frame
+
+        //Para el bit P/F
+        int bit_pf;
+        int tramas_libres = par("tramas_libres");
+
+        //Para guardar el id del dato recibido
+        int id_dato;
+
 
         //Pasar los datos de un paquete a otro (Informacion -> DataFrame)
-        //para guardar el valor del mensaje que debe ser enviado
-        int msg_ack_id=0;
-
-        //para guardar el tama駉 del msg_ack_id (ejemplo: 10-> tama駉 :2)
-        int tam_msg_ack_id = nombre_dato.length()-5;
-
-        char* nombre;
-        nombre = (char*)malloc(sizeof(char)*tam_msg_ack_id);
-
-        for(unsigned int i=5;i<nombre_dato.length();i++){
-            nombre[i-5] = nombre_dato[i];
-        }
-
-        msg_ack_id = atoi(nombre);
-
-        //Para el nombre de la trama
-        stringstream buffer;
-        buffer << "I," << msg_ack_id;
-
-        DataFrame *tramaInformacion = new DataFrame((buffer.str()).c_str());
+        DataFrame *tramaInformacion = new DataFrame(FuncionesExtras::nombrandoTrama(nombre_dato.c_str(),"I,"));
         Informacion *informacion = check_and_cast<Informacion *>(dato);
 
-        //Copiando Address
-        for(int i=0;i<8;i++){
-            tramaInformacion->setAddress(i,informacion->getAddress_dest(i));
+        //Obtiene el valor del bit pf para esta trama
+        id_dato = FuncionesExtras::getValorId(nombre_dato.c_str());
+        if(id_dato%tramas_libres == (tramas_libres-1)){
+            bit_pf = 1;
+        }else{
+            bit_pf = 0;
         }
+
+        //Inicio Address
+            //Copiando Address
+            for(int i=0;i<8;i++){
+                tramaInformacion->setAddress(i,informacion->getAddress_dest(i));
+            }
+        //Fin Address
 
         //Inicio Control: Informacion
             //Informacion
@@ -139,7 +224,11 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
             tramaInformacion->setControl(3,0);
 
             //bit P/F en 1 para solicitar respuesta
-            tramaInformacion->setControl(4,0);
+            tramaInformacion->setControl(4,bit_pf);
+                //Asignando nombre completo
+                    nombre_dato = tramaInformacion->getName();
+                    nombre_dato += ',';
+                    tramaInformacion->setName(FuncionesExtras::nombrando(nombre_dato.c_str(),bit_pf));
 
             //N(R)
             tramaInformacion->setControl(5,0);
@@ -148,7 +237,7 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
         //Fin Control
 
         //Inicio Informacion
-            //Copiando Informaci髇
+            //Copiando Informaci贸n
             tramaInformacion->setInformationArraySize(informacion->getInformacionArraySize());
             for(unsigned int i=0;i<tramaInformacion->getInformationArraySize();i++){
                 tramaInformacion->setInformation(i,informacion->getInformacion(i));
@@ -162,9 +251,23 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
         //Fin FCS
 
         delete informacion;
-        //Se marca el id del 鷏timo paquete de informaci髇 I transmitido a otro host
-        lastFrameTransmited = msg_ack_id;
         send(tramaInformacion,"hacia_fisico");
+        ev << "Mandando trama de Informaci贸n " << id_dato << " al host: " << address_dest;
+
+        //Guarda el valor de las tramas enviadas y que no han recibido asentimiento RR
+        int tramas_no_asentidas = par("tramas_no_asentidas");
+        tramas_no_asentidas++;
+
+        par("tramas_no_asentidas").setLongValue(tramas_no_asentidas);
+
+        if(bit_pf == 0){
+            //Mandar un ACK,N al modulo de aplicaci贸n
+            int valor_id = 1 + id_dato;
+            cMessage *ack = new cMessage(FuncionesExtras::nombrando("ACK,",valor_id));
+
+            send(ack,"hacia_arriba");
+            ev << "Mandando ACK al modulo de aplicaci贸n" << endl;
+        }
     }
 }
 
@@ -177,28 +280,9 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
 
     //Si el dataframe corresponde a una trama de informacion
     if(dataframe->getControl(0) == 0){
-        //Se envia la informaci髇 recibida a aplicacion
-            //para guardar el valor del mensaje que debe ser enviado
-            int msg_ack_id=0;
-
-            //para guardar el tama駉 del msg_ack_id (ejemplo: 10-> tama駉 :2)
-            int tam_msg_ack_id = packet_name.length()-2;
-
-            char* nombre;
-            nombre = (char*)malloc(sizeof(char)*tam_msg_ack_id);
-
-            for(unsigned int i=2;i<packet_name.length();i++){
-                nombre[i-2] = packet_name[i];
-            }
-
-            msg_ack_id = atoi(nombre);
-
-            //Para el nombre de la trama
-            stringstream buffer;
-            buffer << "DATO " << msg_ack_id;
-
+        //Se envia la informaci贸n recibida a aplicacion
             //Crea el packete de informacion para mandarlo a Aplicacion
-            Informacion *tramaComunicacion = new Informacion((buffer.str()).c_str());
+            Informacion *tramaComunicacion = new Informacion(FuncionesExtras::nombrandoTrama(packet_name.c_str(),"DATO,"));
 
             //Inicia Address
                 //Copia Address
@@ -218,41 +302,59 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
             send(tramaComunicacion,"hacia_arriba");
             ev << "Mandando mensaje recibido a aplicacion";
 
-        //Se envia RR N al otro host
-            //Usando dataframe para modificar la informacion
-            buffer.str("");
-            buffer.clear();
-            buffer << "RR," << msg_ack_id+1;
-            dataframe->setName((buffer.str()).c_str());
 
-            //Inicio Address
-                //Queda igual
-            //Fin Address
+        //Si se recibe el bit P/F en 1 se responde con un RR,N,1
+            if(dataframe->getControl(4) == 1){
+                //Se envia RR N al otro host
+                //Usando dataframe para modificar la informacion
 
-            //Inicio Control: Unnumbered UA
-                //Supervisory
-                dataframe->setControl(0,1);
-                dataframe->setControl(1,0);
+                    //Para asignar el valor_id
+                    int valor_id;
+                    valor_id = FuncionesExtras::getValorId(packet_name.c_str());
+                    valor_id++;
+                    dataframe->setName(FuncionesExtras::nombrando("RR,",valor_id));
 
-                //Supervisory Funcion bits
-                dataframe->setControl(2,0);
-                dataframe->setControl(3,0);
+                //Inicio Address
+                    //Queda igual
+                //Fin Address
 
-                //bit P/F en 1 para solicitar respuesta
-                dataframe->setControl(4,1);
+                //Inicio Control: Supervisory RR
+                    //Supervisory
+                    dataframe->setControl(0,1);
+                    dataframe->setControl(1,0);
 
-                //N(R)
-                dataframe->setControl(5,1);
-                dataframe->setControl(6,1);
-                dataframe->setControl(7,0);
-            //Fin Control
+                    //Supervisory Funcion bits
+                    dataframe->setControl(2,0);
+                    dataframe->setControl(3,0);
 
-            //Inicio FCS
-                //Queda igual
-            //Fin FCS
+                    //bit P/F en 1 para dar respuesta
+                    dataframe->setControl(4,1);
+                    //Asignando nombre completo
+                        packet_name = dataframe->getName();
+                        packet_name += ',';
+                        dataframe->setName(FuncionesExtras::nombrando(packet_name.c_str(),dataframe->getControl(4)));
 
-            send(dataframe,"hacia_fisico");
-            ev << "Enviado Supervisory RR " << msg_ack_id << " a Host: " << address_dest;
+                    //N(R)
+                    dataframe->setControl(5,1);
+                    dataframe->setControl(6,1);
+                    dataframe->setControl(7,0);
+                //Fin Control
+
+                //Inicio FCS
+                    //Queda igual
+                //Fin FCS
+
+                send(dataframe,"hacia_fisico");
+                ev << "Enviado Supervisory RR" << " a Host: " << address_dest;
+                par("tramas_no_asentidas").setLongValue(0);
+            }else{
+                //Asigna el valor de la 煤ltima trama recibida
+                int ult_trama_recibida = par("ult_trama_recibida");
+                ult_trama_recibida = FuncionesExtras::getValorId(packet_name.c_str());
+
+                par("ult_trama_recibida").setLongValue(ult_trama_recibida);
+                delete dataframe;
+            }
     }
     else{
         //Si el dataframe corresponde a una trama supervisora
@@ -263,69 +365,57 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
 
             //Se recibe un RR
             if(M1 == 0){
-                //para guardar el valor del mensaje que debe ser enviado
-                int msg_ack_id=0;
 
-                //para guardar el tama駉 del msg_ack_id (ejemplo: 10-> tama駉 :2)
-                int tam_msg_ack_id = packet_name.length()-3;
+                if(respuesta_a != "DISC"){
+                    if(dataframe->getControl(4) == 1){
+                        delete dataframe;
 
-                char* nombre;
-                nombre = (char*)malloc(sizeof(char)*tam_msg_ack_id);
+                        //Mandar un ACK,N al modulo de aplicaci贸n
+                        cMessage *ack = new cMessage(FuncionesExtras::nombrando("ACK,",FuncionesExtras::getValorId(packet_name.c_str())));
 
-                for(unsigned int i=3;i<packet_name.length();i++){
-                    nombre[i-3] = packet_name[i];
-                }
+                        send(ack,"hacia_arriba");
+                        ev << "Mandando ACK al modulo de aplicaci贸n" << endl;
 
-                msg_ack_id = atoi(nombre);
+                        //Reinicia el valor de las tramas asentidas
+                        int tramas_no_asentidas = par("tramas_no_asentidas");
+                        tramas_no_asentidas = 0;
 
-                //Se requiere verificar error si el id del RR corresponde al orden de la secuencia
-                //de los DataFrame ya enviados. Si no quizas hay perdida de paquetes.
+                        par("tramas_no_asentidas").setLongValue(tramas_no_asentidas);
+                    }else{
+                        //Envia una trama de comando DISC al otro host
+                        respuesta_a = "DISC";
+                        //Trama commando DISC
+                        dataframe->setName("Trama Comando DISC");
 
-                //Se marca cual es el id del 鷏timo RR recivido
-                lastFrameAck = msg_ack_id;
+                        //Inicio Address
+                           //Sin cambios
+                        //Fin Address
 
-                //para guardar el valor del id de la trama de la ventana
-                int trama_ventana_id=0;
+                        //Inicio Control: Unnumbered DISC
+                            //Unnumbered
+                            dataframe->setControl(0,1);
+                            dataframe->setControl(1,1);
 
-                //Se procede a correr la ventana hasta el lastFrameAck
-                do{
-                    cMessage temp = ventana.front();
-                    string name_trama_ventana_id = temp.getName();
+                            //Unnumbered Funcion bits
+                            dataframe->setControl(2,0);
+                            dataframe->setControl(3,0);
 
-                    //para guardar el tama駉 del trama_ventana_id (ejemplo: 10-> tama駉 :2)
-                    int tam_trama_ventana_id = name_trama_ventana_id.length()-5;
+                            //bit P/F en 1 para solicitar respuesta
+                            dataframe->setControl(4,1);
 
-                    char* nombre;
-                    nombre = (char*)malloc(sizeof(char)*tam_trama_ventana_id);
+                            //Unnumbered Funcion bits
+                            dataframe->setControl(5,0);
+                            dataframe->setControl(6,1);
+                            dataframe->setControl(7,0);
+                        //Fin Control
 
-                    for(unsigned int i=5;i<name_trama_ventana_id.length();i++){
-                        nombre[i-5] = name_trama_ventana_id[i];
+                        //Inicio FCS
+                            //Sin cambios
+                        //Fin FCS
+
+                        send(dataframe,"hacia_fisico");
+                        ev << "Se envia trama DISC" << endl;
                     }
-
-                    trama_ventana_id = atoi(nombre);
-                    //hasta llegar al paquete con id sucesor al lastFrameAck
-                    if(lastFrameAck==trama_ventana_id-1){
-                        break;
-                    }
-                    //Se hace pop al frente de la cola ventana
-                    ventana.pop_front();
-                }while((ventana.size()!=0) && (lastFrameAck!= trama_ventana_id - 1));
-
-                //Si el tama駉 de la ventana no supera el m醲imo determinado por tamVentana y
-                //la posisi髇 del 鷏timo frame transmitido es menor que el 鷏timo por
-                //transmitir segun la posici髇 de la presente ventana.
-                //Se env韆 ack hacia la aplicaci髇.
-                if((ventana.size()<tamVentana) && (lastFrameTransmited<(lastFrameAck+tamVentana))){
-
-                    //Para el nombre de la trama
-                    stringstream buffer;
-                    buffer << "ACK " << msg_ack_id;
-
-                    //Mandar un ACK N al modulo de aplicaci髇
-                    cMessage *ack = new cMessage((buffer.str()).c_str());
-
-                    send(ack,"hacia_arriba");
-                    ev << "Mandando ACK al modulo de aplicaci髇" << endl;
                 }
             }
         }
@@ -337,27 +427,133 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
             M2 = pow(2,2)*dataframe->getControl(5) + pow(2,1)*dataframe->getControl(6) + pow(2,0)*dataframe->getControl(7);
 
             if(M1 == 0){
+                //Se recibe un DISC
+                if(M2 == 2){
+                    //Negro de desconectado
+                    if (ev.isGUI()){
+                        getDisplayString().setTagArg("i",1,"black");
+                        bubble("Desconectado!");
+                    }
+
+                    //Se manda de respuesta un UA Frame y se desconecta
+                    dataframe->setName("Trama Comando UA");
+
+                    //Inicio Address
+                        //Queda igual
+                    //Fin Address
+
+                    //Inicio Control: Unnumbered UA
+                        //Unnumbered
+                        dataframe->setControl(0,1);
+                        dataframe->setControl(1,1);
+
+                        //Unnumbered Funcion bits
+                        dataframe->setControl(2,0);
+                        dataframe->setControl(3,0);
+
+                        //bit P/F en 1 para dar respuesta
+                        dataframe->setControl(4,1);
+
+                        //Unnumbered Funcion bits
+                        dataframe->setControl(5,1);
+                        dataframe->setControl(6,1);
+                        dataframe->setControl(7,0);
+                    //Fin Control
+
+                    //Inicio FCS
+                        //Queda igual
+                    //Fin FCS
+
+                    //Negro de desconectado
+                    if (ev.isGUI()){
+                        getParentModule()->getDisplayString().setTagArg("i",1,"black");
+                        getParentModule()->bubble("Desconectado!");
+                    }
+
+                    int master = getParentModule()->par("starter");
+                    int address_host = par("direccion_host");
+                    if(master != address_host && master!= 2){
+                        cMessage *disconnect = new cMessage("DISCONNECT");
+
+                        send(disconnect,"hacia_arriba");
+                    }
+
+
+                    send(dataframe,"hacia_fisico");
+                    ev << "Enviado Unnumbered UA a Host: " << address_dest;
+
+                    //Se disconecta
+                }
+                //Se recibe un UP
+                else if(M2 == 4){
+                    //Se responde con la 煤ltima RR
+                    int ult_trama_recibida = par("ult_trama_recibida");
+
+                    //Usando dataframe para modificar la informacion
+
+                    //Para asignar el valor_id
+                        dataframe->setName(FuncionesExtras::nombrando("RR,",ult_trama_recibida));
+
+                    //Inicio Address
+                        //Queda igual
+                    //Fin Address
+
+                    //Inicio Control: Supervisory RR
+                        //Supervisory
+                        dataframe->setControl(0,1);
+                        dataframe->setControl(1,0);
+
+                        //Supervisory Funcion bits
+                        dataframe->setControl(2,0);
+                        dataframe->setControl(3,0);
+
+                        //bit P/F en 1 para dar respuesta
+                        dataframe->setControl(4,0);
+                        //Asignando nombre completo
+                            packet_name = dataframe->getName();
+                            packet_name += ',';
+                            dataframe->setName(FuncionesExtras::nombrando(packet_name.c_str(),dataframe->getControl(4)));
+
+                        //N(R)
+                        dataframe->setControl(5,1);
+                        dataframe->setControl(6,1);
+                        dataframe->setControl(7,0);
+                    //Fin Control
+
+                    //Inicio FCS
+                        //Queda igual
+                    //Fin FCS
+
+                    send(dataframe,"hacia_fisico");
+                    ev << "Enviado Supervisory RR" << " a Host: " << address_dest;
+
+                }
                 //Se recibe un UA
-                if(M2 == 6){
-                    int tramasPedidas;
-                    //Se setea la cantidad de tramas que se enviar醤 en un comienzo
-                    if(numTramas<tamVentana){
-                        tramasPedidas = numTramas;
-                    }
-                    else{
-                        tramasPedidas = tamVentana;
-                    }
-                    //Se envian tantos ack como elementos pueda contener la ventana y el max de tramas.
-                    for(unsigned int i=0; i<tramasPedidas; i++){
-                        //Mandar un ACK N al modulo de aplicaci髇
-                        stringstream buffer;
-                        buffer.str("");
-                        buffer.clear();
-                        buffer << "ACK " << i;
-                        cMessage *ack = new cMessage((buffer.str()).c_str());
+                else if(M2 == 6){
+                    delete dataframe;
+                    if(respuesta_a == "SABM"){
+                        respuesta_a == "NONE";
+                        //Normal de activo
+                        if (ev.isGUI()){
+                            getDisplayString().setTagArg("i",1,"");
+                            bubble("Conectado!");
+                            getParentModule()->getDisplayString().setTagArg("i",1,"");
+                            getParentModule()->bubble("Conectado!");
+                        }
+                        //Mandar un ACK N al modulo de aplicaci贸n
+                        cMessage *ack = new cMessage("ACK,0");
 
                         send(ack,"hacia_arriba");
-                        ev << "Mandando ACK "<< i <<" al modulo de aplicaci髇" << endl;
+                        ev << "Mandando ACK,0 al modulo de aplicaci贸n" << endl;
+                    }else if(respuesta_a == "DISC"){
+                        respuesta_a == "NONE";
+                        //Negro de desconectado
+                        if (ev.isGUI()){
+                            getDisplayString().setTagArg("i",1,"black");
+                            bubble("Desconectado!");
+                            getParentModule()->getDisplayString().setTagArg("i",1,"black");
+                            getParentModule()->bubble("Desconectado!");
+                        }
                     }
                 }
             }else if(M1 == 1){
@@ -367,46 +563,59 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
             }else if(M1 == 3){
                 //Se recibe un SABM
                 if(M2 == 4){
-                    //Mandar de respuesta un UA al otro Host
-                    DataFrame *tramaComando = new DataFrame("Trama Comando UA");
+                    //Normal de activo
+                    if (ev.isGUI()){
+                        getDisplayString().setTagArg("i",1,"");
+                        bubble("Conectado!");
+                    }
+
+                    //Se manda de respuesta un UA Frame
+                    dataframe->setName("Trama Comando UA");
 
                     //Inicio Address
-                        //Asigna la direccion al sector address de la trama
-                        for(int i=0;i<8;i++){
-                            tramaComando->setAddress(i,dataframe->getAddress(i));
-                        }
+                        //Queda igual
                     //Fin Address
 
                     //Inicio Control: Unnumbered UA
                         //Unnumbered
-                        tramaComando->setControl(0,1);
-                        tramaComando->setControl(1,1);
+                        dataframe->setControl(0,1);
+                        dataframe->setControl(1,1);
 
                         //Unnumbered Funcion bits
-                        tramaComando->setControl(2,0);
-                        tramaComando->setControl(3,0);
+                        dataframe->setControl(2,0);
+                        dataframe->setControl(3,0);
 
-                        //bit P/F en 1 para solicitar respuesta
-                        tramaComando->setControl(4,1);
+                        //bit P/F en 1 para dar respuesta
+                        dataframe->setControl(4,1);
 
                         //Unnumbered Funcion bits
-                        tramaComando->setControl(5,1);
-                        tramaComando->setControl(6,1);
-                        tramaComando->setControl(7,0);
+                        dataframe->setControl(5,1);
+                        dataframe->setControl(6,1);
+                        dataframe->setControl(7,0);
                     //Fin Control
 
                     //Inicio FCS
-                        for(int i=0;i<16;i++){
-                            tramaComando->setFCS(i,0);
-                        }
+                        //Queda igual
                     //Fin FCS
 
-                    send(tramaComando,"hacia_fisico");
+                    //Normal de conectado
+                    if (ev.isGUI()){
+                        getParentModule()->getDisplayString().setTagArg("i",1,"");
+                        getParentModule()->bubble("Conectado!");
+
+                        int master = getParentModule()->par("starter");
+                        int address_host = par("direccion_host");
+                        if(master != address_host && master!= 2){
+                            cMessage *connect = new cMessage("CONNECT");
+
+                            send(connect,"hacia_arriba");
+                        }
+                    }
+
+                    send(dataframe,"hacia_fisico");
                     ev << "Enviado Unnumbered UA a Host: " << address_dest;
                 }
             }
         }
     }
-
-    //send(packet,"hacia_arriba");
 }

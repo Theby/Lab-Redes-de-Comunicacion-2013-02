@@ -12,69 +12,9 @@
 #include <Informacion_m.h>
 #include <aplicacion.h>
 
+#include <FuncionesExtras.h>
+
 using namespace std;
-
-//Identificador del iniciador de la transmisión
-//int master;
-
-//Define la clase para trabajar directamente con el modulo de aplicacion
-Define_Module( aplicacion );
-
-void aplicacion::initialize(){
-    //obtiene el valor de master para saber quien parte
-    int master = par("starter");
-
-    //obtiene el valor del host en el que se ubica
-    int address_host = par("direccion_host");
-
-    //Es el turno de quien tenga la misma address que numero de master
-    if(address_host == master){
-        //Ya nadie es el master
-        master=42;
-
-        //Generar palabra para envío
-        generaInfo(-1);
-    }
-}
-
-void aplicacion::handleMessage(cMessage* msg){
-    string ack = "ACK";
-    string dato = "DATO";
-    string msg_name = msg->getName();
-
-    //Si el mensaje ha llegado desde intermedio
-    if (msg->arrivedOn("desde_abajo")){
-        //Es ACK
-        if(msg_name[0] == ack[0] && msg_name[1] == ack[1] && msg_name[2] == ack[2]){
-            //para guardar el valor del mensaje que debe ser enviado
-            int msg_ack_id=0;
-
-            //para guardar el tamaño del msg_ack_id (ejemplo: 10-> tamaño :2)
-            int tam_msg_ack_id = msg_name.length()-4;
-
-            char* nombre;
-            nombre = (char*)malloc(sizeof(char)*tam_msg_ack_id);
-
-            for(unsigned int i=4;i<msg_name.length();i++){
-                nombre[i-4] = msg_name[i];
-            }
-
-            msg_ack_id = atoi(nombre);
-
-            delete msg;
-            ev << "El mensaje: " << msg_name << " fue correctamente recivido." << endl;
-            generaInfo(msg_ack_id);
-        }else if(msg_name == dato){
-            ev << "El dato: " << msg_name << " fue correctamente recivido." << endl;
-            delete msg;
-        }else{
-            ev << "El mensaje: " << msg_name << " no es valido y ha sido eliminado" << endl;
-            delete msg;
-        }
-    }else{
-        ev << "Mensaje llegado desde un lugar desconocido" << endl;
-    }
-}
 
 void aplicacion::generaInfo(int trama_id){
     //Si es primera vez que se inicia
@@ -90,6 +30,12 @@ void aplicacion::generaInfo(int trama_id){
         int numTramas = par("numTramas");
 
         if(numTramas == trama_id){
+            //Negro de desconectado
+            if (ev.isGUI()){
+                getDisplayString().setTagArg("i",1,"black");
+                bubble("Desconectado!");
+            }
+
             //creando un mensaje END
             cMessage *end = new cMessage("END");
 
@@ -103,12 +49,8 @@ void aplicacion::generaInfo(int trama_id){
             //Obtiene el tamaño de la trama, el cual por defecto es 4 en sistema.ned
             int tamTrama = par("tamTrama");
 
-            //Para el nombre de la trama
-            stringstream buffer;
-            buffer << "DATO " << trama_id;
-
             //Creando trama de comunicación con enlace
-            Informacion *tramaComunicacion = new Informacion((buffer.str()).c_str());
+            Informacion *tramaComunicacion = new Informacion(FuncionesExtras::nombrando("DATO,",trama_id));
 
             //Inicio Address
                 //Asigna la direccion al sector address de la trama
@@ -133,7 +75,80 @@ void aplicacion::generaInfo(int trama_id){
             send(tramaComunicacion, "hacia_abajo");
 
             //Informando al Usuario el dato enviado
-            ev <<"Destino: "<< address_dest;
+            ev <<"Enviado trama " << trama_id << "al modulo de enlace" << address_dest;
         }
     }
 }
+
+//Define la clase para trabajar directamente con el modulo de aplicacion
+Define_Module( aplicacion );
+
+void aplicacion::initialize(){
+    //obtiene el valor de master para saber quien parte
+    int master = par("starter");
+
+    //obtiene el valor del host en el que se ubica
+    int address_host = par("direccion_host");
+
+    //Es el turno de quien tenga la misma address que numero de master
+    if(address_host == master){
+        //Les da un color de conectado al modulo de aplicación
+        if (ev.isGUI()) getDisplayString().setTagArg("i",1,"green");
+
+        //Generar palabra para envío
+        generaInfo(-1);
+    }else if(master == 2){
+        //Les da un color de conectado al modulo de aplicación
+        if (ev.isGUI()) getDisplayString().setTagArg("i",1,"green");
+
+        //Ambos generan mensajes
+        generaInfo(-1);
+    }
+}
+
+void aplicacion::handleMessage(cMessage* msg){
+    string ack = "ACK";
+    string dato = "DATO";
+    string msg_name = msg->getName();
+
+    //Normal de activo
+    if (ev.isGUI()) getDisplayString().setTagArg("i",1,"");
+
+    //Si el mensaje ha llegado desde intermedio
+    if (msg->arrivedOn("desde_abajo")){
+        //Es ACK
+        if(msg_name[0] == ack[0] && msg_name[1] == ack[1] && msg_name[2] == ack[2]){
+            delete msg;
+
+            //Mensaje de conectado
+            if(msg_name[4] == '0'){
+                if (ev.isGUI()) bubble("Conectado!");
+            }
+
+            ev << "El mensaje: " << msg_name << " fue correctamente recivido." << endl;
+            generaInfo(FuncionesExtras::getValorId(msg_name.c_str()));
+        //Es DATO
+        }else if(msg_name[0] == dato[0] && msg_name[1] == dato[1] && msg_name[2] == dato[2] && msg_name[3] == dato[3]){
+            ev << "El dato: " << msg_name << " fue correctamente recivido." << endl;
+            delete msg;
+        }else if(msg_name == "CONNECT"){
+            if (ev.isGUI()) bubble("Conectado!");
+            delete msg;
+        }else if(msg_name == "DISCONNECT"){
+            if (ev.isGUI()){
+                //Negro de desconectado
+                getDisplayString().setTagArg("i",1,"black");
+                bubble("Desconectado!");
+            }
+            delete msg;
+        }else{
+            ev << "El mensaje: " << msg_name << " no es valido y ha sido eliminado" << endl;
+            delete msg;
+        }
+    }else{
+        ev << "Mensaje llegado desde un lugar desconocido" << endl;
+        delete msg;
+    }
+}
+
+
