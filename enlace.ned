@@ -21,10 +21,10 @@ simple enlace
     parameters:
         //Dirección de Host
         int direccion_host;
-        
+
 		//Dirección de Destino
         int direccion_dest;
-        
+
         //Tamaño de trama
         int tamTrama;
         
@@ -33,9 +33,19 @@ simple enlace
         
         //Tamaño de ventana
         int tamVentana;
-
-        @display("i=block/ifcard;is=n");
         
+        //Numero de tramas libres
+        int tramas_libres;
+        
+        //numero de tramas no asentidas
+        volatile int tramas_no_asentidas = default(0);
+        
+        //ultima trama recibida
+        volatile int ult_trama_recibida = default(0);
+        
+
+        @display("i=block/ifcard,black;is=n");
+
     gates:
         //Con el nivel inferior
         input desde_fisico;
