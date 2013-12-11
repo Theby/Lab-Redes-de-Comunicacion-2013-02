@@ -9,12 +9,16 @@
 #include <Informacion_m.h>
 #include <enlace.h>
 
+#include <FuncionesExtras.h>
+
 #include <deque>
 
 using namespace std;
 
 //Define la clase para trabajar directamente con el modulo de enlace
 Define_Module( enlace );
+
+string respuesta_a;
 
 //Ventana deslizante
 deque<cMessage> ventana;
