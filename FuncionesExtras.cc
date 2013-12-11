@@ -48,7 +48,6 @@ int FuncionesExtras::getValorId(const char* input_complete_name){
 
 int FuncionesExtras::getValorPF(const char* input_complete_name){
     string nombre_completo = input_complete_name;
-    vector<cMessage> ventana;
 
     //para guardar el tamaño de nombre: ejemplo 12 -> tam:2
     int tam_msg_id;

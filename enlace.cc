@@ -80,6 +80,47 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
     }else if(nombre_dato == "END"){
         delete dato;
 
+        //Envia una trama de comando DISC
+        DataFrame *tramaComando = new DataFrame("Trama Comando DISC");
+
+        //Inicio Address
+            //Asigna la direccion al sector address de la trama
+            for(unsigned int i=0;i<8;i++){
+                if(address_dest<pow(10,(8-(i+1)))){
+                    tramaComando->setAddress(i,0);
+                }else{
+                    tramaComando->setAddress(i,1);
+                }
+            }
+        //Fin Address
+
+        //Inicio Control: Unnumbered DISC
+            //Unnumbered
+            tramaComando->setControl(0,1);
+            tramaComando->setControl(1,1);
+
+            //Unnumbered Funcion bits
+            tramaComando->setControl(2,0);
+            tramaComando->setControl(3,0);
+
+            //bit P/F en 1 para solicitar respuesta
+            tramaComando->setControl(4,1);
+
+            //Unnumbered Funcion bits
+            tramaComando->setControl(5,0);
+            tramaComando->setControl(6,1);
+            tramaComando->setControl(7,0);
+        //Fin Control
+
+        //Inicio FCS
+            for(int i=0;i<16;i++){
+                tramaComando->setFCS(i,0);
+            }
+        //Fin FCS
+
+        send(tramaComando,"hacia_fisico");
+        ev << "Enviado Unnumbered DISC a Host: " << address_dest;
+
     }else{
         //Pasar los datos de un paquete a otro (Informacion -> DataFrame)
 
@@ -239,41 +280,25 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
             }else if(M1 == 3){
                 //Se recibe un SABM
                 if(M2 == 4){
-                    //Mandar de respuesta un UA al otro Host
-                    DataFrame *tramaComando = new DataFrame("Trama Comando UA");
-
-                    //Inicio Address
-                        //Asigna la direccion al sector address de la trama
-                        for(int i=0;i<8;i++){
-                            tramaComando->setAddress(i,dataframe->getAddress(i));
-                        }
-                    //Fin Address
-
                     //Inicio Control: Unnumbered UA
                         //Unnumbered
-                        tramaComando->setControl(0,1);
-                        tramaComando->setControl(1,1);
+                        dataframe->setControl(0,1);
+                        dataframe->setControl(1,1);
 
                         //Unnumbered Funcion bits
-                        tramaComando->setControl(2,0);
-                        tramaComando->setControl(3,0);
+                        dataframe->setControl(2,0);
+                        dataframe->setControl(3,0);
 
                         //bit P/F en 1 para solicitar respuesta
-                        tramaComando->setControl(4,1);
+                        dataframe->setControl(4,1);
 
                         //Unnumbered Funcion bits
-                        tramaComando->setControl(5,1);
-                        tramaComando->setControl(6,1);
-                        tramaComando->setControl(7,0);
+                        dataframe->setControl(5,1);
+                        dataframe->setControl(6,1);
+                        dataframe->setControl(7,0);
                     //Fin Control
 
-                    //Inicio FCS
-                        for(int i=0;i<16;i++){
-                            tramaComando->setFCS(i,0);
-                        }
-                    //Fin FCS
-
-                    send(tramaComando,"hacia_fisico");
+                    send(dataframe,"hacia_fisico");
                     ev << "Enviado Unnumbered UA a Host: " << address_dest;
                 }
             }
