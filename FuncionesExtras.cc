@@ -12,10 +12,6 @@
 
 using namespace std;
 
-FuncionesExtras::FuncionesExtras() {
-    // TODO Auto-generated constructor stub
-}
-
 int FuncionesExtras::getValorId(const char* input_complete_name){
     string nombre_completo = input_complete_name;
 
@@ -33,13 +29,62 @@ int FuncionesExtras::getValorId(const char* input_complete_name){
     //Obtiene el tamaño
     tam_msg_id = nombre_completo.length()-rest_tam_msg;
 
-    //Obtiene el ID y lo guarda en "nombre"
     char* nombre;
     nombre = (char*)malloc(sizeof(char)*tam_msg_id);
-    for(unsigned int i=rest_tam_msg;i<nombre_completo.length();i++){
-        nombre[i-rest_tam_msg] = nombre_completo[i];
+    if(nombre_completo[0] == 'A' || nombre_completo[0] == 'D'){
+        //Obtiene el ID y lo guarda en "nombre"
+        for(unsigned int i=rest_tam_msg;i<nombre_completo.length();i++){
+            nombre[i-rest_tam_msg] = nombre_completo[i];
+        }
+    }else{
+        for(unsigned int i=rest_tam_msg;nombre_completo[i]!=',';i++){
+            nombre[i-rest_tam_msg] = nombre_completo[i];
+        }
     }
+    cout << "OBTENIDO:" << atoi(nombre) << endl;
+    //Lo transforma a entero
+    return atoi(nombre);
+}
 
+int FuncionesExtras::getValorPF(const char* input_complete_name){
+    string nombre_completo = input_complete_name;
+    vector<cMessage> ventana;
+
+    //para guardar el tamaño de nombre: ejemplo 12 -> tam:2
+    int tam_msg_id;
+
+    //Para guardar el tamaño del resto del mensaje
+    int rest_tam_msg=0;
+
+    int contador;
+    for(contador=0;nombre_completo[contador]!= ',';contador++){
+        rest_tam_msg++;
+    }
+    rest_tam_msg++;
+    contador++;
+
+    //lee hasta la siguiente coma
+    for(int i=contador;nombre_completo[i]!= ',';i++){
+        rest_tam_msg++;
+    }
+    rest_tam_msg++;
+
+    //Obtiene el tamaño
+    tam_msg_id = nombre_completo.length()-rest_tam_msg;
+
+    char* nombre;
+    nombre = (char*)malloc(sizeof(char)*tam_msg_id);
+    if(nombre_completo[0] == 'A' || nombre_completo[0] == 'D'){
+        //Obtiene el ID y lo guarda en "nombre"
+        for(unsigned int i=rest_tam_msg;i<nombre_completo.length();i++){
+            nombre[i-rest_tam_msg] = nombre_completo[i];
+        }
+    }else{
+        for(unsigned int i=rest_tam_msg;nombre_completo[i]!=',';i++){
+            nombre[i-rest_tam_msg] = nombre_completo[i];
+        }
+    }
+    cout << "OBTENIDO:" << atoi(nombre) << endl;
     //Lo transforma a entero
     return atoi(nombre);
 }
@@ -83,18 +128,26 @@ const char* FuncionesExtras::intToString(int numero){
     //String con el numero invertido
     string inv_numero;
 
-    //caracter auxiliar para calcular cada digito
-    char digito;
-    for(int i=0;numero!=0;i++){
-        digito = (numero%10) + 48;
-        inv_numero.push_back(digito);
-        numero /= 10;
-    }
-
+    //Numero real
     string real_numero;
-    for(unsigned int i=0;i<inv_numero.length();i++){
-        real_numero[i] = inv_numero[(inv_numero.length()-1)-i];
-    }
+    cout << "RECIBI: " << numero;
+    if(numero !=0 ){
+        //caracter auxiliar para calcular cada digito
+        char digito;
+        for(int i=0;numero!=0;i++){
+            digito = (numero%10) + 48;
+            inv_numero.push_back(digito);
+            numero /= 10;
+        }
 
+        int index = inv_numero.length()-1;
+        for(unsigned int i=0;i<inv_numero.length();i++){
+            real_numero.push_back(inv_numero[index-i]);
+        }
+
+    }else{
+        real_numero.push_back(48);
+    }
+   cout << " y lo transforme a:" << real_numero << endl;
     return real_numero.c_str();
 }

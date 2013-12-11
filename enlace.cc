@@ -9,6 +9,8 @@
 #include <Informacion_m.h>
 #include <enlace.h>
 
+#include <FuncionesExtras.h>
+
 using namespace std;
 
 //Define la clase para trabajar directamente con el modulo de enlace
@@ -80,26 +82,8 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
 
     }else{
         //Pasar los datos de un paquete a otro (Informacion -> DataFrame)
-        //para guardar el valor del mensaje que debe ser enviado
-        int msg_ack_id=0;
 
-        //para guardar el tamaño del msg_ack_id (ejemplo: 10-> tamaño :2)
-        int tam_msg_ack_id = nombre_dato.length()-5;
-
-        char* nombre;
-        nombre = (char*)malloc(sizeof(char)*tam_msg_ack_id);
-
-        for(unsigned int i=5;i<nombre_dato.length();i++){
-            nombre[i-5] = nombre_dato[i];
-        }
-
-        msg_ack_id = atoi(nombre);
-
-        //Para el nombre de la trama
-        stringstream buffer;
-        buffer << "I," << msg_ack_id;
-
-        DataFrame *tramaInformacion = new DataFrame((buffer.str()).c_str());
+        DataFrame *tramaInformacion = new DataFrame(FuncionesExtras::nombrandoTrama(nombre_dato.c_str(),"I,"));
         Informacion *informacion = check_and_cast<Informacion *>(dato);
 
         //Copiando Address
@@ -117,7 +101,11 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
             tramaInformacion->setControl(3,0);
 
             //bit P/F en 1 para solicitar respuesta
-            tramaInformacion->setControl(4,0);
+            tramaInformacion->setControl(4,1);
+                //Asignando nombre completo
+                    nombre_dato = tramaInformacion->getName();
+                    nombre_dato += ',';
+                    tramaInformacion->setName(FuncionesExtras::nombrando(nombre_dato.c_str(),tramaInformacion->getControl(4)));
 
             //N(R)
             tramaInformacion->setControl(5,0);
@@ -154,27 +142,8 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
     //Si el dataframe corresponde a una trama de informacion
     if(dataframe->getControl(0) == 0){
         //Se envia la información recibida a aplicacion
-            //para guardar el valor del mensaje que debe ser enviado
-            int msg_ack_id=0;
-
-            //para guardar el tamaño del msg_ack_id (ejemplo: 10-> tamaño :2)
-            int tam_msg_ack_id = packet_name.length()-2;
-
-            char* nombre;
-            nombre = (char*)malloc(sizeof(char)*tam_msg_ack_id);
-
-            for(unsigned int i=2;i<packet_name.length();i++){
-                nombre[i-2] = packet_name[i];
-            }
-
-            msg_ack_id = atoi(nombre);
-
-            //Para el nombre de la trama
-            stringstream buffer;
-            buffer << "DATO " << msg_ack_id;
-
             //Crea el packete de informacion para mandarlo a Aplicacion
-            Informacion *tramaComunicacion = new Informacion((buffer.str()).c_str());
+            Informacion *tramaComunicacion = new Informacion(FuncionesExtras::nombrandoTrama(packet_name.c_str(),"DATO,"));
 
             //Inicia Address
                 //Copia Address
@@ -196,10 +165,7 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
 
         //Se envia RR N al otro host
             //Usando dataframe para modificar la informacion
-            buffer.str("");
-            buffer.clear();
-            buffer << "RR," << msg_ack_id+1;
-            dataframe->setName((buffer.str()).c_str());
+            dataframe->setName(FuncionesExtras::nombrando("RR,",1+FuncionesExtras::getValorId(packet_name.c_str())));
 
             //Inicio Address
                 //Queda igual
@@ -216,6 +182,10 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
 
                 //bit P/F en 1 para solicitar respuesta
                 dataframe->setControl(4,1);
+                //Asignando nombre completo
+                    packet_name = dataframe->getName();
+                    packet_name += ',';
+                    dataframe->setName(FuncionesExtras::nombrando(packet_name.c_str(),dataframe->getControl(4)));
 
                 //N(R)
                 dataframe->setControl(5,1);
@@ -228,7 +198,7 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
             //Fin FCS
 
             send(dataframe,"hacia_fisico");
-            ev << "Enviado Supervisory RR " << msg_ack_id << " a Host: " << address_dest;
+            ev << "Enviado Supervisory RR" << " a Host: " << address_dest;
     }
     else{
         //Si el dataframe corresponde a una trama supervisora
@@ -239,27 +209,8 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
 
             //Se recibe un RR
             if(M1 == 0){
-                //para guardar el valor del mensaje que debe ser enviado
-                int msg_ack_id=0;
-
-                //para guardar el tamaño del msg_ack_id (ejemplo: 10-> tamaño :2)
-                int tam_msg_ack_id = packet_name.length()-3;
-
-                char* nombre;
-                nombre = (char*)malloc(sizeof(char)*tam_msg_ack_id);
-
-                for(unsigned int i=3;i<packet_name.length();i++){
-                    nombre[i-3] = packet_name[i];
-                }
-
-                msg_ack_id = atoi(nombre);
-
-                //Para el nombre de la trama
-                stringstream buffer;
-                buffer << "ACK," << msg_ack_id;
-
                 //Mandar un ACK,N al modulo de aplicación
-                cMessage *ack = new cMessage((buffer.str()).c_str());
+                cMessage *ack = new cMessage(FuncionesExtras::nombrando("ACK,",FuncionesExtras::getValorId(packet_name.c_str())));
 
                 send(ack,"hacia_arriba");
                 ev << "Mandando ACK al modulo de aplicación" << endl;
