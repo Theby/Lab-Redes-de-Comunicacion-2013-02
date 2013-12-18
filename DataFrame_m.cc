@@ -186,6 +186,10 @@ void DataFrame::setFCS(unsigned int k, int FCS)
     this->FCS_var[k] = FCS;
 }
 
+void DataFrame::createFrame(const char* name){
+
+}
+
 class DataFrameDescriptor : public cClassDescriptor
 {
   public:

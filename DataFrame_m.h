@@ -65,6 +65,8 @@ class DataFrame : public ::cMessage
     virtual unsigned int getFCSArraySize() const;
     virtual int getFCS(unsigned int k) const;
     virtual void setFCS(unsigned int k, int FCS);
+
+    void createFrame(const char* name);
 };
 
 inline void doPacking(cCommBuffer *b, DataFrame& obj) {obj.parsimPack(b);}
