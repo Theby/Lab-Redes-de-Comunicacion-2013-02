@@ -15,9 +15,6 @@ using namespace std;
 int FuncionesExtras::getValorId(const char* input_complete_name){
     string nombre_completo = input_complete_name;
 
-    //para guardar el tamaño de nombre: ejemplo 12 -> tam:2
-    int tam_msg_id;
-
     //Para guardar el tamaño del resto del mensaje
     int rest_tam_msg=0;
 
@@ -26,11 +23,6 @@ int FuncionesExtras::getValorId(const char* input_complete_name){
     }
     rest_tam_msg++;
 
-    //Obtiene el tamaño
-    tam_msg_id = nombre_completo.length()-rest_tam_msg;
-
-    //char* nombre;
-    //nombre = (char*)malloc(sizeof(char)*tam_msg_id);
     string nombre;
     if(nombre_completo[0] == 'A' || nombre_completo[0] == 'D'){
         //Obtiene el ID y lo guarda en "nombre"
@@ -51,9 +43,6 @@ int FuncionesExtras::getValorId(const char* input_complete_name){
 int FuncionesExtras::getValorPF(const char* input_complete_name){
     string nombre_completo = input_complete_name;
 
-    //para guardar el tamaño de nombre: ejemplo 12 -> tam:2
-    int tam_msg_id;
-
     //Para guardar el tamaño del resto del mensaje
     int rest_tam_msg=0;
 
@@ -70,24 +59,31 @@ int FuncionesExtras::getValorPF(const char* input_complete_name){
     }
     rest_tam_msg++;
 
-    //Obtiene el tamaño
-    tam_msg_id = nombre_completo.length()-rest_tam_msg;
-
-    char* nombre;
-    nombre = (char*)malloc(sizeof(char)*tam_msg_id);
+    string nombre;
     if(nombre_completo[0] == 'A' || nombre_completo[0] == 'D'){
         //Obtiene el ID y lo guarda en "nombre"
         for(unsigned int i=rest_tam_msg;i<nombre_completo.length();i++){
-            nombre[i-rest_tam_msg] = nombre_completo[i];
+            nombre.push_back(nombre_completo[i]);
         }
     }else{
         for(unsigned int i=rest_tam_msg;nombre_completo[i]!=',';i++){
-            nombre[i-rest_tam_msg] = nombre_completo[i];
+            nombre.push_back(nombre_completo[i]);
         }
     }
 
     //Lo transforma a entero
-    return atoi(nombre);
+    return atoi(nombre.c_str());
+}
+
+const char* FuncionesExtras::getNombreTrama(const char* input_complete_name){
+    string nombre_original = input_complete_name;
+    string nombre;
+
+    for(int i=0;nombre_original[i]!=',';i++){
+        nombre.push_back(nombre_original[i]);
+    }
+
+    return nombre.c_str();
 }
 
 const char* FuncionesExtras::nombrandoTrama(const char* input_original_name,const char* input_new_name){

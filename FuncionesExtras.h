@@ -29,13 +29,18 @@ public:
      */
     static const char* nombrandoTrama(const char* input_original_name,const char* input_new_name);
 
+   /*
+    * Del nombre original obtiene el nombre sin sus atributos de informacion de trama
+    */
+    static const char* getNombreTrama(const char* input_complete_name);
+
     /*
      * Concatena original name con valor
      */
     static const char* nombrando(const char* input_original_name, int valor);
 
     /*
-     * el nombre lo dice todo
+     * Transforma de entero a string
      */
     static const char* intToString(int numero);
 };
