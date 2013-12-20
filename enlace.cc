@@ -21,8 +21,7 @@ Define_Module( enlace );
 string respuesta_a;
 int trama_con_error;
 
-void enlace::handleMessage(cMessage *msg)
-{
+void enlace::handleMessage(cMessage *msg){
     //Si el mensaje llega desde el otro Host
     if (msg->arrivedOn("desde_fisico")){
         //Procesarlo como si viniera desde abajo
@@ -36,12 +35,17 @@ void enlace::handleMessage(cMessage *msg)
 }
 
 void enlace::processMsgFromHigherLayer(cMessage *dato){
-    string nombre_dato = dato->getName();
-    int address_dest = par("direccion_dest");
+    //Obtiene la direccion del host del modulo
+    int nombreHost = par("direccion_host");
 
+    int address_dest = par("direccion_dest");
+    string nombre_dato = dato->getName();
+
+    //Si es una trama START
     if(nombre_dato == "START"){
         delete dato;
 
+        //Para saber cual fue la última trama asentida y si es que faltan por asentir
         par("tramas_no_asentidas").setLongValue(0);
         par("ult_trama_recibida").setLongValue(0);
 
@@ -51,150 +55,69 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
             bubble("Esperando Confirmación");
         }
 
-        //Se envia una trama SABM al otro host
+        //El host entra en modo de "esperando respuseta a un SABM"
         respuesta_a = "SABM";
+
         //Trama Comando SABM
-        DataFrame *tramaComando = new DataFrame("Trama Comando SABM");
+        DataFrame *tramaComando = new DataFrame("SABM, Trama Comando");
 
-        //Inicio Address
-            //Asigna la direccion al sector address de la trama
-            for(unsigned int i=0;i<8;i++){
-                if(address_dest<pow(10,(8-(i+1)))){
-                    tramaComando->setAddress(i,0);
-                }else{
-                    tramaComando->setAddress(i,1);
-                }
-            }
-        //Fin Address
+        //Asigna los valores para crear una trama SABM
+        tramaComando->createFrame(address_dest);        
 
-        //Inicio Control: Unnumbered SABM
-            //Unnumbered
-            tramaComando->setControl(0,1);
-            tramaComando->setControl(1,1);
-
-            //Unnumbered Funcion bits
-            tramaComando->setControl(2,1);
-            tramaComando->setControl(3,1);
-
-            //bit P/F en 1 para solicitar respuesta
-            tramaComando->setControl(4,1);
-
-            //Unnumbered Funcion bits
-            tramaComando->setControl(5,1);
-            tramaComando->setControl(6,0);
-            tramaComando->setControl(7,0);
-        //Fin Control
-
-        //Inicio FCS
-            for(int i=0;i<16;i++){
-                tramaComando->setFCS(i,0);
-            }
-        //Fin FCS
-
-        //Verde de esperando
+        //Verde de esperando confirmacion
         if (ev.isGUI()){
             getParentModule()->getDisplayString().setTagArg("i",1,"green");
             getParentModule()->bubble("Esperando Confirmación");
         }
 
         send(tramaComando,"hacia_fisico");
-        ev << "Enviado Unnumbered SABM a Host: " << address_dest;
+        ev << "Host " << nombreHost << ": " << "Enviado Unnumbered SABM a Host: " << address_dest;
+
+    //Si es una trama END
     }else if(nombre_dato == "END"){
         delete dato;
+
         //Revisa si faltan tramas por asentir
         int tramas_no_asentidas = par("tramas_no_asentidas");
 
+        //Si no falta asentir ninguna trama
         if(tramas_no_asentidas == 0){
-            //Envia una trama de comando DISC al otro host
+            //Entra en estado de "esperando respuesta a DISC"
             respuesta_a = "DISC";
+
             //Trama commando DISC
-            DataFrame *tramaComando = new DataFrame("Trama Comando DISC");
+            DataFrame *tramaComando = new DataFrame("DISC,Trama Comando");
 
-            //Inicio Address
-                //Asigna la direccion al sector address de la trama
-                for(unsigned int i=0;i<8;i++){
-                    if(address_dest<pow(10,(8-(i+1)))){
-                        tramaComando->setAddress(i,0);
-                    }else{
-                        tramaComando->setAddress(i,1);
-                    }
-                }
-            //Fin Address
+            //Crea los valores necesarios para una trama DISC
+            tramaComando->createFrame(address_dest);
 
-            //Inicio Control: Unnumbered DISC
-                //Unnumbered
-                tramaComando->setControl(0,1);
-                tramaComando->setControl(1,1);
-
-                //Unnumbered Funcion bits
-                tramaComando->setControl(2,0);
-                tramaComando->setControl(3,0);
-
-                //bit P/F en 1 para solicitar respuesta
-                tramaComando->setControl(4,1);
-
-                //Unnumbered Funcion bits
-                tramaComando->setControl(5,0);
-                tramaComando->setControl(6,1);
-                tramaComando->setControl(7,0);
-            //Fin Control
-
-            //Inicio FCS
-                for(int i=0;i<16;i++){
-                    tramaComando->setFCS(i,0);
-                }
-            //Fin FCS
-
+            //Envia la trama por el canal fisico
             send(tramaComando,"hacia_fisico");
-            ev << "Enviado Unnumbered DISC a Host: " << address_dest;
+            ev << "Host " << nombreHost << ": " << "Enviado Unnumbered DISC a Host: " << address_dest;
+
+        //Si aun faltan tramas por asentir
         }else{
-            DataFrame *unnumberedFrame = new DataFrame("Trama Comando UP");
-            //Si faltan tramas por ser asentidas por un RR se manda un UP
 
-            //Inicio Address
-                for(unsigned int i=0;i<8;i++){
-                    if(address_dest<pow(10,(8-(i+1)))){
-                        unnumberedFrame->setAddress(i,0);
-                    }else{
-                        unnumberedFrame->setAddress(i,1);
-                    }
-                }
-            //Fin Address
+            //Si faltan tramas por ser asentidas por un RR se manda un UP para exigir respuesta
+            DataFrame *unnumberedFrame = new DataFrame("UP, Trama Comando");
+            
+            //Asignando valores necesarios para crear la trama
+            unnumberedFrame->createFrame(address_dest);
 
-            //Inicio Control: Unnumbered UP
-                //Unnumbered
-                unnumberedFrame->setControl(0,1);
-                unnumberedFrame->setControl(1,1);
-
-                //Unnumbered Funcion bits
-                unnumberedFrame->setControl(2,0);
-                unnumberedFrame->setControl(3,0);
-
-                //bit P/F en 1 para dar respuesta
-                unnumberedFrame->setControl(4,1);
-
-                //Unnumbered Funcion bits
-                unnumberedFrame->setControl(5,1);
-                unnumberedFrame->setControl(6,0);
-                unnumberedFrame->setControl(7,0);
-            //Fin Control
-
-            //Inicio FCS
-                //Queda igual
-            //Fin FCS
-
+            //Enviando a travez del canal fisico
             send(unnumberedFrame,"hacia_fisico");
-            ev << "Se envia UP para confirmar las ultimas tramas" << endl;
+            ev << "Host " << nombreHost << ": " << "Se envia UP para confirmar las ultimas tramas" << endl;
         }
 
+    //Si es trama de informacion
     }else{
         //Se recibe un DATO,N por lo que se envia una trama de informacion al otro frame
         srand(time(NULL));
         int error = rand()%100;
 
-        // Instancia de probabilidad de error para las tramas que se envian
+        // Probabilidad de que se envie de forma erronea una trama
         int prob_error = par("error");
-        // Instancia de probabilidad que la tramase pierda durante el envio
+        // Instancia de probabilidad que la trama se pierda durante el envio
         //int prob_noEnvio = prob_error;
 
         //Para el bit P/F
@@ -206,13 +129,11 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
 
         DataFrame *tramaInformacion;
         if (error > prob_error)
-            //Se recibe un DATO,N por lo que se envia una trama de informacion al otro frame
-            //Pasar los datos de un paquete a otro (Informacion -> DataFrame)
             tramaInformacion = new DataFrame(FuncionesExtras::nombrandoTrama(nombre_dato.c_str(),"I,"));
         else{
             //Si no supera el umbral de error, la trama se setea como errornea.
             tramaInformacion = new DataFrame(FuncionesExtras::nombrandoTrama(nombre_dato.c_str(),"ERROR,"));
-            ev << "La trama "<< nombre_dato.c_str() << " se ha generado con error.";
+            ev << "Host " << nombreHost << ": " << "La trama "<< nombre_dato.c_str() << " se ha generado con error.";
         }
 
         //Pasar los datos de un paquete a otro (Informacion -> DataFrame)
@@ -274,31 +195,33 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
         //error = rand()%100;
         //En caso de ser menor a la prob_noEnvio, la trama no se envia para error de trama no recibida
         //if (error > prob_noEnvio){
+            //Enviando trama por el medio fisico
             send(tramaInformacion,"hacia_fisico");
+            ev << "Host " << nombreHost << ": " << "Mandando trama de Información " << id_dato << " al host: " << address_dest;
         /*}else{
-            ev << "La trama "<< nombre_dato.c_str() << " se ha perdido.";*/
-        //}
-
-        ev << "Mandando trama de Información " << id_dato << " al host: " << address_dest;
+            ev << "Host " << nombreHost << ": " << "La trama "<< nombre_dato.c_str() << " se ha perdido.";*/
+        //}        
 
         //Guarda el valor de las tramas enviadas y que no han recibido asentimiento RR
         int tramas_no_asentidas = par("tramas_no_asentidas");
         tramas_no_asentidas++;
-
         par("tramas_no_asentidas").setLongValue(tramas_no_asentidas);
 
         if(bit_pf == 0){
-            //Mandar un ACK,N al modulo de aplicación
+            //Crea un ACK,N
             int valor_id = 1 + id_dato;
             cMessage *ack = new cMessage(FuncionesExtras::nombrando("ACK,",valor_id));
 
+            //Envia ACK,N al modulo de aplicacion
             send(ack,"hacia_arriba");
-            ev << "Mandando ACK al modulo de aplicación" << endl;
+            ev << "Host " << nombreHost << ": " << "Mandando ACK al modulo de aplicación" << endl;
         }
     }
 }
 
 void enlace::processMsgFromLowerLayer(cMessage *packet){
+    //Obtiene la direccion del host del modulo
+    int nombreHost = par("direccion_host");
     int address_dest = par("direccion_dest");
     string packet_name = packet->getName();
     int bandera = 0;
@@ -344,7 +267,7 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                 //Fin Informacion
 
                 send(tramaComunicacion,"hacia_arriba");
-                ev << "Mandando mensaje recibido a aplicacion";
+                ev << "Host " << nombreHost << ": " << "Mandando mensaje recibido a aplicacion";
 
                 //Si se recibe el bit P/F en 1 se responde con un RR,N,1
                     if(dataframe->getControl(4) == 1){
@@ -388,7 +311,7 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                         //Fin FCS
 
                         send(dataframe,"hacia_fisico");
-                        ev << "Enviado Supervisory RR" << " a Host: " << address_dest;
+                        ev << "Host " << nombreHost << ": " << "Enviado Supervisory RR" << " a Host: " << address_dest;
                         par("tramas_no_asentidas").setLongValue(0);
                 }else{
                     //Asigna el valor de la última trama recibida
@@ -456,7 +379,7 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                         cMessage *ack = new cMessage(FuncionesExtras::nombrando("ACK,",FuncionesExtras::getValorId(packet_name.c_str())));
 
                         send(ack,"hacia_arriba");
-                        ev << "Mandando ACK al modulo de aplicación" << endl;
+                        ev << "Host " << nombreHost << ": " << "Mandando ACK al modulo de aplicación" << endl;
 
                         //Reinicia el valor de las tramas asentidas
                         int tramas_no_asentidas = par("tramas_no_asentidas");
@@ -496,7 +419,7 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                         //Fin FCS
 
                         send(dataframe,"hacia_fisico");
-                        ev << "Se envia trama DISC" << endl;
+                        ev << "Host " << nombreHost << ": " << "Se envia trama DISC" << endl;
                     }
                 }
             }else if(M1 == 1){
@@ -604,7 +527,7 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
 
 
                     send(dataframe,"hacia_fisico");
-                    ev << "Enviado Unnumbered UA a Host: " << address_dest;
+                    ev << "Host " << nombreHost << ": " << "Enviado Unnumbered UA a Host: " << address_dest;
 
                     //Se disconecta
                 }
@@ -649,7 +572,7 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                     //Fin FCS
 
                     send(dataframe,"hacia_fisico");
-                    ev << "Enviado Supervisory RR" << " a Host: " << address_dest;
+                    ev << "Host " << nombreHost << ": " << "Enviado Supervisory RR" << " a Host: " << address_dest;
 
                 }
                 //Se recibe un UA
@@ -668,7 +591,7 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                         cMessage *ack = new cMessage("ACK,0");
 
                         send(ack,"hacia_arriba");
-                        ev << "Mandando ACK,0 al modulo de aplicación" << endl;
+                        ev << "Host " << nombreHost << ": " << "Mandando ACK,0 al modulo de aplicación" << endl;
                     }else if(respuesta_a == "DISC"){
                         respuesta_a == "NONE";
                         //Negro de desconectado
@@ -737,7 +660,7 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                     }
 
                     send(dataframe,"hacia_fisico");
-                    ev << "Enviado Unnumbered UA a Host: " << address_dest;
+                    ev << "Host " << nombreHost << ": " << "Enviado Unnumbered UA a Host: " << address_dest;
                 }
             }
         }
