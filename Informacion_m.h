@@ -55,6 +55,9 @@ class Informacion : public ::cMessage
     virtual unsigned int getInformacionArraySize() const;
     virtual int getInformacion(unsigned int k) const;
     virtual void setInformacion(unsigned int k, int informacion);
+
+    //Permite crear una trama de información, destino debe ser menor que 512
+    void createFrame(int destino,int* informacion, int tamInfo);
 };
 
 inline void doPacking(cCommBuffer *b, Informacion& obj) {obj.parsimPack(b);}

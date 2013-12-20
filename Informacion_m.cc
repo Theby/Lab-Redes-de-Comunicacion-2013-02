@@ -140,6 +140,34 @@ void Informacion::setInformacion(unsigned int k, int informacion)
     this->informacion_var[k] = informacion;
 }
 
+void Informacion::createFrame(int destino,int* informacion, int tamInfo){
+    std::vector<int> destino_binario;
+
+    //Transforma destino a un número binario
+    for(int i=0;destino>0;i++){
+        destino_binario.push_back(destino%2);
+        destino /= 2;
+    }
+
+    //Inicio Address
+        //Asigna la direccion al sector address de la trama
+        for(int i=destino_binario.size()-1;i>=0;i--){
+            this->setAddress_dest(i,destino_binario.back());
+            destino_binario.pop_back();
+        }
+    //Fin Address
+
+    //Inicio Informacion
+        //Tamaño
+        this->setInformacionArraySize(tamInfo);
+
+        //Asignación
+        for(int i=0;i<tamInfo;i++){
+            this->setInformacion(i,informacion[i]);
+        }
+    //Fin Informacion
+}
+
 class InformacionDescriptor : public cClassDescriptor
 {
   public:
