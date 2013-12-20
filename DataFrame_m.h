@@ -38,6 +38,35 @@ class DataFrame : public ::cMessage
   private:
     void copy(const DataFrame& other);
 
+        void tramaI(int* informacion, int tamInfo);
+
+        void tramaRR();
+        void tramaREJ();
+        void tramaRNR();
+        void tramaSREJ();
+
+        void tramaUI();
+        void tramaSNRM();
+    void tramaDISC(std::vector<int> destino);   
+        void tramaRD();
+        void tramaUP();
+        void tramaUA();
+        void tramaNR0();
+        void tramaNR1();
+        void tramaNR2();
+        void tramaNR3();
+        void tramaSIM();
+        void tramaRIM();
+        void tramaFRMR();
+        void tramaSARM();
+        void tramaDM();
+        void tramaRSET();
+        void tramaSARME();
+        void tramaSNRME();
+    void tramaSABM(std::vector<int> destino);
+        void tramaXID();
+        void tramaSABME();
+
   protected:
     // protected and unimplemented operator==(), to prevent accidental usage
     bool operator==(const DataFrame&);
@@ -66,7 +95,10 @@ class DataFrame : public ::cMessage
     virtual int getFCS(unsigned int k) const;
     virtual void setFCS(unsigned int k, int FCS);
 
-    void createFrame(const char* name);
+    /*
+     * Crea la trama según su nombre, asignando el campo de control según corresponda
+     */
+    void createFrame(int destino, int tamInfo=0, int* informacion=NULL, int NS=0, int PF=0, int NR=0);
 };
 
 inline void doPacking(cCommBuffer *b, DataFrame& obj) {obj.parsimPack(b);}

@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <sstream>
+#include "FuncionesExtras.h"
 #include "DataFrame_m.h"
 
 // Template rule which fires if a struct or class doesn't have operator<<
@@ -186,8 +187,264 @@ void DataFrame::setFCS(unsigned int k, int FCS)
     this->FCS_var[k] = FCS;
 }
 
-void DataFrame::createFrame(const char* name){
+void DataFrame::createFrame(int destino, int tamInfo, int* informacion, int NS, int PF, int NR){
+    std::string name = FuncionesExtras::getNombreTrama(this->getName());
+    std::vector<int> destino_binario;
 
+    //Transforma destino a un número binario
+    for(int i=0;destino>0;i++){
+        destino_binario.push_back(destino%2);
+        destino /= 2;
+    }
+
+    if(name == "I"){
+        this->tramaI(informacion,tamInfo);
+    }else if(name == "RR"){        
+        this->tramaRR();
+    }else if(name == "REJ"){
+        this->tramaREJ();
+    }else if(name == "RNR"){
+        this->tramaRNR();
+    }else if(name == "SREJ"){
+        this->tramaSREJ();
+    }else if(name == "UI"){
+        this->tramaUI();
+    }else if(name == "SNRM"){
+        this->tramaSNRM();
+    }else if(name == "DISC"){
+        this->tramaDISC(destino_binario);
+    }else if(name == "RD"){
+        this->tramaRD();
+    }else if(name == "UP"){
+        this->tramaUP(destino_binario);
+    }else if(name == "UA"){
+        this->tramaUA();
+    }else if(name == "NR0"){
+        this->tramaNR0();
+    }else if(name == "NR1"){
+        this->tramaNR1();
+    }else if(name == "NR2"){
+        this->tramaNR2();
+    }else if(name == "NR3"){
+        this->tramaNR3();
+    }else if(name == "SIM"){
+        this->tramaSIM();
+    }else if(name == "RIM"){
+        this->tramaRIM();
+    }else if(name == "FRMR"){
+        this->tramaFRMR();
+    }else if(name == "SARM"){
+        this->tramaSARM();
+    }else if(name == "DM"){
+        this->tramaDM();
+    }else if(name == "RSET"){
+        this->tramaRSET();
+    }else if(name == "SARME"){
+        this->tramaSARME();
+    }else if(name == "SNRME"){
+        this->tramaSNRME();
+    }else if(name == "SABM"){
+        this->tramaSABM(destino_binario);
+    }else if(name == "XID"){
+        this->tramaXID();
+    }else if(name == "SABME"){
+        this->tramaSABME();
+    }
+}
+
+void DataFrame::tramaI(int tamInfo,int* informacion,){
+    //No Implementado
+}
+
+
+void DataFrame::tramaRR(){
+    //No Implementado
+}
+
+void DataFrame::tramaREJ(){
+    //No Implementado
+}
+
+void DataFrame::tramaRNR(){
+    //No Implementado
+}
+
+void DataFrame::tramaSREJ(){
+    //No Implementado
+}
+
+void DataFrame::tramaUI(){
+    //No Implementado
+}
+
+void DataFrame::tramaSNRM(){
+    //No Implementado
+}
+
+void DataFrame::tramaDISC(std::vector<int> destino){
+    //Inicio Address
+        //Asigna la direccion al sector address de la trama
+        for(int i=destino.size()-1;i>=0;i--){
+            this->setAddress(i,destino.back());
+            destino.pop_back();
+        }
+    //Fin Address
+
+    //Inicio Control: Unnumbered DISC
+        //Unnumbered
+        this->setControl(0,1);
+        this->setControl(1,1);
+
+        //Unnumbered Funcion bits
+        this->setControl(2,0);
+        this->setControl(3,0);
+
+        //bit P/F en 1 para solicitar respuesta
+        this->setControl(4,1);
+
+        //Unnumbered Funcion bits
+        this->setControl(5,0);
+        this->setControl(6,1);
+        this->setControl(7,0);
+    //Fin Control
+
+    //Inicio FCS
+        for(int i=0;i<16;i++){
+            this->setFCS(i,0);
+        }
+    //Fin FCS
+}
+
+void DataFrame::tramaRD(){
+    //No Implementado
+}
+
+void DataFrame::tramaUP(std::vector<int> destino){
+    //Inicio Address
+        //Asigna la direccion al sector address de la trama
+        for(int i=destino.size()-1;i>=0;i--){
+            this->setAddress(i,destino.back());
+            destino.pop_back();
+        }
+    //Fin Address
+
+    //Inicio Control: Unnumbered UP
+        //Unnumbered
+        this->setControl(0,1);
+        this->setControl(1,1);
+
+        //Unnumbered Funcion bits
+        this->setControl(2,0);
+        this->setControl(3,0);
+
+        //bit P/F en 1 para dar respuesta
+        this->setControl(4,1);
+
+        //Unnumbered Funcion bits
+        this->setControl(5,1);
+        this->setControl(6,0);
+        this->setControl(7,0);
+    //Fin Control
+
+    //Inicio FCS
+        for(int i=0;i<16;i++){
+            this->setFCS(i,0);
+        }
+    //Fin FCS
+}
+
+void DataFrame::tramaUA(){
+    //No Implementado
+}
+
+void DataFrame::tramaNR0(){
+    //No Implementado
+}
+
+void DataFrame::tramaNR1(){
+    //No Implementado
+}
+
+void DataFrame::tramaNR2(){
+    //No Implementado
+}
+
+void DataFrame::tramaNR3(){
+    //No Implementado
+}
+
+void DataFrame::tramaSIM(){
+    //No Implementado
+}
+
+void DataFrame::tramaRIM(){
+    //No Implementado
+}
+
+void DataFrame::tramaFRMR(){
+    //No Implementado
+}
+
+void DataFrame::tramaSARM(){
+    //No Implementado
+}
+
+void DataFrame::tramaDM(){
+    //No Implementado
+}
+
+void DataFrame::tramaRSET(){
+    //No Implementado
+}
+
+void DataFrame::tramaSARME(){
+    //No Implementado
+}
+
+void DataFrame::tramaSNRME(){
+    //No Implementado
+}
+
+void DataFrame::tramaSABM(std::vector<int> destino){
+    //Inicio Address
+        //Asigna la direccion al sector address de la trama
+        for(int i=destino.size()-1;i>=0;i--){
+            this->setAddress(i,destino.back());
+            destino.pop_back();
+        }
+    //Fin Address
+
+    //Inicio Control: Unnumbered SABM
+        //Unnumbered
+        this->setControl(0,1);
+        this->setControl(1,1);
+
+        //Unnumbered Funcion bits
+        this->setControl(2,1);
+        this->setControl(3,1);
+
+        //bit P/F en 1 para solicitar respuesta
+        this->setControl(4,1);
+
+        //Unnumbered Funcion bits
+        this->setControl(5,1);
+        this->setControl(6,0);
+        this->setControl(7,0);
+    //Fin Control
+
+    //Inicio FCS
+        for(int i=0;i<16;i++){
+            this->setFCS(i,0);
+        }
+    //Fin FCS
+}
+
+void DataFrame::tramaXID(){
+    //No Implementado
+}
+
+void DataFrame::tramaSABME(){
+    //No Implementado
 }
 
 class DataFrameDescriptor : public cClassDescriptor
