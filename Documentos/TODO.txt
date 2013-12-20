@@ -1,0 +1,35 @@
+Errores de perdida de informacion
+Extender errores a todo tipo de tramas
+
+
+
+
+Ventana:
+	La utilización de un buffer de tamaño W.
+	- Cantidad de tramas antes de recibir ACK. Donde este incluye el número de
+	la siguiente trama.
+	- Números de Secuencia.
+	
+
+
+Rechazo Simple
+
+- Cantidad de tramas a enviar desde A
+- Cantidad de tramas a enviar desde B
+- Tamaño de las ventanas deslizantes (Se asumen iguales para envíos de A hacia B y de B hacia A).
+- Número de tramas a enviar/recibir antes de recibir un ACK (Comprobar que no sea mayor que al tamaño de la ventana).
+- Probabilidad con la que podría producirse un error en el envío.
+
+
+
+
+
+
+
+
+
+Si A y B se mandan diferente cantidad de tramas, uno debe esperar al otro
+
+Cuando manda un UP para exigir respuesta necesita entrar en respuesta_a= "UP"????
+Terminar de crear la trama de informacion I: enlace.cc linea 140 en adelante
+Crear una funcion extra que pase de binario a un numero entero: int bitToInt(int* binario); (Y al revez no ? :C)
