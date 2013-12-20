@@ -17,6 +17,9 @@
 using namespace std;
 
 void aplicacion::generaInfo(int trama_id){
+    //Obtiene la direccion del host del modulo
+    int nombreHost = par("direccion_host");
+
     //Si es primera vez que se inicia
     if(trama_id == -1){
         //creando un mensaje START
@@ -24,11 +27,12 @@ void aplicacion::generaInfo(int trama_id){
 
         //Enviando el mensaje a Enlace
         send(start, "hacia_abajo");
-        ev << "Enviando mensaje START a Enlace" << endl;
+        ev << "Host " << nombreHost << ": " << "Enviando mensaje START a Enlace" << endl;
     }else{
         //Numero maximo de tramas a enviar
         int numTramas = par("numTramas");
 
+        //Si se ha enviado el número máximo de tramas
         if(numTramas == trama_id){
             //Negro de desconectado
             if (ev.isGUI()){
@@ -41,7 +45,7 @@ void aplicacion::generaInfo(int trama_id){
 
             //Enviando el mensaje a Enlace
             send(end, "hacia_abajo");
-            ev << "Enviando mensaje END a Enlace" << endl;
+            ev << "Host " << nombreHost << ": " << "Enviando mensaje END a Enlace" << endl;
         }else{
             //Obtiene la dirección del destino al cual se le enviará la información, la cual es seteada por sistema.ned
             int address_dest = par("direccion_dest");
@@ -49,33 +53,25 @@ void aplicacion::generaInfo(int trama_id){
             //Obtiene el tamaño de la trama, el cual por defecto es 4 en sistema.ned
             int tamTrama = par("tamTrama");
 
+            //Crea la información a enviar (ALEATORIO)
+            srand(time(NULL));
+            int* informacionRand = (int*)malloc(sizeof(int)*tamTrama);
+
+            for(int i=0;i<tamTrama;i++){
+                 informacionRand[i] = rand()%2;
+            }
+
             //Creando trama de comunicación con enlace
             Informacion *tramaComunicacion = new Informacion(FuncionesExtras::nombrando("DATO,",trama_id));
 
-            //Inicio Address
-                //Asigna la direccion al sector address de la trama
-                for(unsigned int i=0;i<8;i++){
-                    if(address_dest<pow(10,(8-(i+1)))){
-                        tramaComunicacion->setAddress_dest(i,0);
-                    }else{
-                        tramaComunicacion->setAddress_dest(i,1);
-                    }
-                }
-            //Fin Address
-
-            //Inicio Informacion
-                tramaComunicacion->setInformacionArraySize(tamTrama);
-
-                for(int i=0;i<tamTrama;i++){
-                    tramaComunicacion->setInformacion(i,1);
-                }
-            //Fin Informacion
+            //Asignando valores correspondientes
+            tramaComunicacion->createFrame(address_dest,informacionRand,tamTrama);
 
             //Se envia el mensaje a intermedio
             send(tramaComunicacion, "hacia_abajo");
 
             //Informando al Usuario el dato enviado
-            ev <<"Enviado trama " << trama_id << "al modulo de enlace" << address_dest;
+            ev << "Host " << nombreHost << ": " << "Enviado trama " << trama_id << " al modulo de enlace " << address_dest;
         }
     }
 }
@@ -107,6 +103,9 @@ void aplicacion::initialize(){
 }
 
 void aplicacion::handleMessage(cMessage* msg){
+    //Obtiene la direccion del host del modulo
+    int nombreHost = par("direccion_host");
+
     string ack = "ACK";
     string dato = "DATO";
     string msg_name = msg->getName();
@@ -125,13 +124,15 @@ void aplicacion::handleMessage(cMessage* msg){
                 if (ev.isGUI()) bubble("Conectado!");
             }
 
-            ev << "El mensaje: " << msg_name << " fue correctamente recivido." << endl;
+            ev << "Host " << nombreHost << ": " << "El mensaje: " << msg_name << " fue correctamente recivido." << endl;
+            //Comienza a generar informacion
             generaInfo(FuncionesExtras::getValorId(msg_name.c_str()));
         //Es DATO
         }else if(msg_name[0] == dato[0] && msg_name[1] == dato[1] && msg_name[2] == dato[2] && msg_name[3] == dato[3]){
-            ev << "El dato: " << msg_name << " fue correctamente recivido." << endl;
+            ev << "Host " << nombreHost << ": " << "El dato: " << msg_name << " fue correctamente recivido." << endl;
             delete msg;
         }else if(msg_name == "CONNECT"){
+            //Mensaje de coenctado
             if (ev.isGUI()) bubble("Conectado!");
             delete msg;
         }else if(msg_name == "DISCONNECT"){
@@ -142,11 +143,11 @@ void aplicacion::handleMessage(cMessage* msg){
             }
             delete msg;
         }else{
-            ev << "El mensaje: " << msg_name << " no es valido y ha sido eliminado" << endl;
+            ev << "Host " << nombreHost << ": " << "El mensaje: " << msg_name << " no es valido y ha sido eliminado" << endl;
             delete msg;
         }
     }else{
-        ev << "Mensaje llegado desde un lugar desconocido" << endl;
+        ev << "Host " << nombreHost << ": " << "Mensaje llegado desde un lugar desconocido" << endl;
         delete msg;
     }
 }
