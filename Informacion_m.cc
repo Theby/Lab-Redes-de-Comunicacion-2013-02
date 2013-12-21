@@ -11,6 +11,7 @@
 #include <iostream>
 #include <sstream>
 #include "Informacion_m.h"
+#include "FuncionesExtras.h"
 
 // Template rule which fires if a struct or class doesn't have operator<<
 template<typename T>
@@ -128,6 +129,10 @@ unsigned int Informacion::getInformacionArraySize() const
     return informacion_arraysize;
 }
 
+int* Informacion::getInformacion(){
+    return informacion_var;
+}
+
 int Informacion::getInformacion(unsigned int k) const
 {
     if (k>=informacion_arraysize) throw cRuntimeError("Array of size %d indexed by %d", informacion_arraysize, k);
@@ -141,19 +146,23 @@ void Informacion::setInformacion(unsigned int k, int informacion)
 }
 
 void Informacion::createFrame(int destino,int* informacion, int tamInfo){
-    std::vector<int> destino_binario;
+    /*std::vector<int> destino_binario;
 
     //Transforma destino a un número binario
     for(int i=0;destino>0;i++){
         destino_binario.push_back(destino%2);
         destino /= 2;
-    }
+    }*/
+
+    //Transforma destino a un número binario
+    int tamBin = FuncionesExtras::tamBitArray(destino);
+    int * destinoBin = FuncionesExtras::intToBitArray(destino);
+
 
     //Inicio Address
         //Asigna la direccion al sector address de la trama
-        for(int i=destino_binario.size()-1;i>=0;i--){
-            this->setAddress_dest(i,destino_binario.back());
-            destino_binario.pop_back();
+        for(int i=0;i<tamBin;i--){
+            this->setAddress_dest(i,destinoBin[i]);
         }
     //Fin Address
 
@@ -361,5 +370,3 @@ void *InformacionDescriptor::getFieldStructPointer(void *object, int field, int 
         default: return NULL;
     }
 }
-
-

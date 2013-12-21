@@ -53,6 +53,7 @@ class Informacion : public ::cMessage
     virtual void setAddress_dest(unsigned int k, int address_dest);
     virtual void setInformacionArraySize(unsigned int size);
     virtual unsigned int getInformacionArraySize() const;
+    virtual int* getInformacion();
     virtual int getInformacion(unsigned int k) const;
     virtual void setInformacion(unsigned int k, int informacion);
 
