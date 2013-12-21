@@ -6,6 +6,8 @@
 
 #include "FuncionesExtras.h"
 
+#include <vector>
+#include <math.h>
 #include <string.h>
 #include <cstdlib>
 #include <iostream>
@@ -147,4 +149,58 @@ const char* FuncionesExtras::intToString(int numero){
     }
 
     return real_numero.c_str();
+}
+
+int* FuncionesExtras::intToBitArray(int numero){
+    int* bitArray;
+
+    if(numero != 0){
+        vector<int> numero_binario;
+
+        //Transforma numero a un número binario
+        for(int i=0;numero>0;i++){
+            numero_binario.push_back(numero%2);
+            numero /= 2;
+        }
+
+        int size = numero_binario.size();
+        bitArray = (int*)malloc(sizeof(int)*size);
+
+        for(int i=0;i<size;i++){
+            bitArray[i] = numero_binario.back();
+            numero_binario.pop_back();
+        }
+    }else{
+        bitArray = (int*)malloc(sizeof(int)*1);
+        bitArray[0] = 0;
+    }
+
+    return bitArray;
+}
+
+int FuncionesExtras::tamBitArray(int numero){
+    if(numero != 0){
+        int tam=1;
+
+        //Calcula el tamaño que tendrá el array
+        for(tam=0;numero>1;tam++){
+            numero /= 2;
+        }
+
+        return tam;
+    }else{
+        return 1;
+    }
+}
+
+int FuncionesExtras::bitArrayToInt(vector<int> numero_binario){
+    int numero;
+    int size = numero_binario.size();
+
+    for(int i=0;i<size;i++){
+        numero += pow(2,i)*numero_binario.back();
+        numero_binario.pop_back();
+    }
+
+    return numero;
 }

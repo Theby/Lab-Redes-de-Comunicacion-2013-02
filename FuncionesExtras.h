@@ -8,6 +8,8 @@
 #ifndef FUNCIONESEXTRAS_H_
 #define FUNCIONESEXTRAS_H_
 
+#include <vector>
+
 class FuncionesExtras {
 public:
     /*
@@ -43,6 +45,21 @@ public:
      * Transforma de entero a string
      */
     static const char* intToString(int numero);
+
+    /*
+     * Transforma un entero en un arreglo de int* donde cada posicion es un número binario
+     */
+    static int* intToBitArray(int numero);
+
+    /*
+     * Para saber que tamaño tendrá el arreglo, se deben usar en conjunto con intToBitArray();
+     */
+    static int tamBitArray(int numero);
+
+    /*
+     * Transforma un arreglo de numeros binario en un numero decimal
+     */
+    static int bitArrayToInt(std::vector<int> numero_binario);
 };
 
 #endif /* FUNCIONESEXTRAS_H_ */
