@@ -38,10 +38,10 @@ class DataFrame : public ::cMessage
   private:
     void copy(const DataFrame& other);
 
-        void tramaI(int* informacion, int tamInfo);
+    void tramaI(std::vector<int> destino, int tamInfo, int* informacion, std::vector<int> NS, int PF, std::vector<int> NR);
 
-        void tramaRR();
-        void tramaREJ();
+    void tramaRR(std::vector<int> destino, int PF, std::vector<int> NR);
+    void tramaREJ(std::vector<int> destino, int PF, std::vector<int> NR);
         void tramaRNR();
         void tramaSREJ();
 
@@ -49,8 +49,8 @@ class DataFrame : public ::cMessage
         void tramaSNRM();
     void tramaDISC(std::vector<int> destino);   
         void tramaRD();
-        void tramaUP();
-        void tramaUA();
+    void tramaUP(std::vector<int> destino);
+    void tramaUA(std::vector<int> destino);
         void tramaNR0();
         void tramaNR1();
         void tramaNR2();
@@ -89,6 +89,7 @@ class DataFrame : public ::cMessage
     virtual void setControl(unsigned int k, int control);
     virtual void setInformationArraySize(unsigned int size);
     virtual unsigned int getInformationArraySize() const;
+    virtual int* getInformation();
     virtual int getInformation(unsigned int k) const;
     virtual void setInformation(unsigned int k, int information);
     virtual unsigned int getFCSArraySize() const;

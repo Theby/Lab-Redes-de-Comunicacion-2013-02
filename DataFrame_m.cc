@@ -158,6 +158,10 @@ unsigned int DataFrame::getInformationArraySize() const
     return information_arraysize;
 }
 
+int* DataFrame::getInformation(){
+    return information_var;
+}
+
 int DataFrame::getInformation(unsigned int k) const
 {
     if (k>=information_arraysize) throw cRuntimeError("Array of size %d indexed by %d", information_arraysize, k);
@@ -192,17 +196,52 @@ void DataFrame::createFrame(int destino, int tamInfo, int* informacion, int NS, 
     std::vector<int> destino_binario;
 
     //Transforma destino a un número binario
-    for(int i=0;destino>0;i++){
-        destino_binario.push_back(destino%2);
-        destino /= 2;
+    int tamBin = FuncionesExtras::tamBitArray(destino);
+    int * destinoBin = FuncionesExtras::intToBitArray(destino);
+
+    //Lo pasa a vector para tener un manejo más directo
+    for(int i=0;i<tamBin;i++){
+        destino_binario.push_back(destinoBin[i]);
     }
 
     if(name == "I"){
-        this->tramaI(informacion,tamInfo);
-    }else if(name == "RR"){        
-        this->tramaRR();
+        // Transforman N(R) y N(S) a binario
+        int * nsBin = FuncionesExtras::intToBitArray(NS);
+        int * nrBin = FuncionesExtras::intToBitArray(NR);
+        std::vector<int> NS_binario;
+        std::vector<int> NR_binario;
+
+        //Se pasan a vector para tener un mejor manejo de estos
+        for(int i=0;i<3;i++){
+            NS_binario.push_back(nsBin[i]);
+            NR_binario.push_back(nrBin[i]);
+        }
+
+        this->tramaI(destino_binario, tamInfo, informacion, NS_binario, PF, NR_binario);
+    }else if(name == "RR"){       
+        // Transforman N(R) a binario
+        int * nrBin = FuncionesExtras::intToBitArray(NR);
+        std::vector<int> NR_binario;
+
+        //Se pasan a vector para tener un mejor manejo de estos
+        for(int i=0;i<3;i++){
+            NR_binario.push_back(nrBin[i]);
+        } 
+
+        this->tramaRR(destino_binario, PF, NR_binario);
     }else if(name == "REJ"){
-        this->tramaREJ();
+        PF = 1;
+
+        // Transforman N(R) a binario
+        int * nrBin = FuncionesExtras::intToBitArray(NR);
+        std::vector<int> NR_binario;
+
+        //Se pasan a vector para tener un mejor manejo de estos
+        for(int i=0;i<3;i++){
+            NR_binario.push_back(nrBin[i]);
+        }
+
+        this->tramaREJ(destino_binario, PF, NR_binario);
     }else if(name == "RNR"){
         this->tramaRNR();
     }else if(name == "SREJ"){
@@ -212,13 +251,16 @@ void DataFrame::createFrame(int destino, int tamInfo, int* informacion, int NS, 
     }else if(name == "SNRM"){
         this->tramaSNRM();
     }else if(name == "DISC"){
+        //solo necesita destino
         this->tramaDISC(destino_binario);
     }else if(name == "RD"){
         this->tramaRD();
     }else if(name == "UP"){
+        //solo necesita destino
         this->tramaUP(destino_binario);
     }else if(name == "UA"){
-        this->tramaUA();
+        //solo necesita destino
+        this->tramaUA(destino_binario);
     }else if(name == "NR0"){
         this->tramaNR0();
     }else if(name == "NR1"){
@@ -244,6 +286,7 @@ void DataFrame::createFrame(int destino, int tamInfo, int* informacion, int NS, 
     }else if(name == "SNRME"){
         this->tramaSNRME();
     }else if(name == "SABM"){
+        //solo necesita destino
         this->tramaSABM(destino_binario);
     }else if(name == "XID"){
         this->tramaXID();
@@ -252,17 +295,130 @@ void DataFrame::createFrame(int destino, int tamInfo, int* informacion, int NS, 
     }
 }
 
-void DataFrame::tramaI(int tamInfo,int* informacion,){
-    //No Implementado
+void DataFrame::tramaI(std::vector<int> destino, int tamInfo, int* informacion, std::vector<int> NS, int PF, std::vector<int> NR){
+    std::string nombre;
+
+    //Inicio Address
+        //Copiando Address
+        for(unsigned int i=0;i<destino.size();i++){
+            this->setAddress(i,destino[i]);
+        }
+    //Fin Address
+
+    //Inicio Control: Informacion
+        //Informacion
+        this->setControl(0,0);
+
+        //N(S)
+        this->setControl(1,NS[0]);
+        this->setControl(2,NS[1]);
+        this->setControl(3,NS[2]);
+
+        //bit P/F en 1 para solicitar respuesta
+        this->setControl(4,PF);
+            //Asignando nombre completo
+                nombre = this->getName();
+                nombre += ',';
+                this->setName(FuncionesExtras::nombrando(nombre.c_str(),PF));
+
+        //N(R)
+        this->setControl(5,NR[0]);
+        this->setControl(6,NR[1]);
+        this->setControl(7,NR[2]);
+    //Fin Control
+
+    //Inicio Informacion
+        //Copiando Información
+        this->setInformationArraySize(tamInfo);
+        for(unsigned int i=0;i<this->getInformationArraySize();i++){
+            this->setInformation(i,informacion[i]);
+        }
+    //Fin Informacion
+
+    //Inicio FCS
+        for(int i=0;i<16;i++){
+            this->setFCS(i,0);
+        }
+    //Fin FCS
 }
 
 
-void DataFrame::tramaRR(){
-    //No Implementado
+void DataFrame::tramaRR(std::vector<int> destino, int PF, std::vector<int> NR){
+    std::string nombre;
+
+    //Inicio Address
+        //Asigna la direccion al sector address de la trama
+        for(unsigned int i=0;i<destino.size();i++){
+            this->setAddress(i,destino[i]);
+        }
+    //Fin Address
+
+    //Inicio Control: Supervisory RR
+        //Supervisory
+        this->setControl(0,1);
+        this->setControl(1,0);
+
+        //Supervisory Funcion bits
+        this->setControl(2,0);
+        this->setControl(3,0);
+
+        //bit P/F en 1 para dar respuesta
+        this->setControl(4,PF);
+        //Asignando nombre completo
+            nombre = this->getName();
+            nombre += ',';
+            this->setName(FuncionesExtras::nombrando(nombre.c_str(),this->getControl(4)));
+
+        //N(R)
+        this->setControl(5,NR[0]);
+        this->setControl(6,NR[1]);
+        this->setControl(7,NR[2]);
+    //Fin Control
+
+    //Inicio FCS
+        for(int i=0;i<16;i++){
+            this->setFCS(i,0);
+        }
+    //Fin FCS
 }
 
-void DataFrame::tramaREJ(){
-    //No Implementado
+void DataFrame::tramaREJ(std::vector<int> destino, int PF, std::vector<int> NR){
+    std::string name;
+
+    //Inicio Address
+        //Asigna la direccion al sector address de la trama
+        for(unsigned int i=0;i<destino.size();i++){
+            this->setAddress(i,destino[i]);
+        }
+    //Fin Address
+
+    //Inicio Control: Supervisory RR
+        //Supervisory
+        this->setControl(0,1);
+        this->setControl(1,0);
+
+        //Supervisory Funcion bits
+        this->setControl(2,0);
+        this->setControl(3,1);
+
+        //bit P/F en 1 para dar respuesta
+        this->setControl(4,1);
+        //Asignando nombre completo
+            name = this->getName();
+            name += ',';
+            this->setName(FuncionesExtras::nombrando(name.c_str(),this->getControl(4)));
+
+        //N(R)
+        this->setControl(5,NR[0]);
+        this->setControl(6,NR[1]);
+        this->setControl(7,NR[2]);
+    //Fin Control
+
+    //Inicio FCS
+        for(int i=0;i<16;i++){
+            this->setFCS(i,0);
+        }
+    //Fin FCS
 }
 
 void DataFrame::tramaRNR(){
@@ -284,9 +440,8 @@ void DataFrame::tramaSNRM(){
 void DataFrame::tramaDISC(std::vector<int> destino){
     //Inicio Address
         //Asigna la direccion al sector address de la trama
-        for(int i=destino.size()-1;i>=0;i--){
-            this->setAddress(i,destino.back());
-            destino.pop_back();
+        for(unsigned int i=0;i<destino.size();i++){
+            this->setAddress(i,destino[i]);
         }
     //Fin Address
 
@@ -322,9 +477,8 @@ void DataFrame::tramaRD(){
 void DataFrame::tramaUP(std::vector<int> destino){
     //Inicio Address
         //Asigna la direccion al sector address de la trama
-        for(int i=destino.size()-1;i>=0;i--){
-            this->setAddress(i,destino.back());
-            destino.pop_back();
+        for(unsigned int i=0;i<destino.size();i++){
+            this->setAddress(i,destino[i]);
         }
     //Fin Address
 
@@ -353,8 +507,37 @@ void DataFrame::tramaUP(std::vector<int> destino){
     //Fin FCS
 }
 
-void DataFrame::tramaUA(){
-    //No Implementado
+void DataFrame::tramaUA(std::vector<int> destino){
+    //Inicio Address
+        //Asigna la direccion al sector address de la trama
+        for(unsigned int i=0;i<destino.size();i++){
+            this->setAddress(i,destino[i]);
+        }
+    //Fin Address
+
+    //Inicio Control: Unnumbered UA
+        //Unnumbered
+        this->setControl(0,1);
+        this->setControl(1,1);
+
+        //Unnumbered Funcion bits
+        this->setControl(2,0);
+        this->setControl(3,0);
+
+        //bit P/F en 1 para dar respuesta
+        this->setControl(4,1);
+
+        //Unnumbered Funcion bits
+        this->setControl(5,1);
+        this->setControl(6,1);
+        this->setControl(7,0);
+    //Fin Control
+
+    //Inicio FCS
+        for(int i=0;i<16;i++){
+            this->setFCS(i,0);
+        }
+    //Fin FCS
 }
 
 void DataFrame::tramaNR0(){
@@ -408,9 +591,8 @@ void DataFrame::tramaSNRME(){
 void DataFrame::tramaSABM(std::vector<int> destino){
     //Inicio Address
         //Asigna la direccion al sector address de la trama
-        for(int i=destino.size()-1;i>=0;i--){
-            this->setAddress(i,destino.back());
-            destino.pop_back();
+        for(unsigned int i=0;i<destino.size();i++){
+            this->setAddress(i,destino[i]);
         }
     //Fin Address
 
