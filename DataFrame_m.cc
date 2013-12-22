@@ -196,18 +196,17 @@ void DataFrame::createFrame(int destino, int tamInfo, int* informacion, int NS, 
     std::vector<int> destino_binario;
 
     //Transforma destino a un número binario
-    int tamBin = FuncionesExtras::tamBitArray(destino);
-    int * destinoBin = FuncionesExtras::intToBitArray(destino);
+    int * destinoBin = FuncionesExtras::intToBitArray(destino,8);
 
     //Lo pasa a vector para tener un manejo más directo
-    for(int i=0;i<tamBin;i++){
+    for(int i=0;i<8;i++){
         destino_binario.push_back(destinoBin[i]);
     }
 
     if(name == "I"){
         // Transforman N(R) y N(S) a binario
-        int * nsBin = FuncionesExtras::intToBitArray(NS);
-        int * nrBin = FuncionesExtras::intToBitArray(NR);
+        int * nsBin = FuncionesExtras::intToBitArray(NS,3);
+        int * nrBin = FuncionesExtras::intToBitArray(NR,3);
         std::vector<int> NS_binario;
         std::vector<int> NR_binario;
 
@@ -220,7 +219,7 @@ void DataFrame::createFrame(int destino, int tamInfo, int* informacion, int NS, 
         this->tramaI(destino_binario, tamInfo, informacion, NS_binario, PF, NR_binario);
     }else if(name == "RR"){       
         // Transforman N(R) a binario
-        int * nrBin = FuncionesExtras::intToBitArray(NR);
+        int *nrBin = FuncionesExtras::intToBitArray(NR,3);
         std::vector<int> NR_binario;
 
         //Se pasan a vector para tener un mejor manejo de estos
@@ -233,7 +232,7 @@ void DataFrame::createFrame(int destino, int tamInfo, int* informacion, int NS, 
         PF = 1;
 
         // Transforman N(R) a binario
-        int * nrBin = FuncionesExtras::intToBitArray(NR);
+        int *nrBin = FuncionesExtras::intToBitArray(NR,3);
         std::vector<int> NR_binario;
 
         //Se pasan a vector para tener un mejor manejo de estos

@@ -67,7 +67,6 @@ class DataFrame : public ::cMessage
         void tramaXID();
         void tramaSABME();
 
-
   protected:
     // protected and unimplemented operator==(), to prevent accidental usage
     bool operator==(const DataFrame&);
