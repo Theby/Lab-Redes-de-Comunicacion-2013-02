@@ -16,9 +16,9 @@
 #ifndef APLICACION_H_
 #define APLICACION_H_
 
-class aplicacion : public ::cSimpleModule
+class aplicacion : public cSimpleModule
 {
-    public:
+    protected:
         //Inicializar módulo
         virtual void initialize();
 

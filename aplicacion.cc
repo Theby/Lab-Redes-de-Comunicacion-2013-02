@@ -20,6 +20,13 @@ void aplicacion::generaInfo(int trama_id){
     //Obtiene la direccion del host del modulo
     int nombreHost = par("direccion_host");
 
+    //Para guardar las tramas que se envian y reciben, así como el modo de transmisión
+    int numTramas_env;
+    int numTramas_rec;
+    int contTramas_env;
+    int contTramas_rec;
+    int starter;
+
     //Si es primera vez que se inicia
     if(trama_id == -1){
         //creando un mensaje START
@@ -30,10 +37,28 @@ void aplicacion::generaInfo(int trama_id){
         ev << "Host " << nombreHost << ": " << "Enviando mensaje START a Enlace" << endl;
     }else{
         //Numero maximo de tramas a enviar
-        int numTramas = par("numTramas");
+        numTramas_env = par("numTramas_env");
 
+        //Obtiene el numero maximo de tramas a recibir
+        numTramas_rec = par("numTramas_rec");
+
+        //Numero de tramas enviadas
+        contTramas_env = par("contTramas_env");
+
+        //Numero de tramas recibidas
+        contTramas_rec = par("contTramas_rec");
+
+        //modo de transmisión
+        starter = par("starter");
+
+        ev << "Host " << nombreHost << ": " << "Tramas recibidas: " << contTramas_rec << " de " << numTramas_rec << endl;
+        if(contTramas_env < numTramas_env){
+            ev << "Host " << nombreHost << ": " << "Tramas enviadas: " << contTramas_env << " de " << numTramas_env << endl;
+        }else{
+            ev << "Host " << nombreHost << ": " << "Enviadas todas las tramas" << endl;
+        }
         //Si se ha enviado el número máximo de tramas
-        if(numTramas == trama_id){
+        if( (numTramas_env < contTramas_env && starter != 2) || (numTramas_env < contTramas_env && numTramas_rec == contTramas_rec && starter == 2)){
             //Negro de desconectado
             if (ev.isGUI()){
                 getDisplayString().setTagArg("i",1,"black");
@@ -43,10 +68,12 @@ void aplicacion::generaInfo(int trama_id){
             //creando un mensaje END
             cMessage *end = new cMessage("END");
 
+            par("estado").setStringValue("END");
+
             //Enviando el mensaje a Enlace
             send(end, "hacia_abajo");
             ev << "Host " << nombreHost << ": " << "Enviando mensaje END a Enlace" << endl;
-        }else{
+        }else if( numTramas_env >= contTramas_env ){
             //Obtiene la dirección del destino al cual se le enviará la información, la cual es seteada por sistema.ned
             int address_dest = par("direccion_dest");
 
@@ -108,34 +135,98 @@ void aplicacion::handleMessage(cMessage* msg){
 
     string ack = "ACK";
     string dato = "DATO";
-    string msg_name = msg->getName();
-
-    //Normal de activo
-    if (ev.isGUI()) getDisplayString().setTagArg("i",1,"");
+    string msg_name = msg->getName();    
 
     //Si el mensaje ha llegado desde intermedio
     if (msg->arrivedOn("desde_abajo")){
+
         //Es ACK
         if(msg_name[0] == ack[0] && msg_name[1] == ack[1] && msg_name[2] == ack[2]){
+            ev << "Host " << nombreHost << ": " << "El mensaje: " << msg_name << " fue correctamente recivido." << endl;
             delete msg;
 
-            //Mensaje de conectado
-            if(msg_name[4] == '0'){
-                if (ev.isGUI()) bubble("Conectado!");
+            string estado = par("estado");
+
+            if(estado != "END"){
+                //Normal de activo
+                if (ev.isGUI()) getDisplayString().setTagArg("i",1,"");
+
+                //Mensaje de conectado
+                if(msg_name[4] == '0'){
+                    if (ev.isGUI()) bubble("Conectado!");
+                }                
+            
+                //Actualiza el valor de tramas enviadas
+                int contTramas_env = par("contTramas_env");
+                contTramas_env ++;
+                par("contTramas_env").setLongValue(contTramas_env);
+
+                //Comienza a generar informacion
+                generaInfo(FuncionesExtras::getValorId(msg_name.c_str()));
             }
 
-            ev << "Host " << nombreHost << ": " << "El mensaje: " << msg_name << " fue correctamente recivido." << endl;
-            //Comienza a generar informacion
-            generaInfo(FuncionesExtras::getValorId(msg_name.c_str()));
         //Es DATO
         }else if(msg_name[0] == dato[0] && msg_name[1] == dato[1] && msg_name[2] == dato[2] && msg_name[3] == dato[3]){
-            ev << "Host " << nombreHost << ": " << "El dato: " << msg_name << " fue correctamente recivido." << endl;
-            delete msg;
+            string estado = par("estado");
+
+            if(estado != "END"){
+                //Normal de activo
+                if (ev.isGUI()) getDisplayString().setTagArg("i",1,"");
+
+                //Actualiza el valor de tramas recibidas
+                int contTramas_rec = par("contTramas_rec");
+                contTramas_rec++;
+                par("contTramas_rec").setLongValue(contTramas_rec);
+
+                ev << "Host " << nombreHost << ": " << "El dato: " << msg_name << " fue correctamente recivido." << endl;
+                delete msg;
+
+                //modo de transmisión
+                int starter = par("starter");
+
+                if(starter == 2){
+                    //Numero maximo de tramas a enviar
+                    int numTramas_env = par("numTramas_env");
+
+                    //Obtiene el numero maximo de tramas a recibir
+                    int numTramas_rec = par("numTramas_rec");
+
+                    //Numero de tramas enviadas
+                    int contTramas_env = par("contTramas_env");
+
+                    //Numero de tramas recibidas
+                    int contTramas_rec = par("contTramas_rec");
+
+                    //Si ya no se pueden enviar más tramas y se ha recibido el último dato, se desconecta
+                    if(numTramas_env < contTramas_env && numTramas_rec == contTramas_rec){
+                        //Negro de desconectado
+                        if (ev.isGUI()){
+                            getDisplayString().setTagArg("i",1,"black");
+                            bubble("Desconectado!");
+                        }
+
+                        //creando un mensaje END
+                        cMessage *end = new cMessage("END");
+
+                        //Enviando el mensaje a Enlace
+                        send(end, "hacia_abajo");
+                        ev << "Host " << nombreHost << ": " << "Enviando mensaje END a Enlace" << endl;
+                    }
+
+                }
+            }
+
         }else if(msg_name == "CONNECT"){
-            //Mensaje de coenctado
+            //Normal de activo
+            if (ev.isGUI()) getDisplayString().setTagArg("i",1,"");
+
+            //Mensaje de conectado
             if (ev.isGUI()) bubble("Conectado!");
             delete msg;
         }else if(msg_name == "DISCONNECT"){
+            //Normal de activo
+            if (ev.isGUI()) getDisplayString().setTagArg("i",1,"");
+
             if (ev.isGUI()){
                 //Negro de desconectado
                 getDisplayString().setTagArg("i",1,"black");
@@ -143,10 +234,16 @@ void aplicacion::handleMessage(cMessage* msg){
             }
             delete msg;
         }else{
+            //Normal de activo
+            if (ev.isGUI()) getDisplayString().setTagArg("i",1,"");
+
             ev << "Host " << nombreHost << ": " << "El mensaje: " << msg_name << " no es valido y ha sido eliminado" << endl;
             delete msg;
         }
     }else{
+        //Normal de activo
+        if (ev.isGUI()) getDisplayString().setTagArg("i",1,""); 
+
         ev << "Host " << nombreHost << ": " << "Mensaje llegado desde un lugar desconocido" << endl;
         delete msg;
     }
