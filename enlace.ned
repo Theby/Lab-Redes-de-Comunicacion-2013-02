@@ -24,15 +24,18 @@ simple enlace
 
 		//Dirección de Destino
         int direccion_dest;
-
-        //Tamaño de trama
-        int tamTrama;
         
-        //Número de Tramas
-        int numTramas;
+        //número de tramas que envia
+        int numTramas_env;
+        
+        //número de tramas que recibe
+        int numTramas_rec;
         
         //Tamaño de ventana
         int tamVentana;
+        
+        //Cantidad de tramas en la ventana
+        volatile int cant_tramasVentana = default(0);
         
         //Numero de tramas libres
         int tramas_libres;     
@@ -46,6 +49,14 @@ simple enlace
         //ultima trama recibida
         volatile int ult_trama_recibida = default(0);
         
+        //Para guardar el valor del ultimo ACK enviado
+        volatile int ult_ack_enviado = default(0);
+        
+        //Para guardar el valor del ultimo ACK enviado
+        volatile int ult_rr_enviado = default(0);
+
+        //Para saber el estado del nivel de enlace
+        volatile string en_respuesta_a = default("NONE");
 
         @display("i=block/ifcard,black;is=n");
 
