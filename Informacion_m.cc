@@ -146,15 +146,7 @@ void Informacion::setInformacion(unsigned int k, int informacion)
 }
 
 void Informacion::createFrame(int destino,int* informacion, int tamInfo){
-    /*std::vector<int> destino_binario;
-
-    //Transforma destino a un número binario
-    for(int i=0;destino>0;i++){
-        destino_binario.push_back(destino%2);
-        destino /= 2;
-    }*/
-
-    //Transforma destino a un número binario
+    //Transforma destino a un nÃºmero binario
     int tamBin = FuncionesExtras::tamBitArray(destino);
     int * destinoBin = FuncionesExtras::intToBitArray(destino);
 
@@ -167,15 +159,15 @@ void Informacion::createFrame(int destino,int* informacion, int tamInfo){
     //Fin Address
 
     //Inicio Informacion
-        //Tamaño
+        //TamaÃ±o
         this->setInformacionArraySize(tamInfo);
 
-        //Asignación
+        //AsignaciÃ³n
         for(int i=0;i<tamInfo;i++){
             this->setInformacion(i,informacion[i]);
         }
     //Fin Informacion
-}
+}    
 
 class InformacionDescriptor : public cClassDescriptor
 {
@@ -370,3 +362,5 @@ void *InformacionDescriptor::getFieldStructPointer(void *object, int field, int 
         default: return NULL;
     }
 }
+
+
