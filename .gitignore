@@ -16,3 +16,4 @@
 *.exe
 Makefile
 *.o
+.tkenvlog
