@@ -28,11 +28,23 @@ simple aplicacion
         //Dirección de Destino
         int direccion_host;
 
-        //Número de tramas a enviar
-        int numTramas;
+        //número de tramas que envia
+        int numTramas_env;
+        
+        //número de tramas que recibe
+        int numTramas_rec;
+        
+        //número de tramas enviadas
+        int contTramas_env = default(0);
+        
+        //número de tramas recibidas
+        int contTramas_rec = default(0);
 
         //Define cual host(0 o 1) comienza la comunicación
         int starter;
+        
+        //Para saber el estado del nivel de aplicacion
+        volatile string estado = default("NONE");
 
         @display("i=block/cogwheel,black;is=n");
 
