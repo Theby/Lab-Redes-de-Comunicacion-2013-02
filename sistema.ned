@@ -46,8 +46,8 @@ module sistema
                 tramas_libres = tramas_libres;
                 error = error;
                 //Se suministra la dirección que le corresponde al host y al destino
-                direccion_host = 00000000;
-                direccion_dest = 00000001;
+                direccion_host = 0;
+                direccion_dest = 1;
                 @display("p=70,50");
         }
         //Definición del host 2
@@ -62,8 +62,8 @@ module sistema
                 tramas_libres = tramas_libres;
                 error = error;
                 //Se suministra la dirección que le corresponde al host y al destino
-                direccion_host = 00000001;
-                direccion_dest = 00000000;
+                direccion_host = 1;
+                direccion_dest = 0;
                 @display("p=170,50");
         }
     //Conexiones de la red
