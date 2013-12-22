@@ -20,7 +20,7 @@
  * <pre>
  * message DataFrame {
  *     int address[8];
- * 	int control[8];
+ *     int control[8];
  *     int information[];    
  *     int FCS[16];
  * }
