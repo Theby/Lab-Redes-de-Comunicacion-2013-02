@@ -31,8 +31,11 @@ module host
         //tamańo de trama
         int tamTrama;
 
-        //número de tramas
-        int numTramas;
+        //número de tramas maxima que envia
+        int numTramas_env;
+        
+        //número de tramas maxima que recibe
+        int numTramas_rec;
 
 		//tamaño máximo de ventana
         int tamVentana;
@@ -63,7 +66,8 @@ module host
                 direccion_host = direccion_host;
                 direccion_dest = direccion_dest;
                 starter = starter;
-                numTramas = numTramas;
+                numTramas_env = numTramas_env;
+                numTramas_rec = numTramas_rec;
                 @display("p=67,50");
         }
         //Llamado al nivel intermedio
@@ -76,12 +80,12 @@ module host
         Modulo_Enlace: enlace {
             //parámetros del nivel
             parameters:
-                tamTrama = tamTrama;
                 tamVentana = tamVentana;
                 direccion_host = direccion_host;
                 direccion_dest = direccion_dest;
                 tramas_libres = tramas_libres;                
-                numTramas = numTramas;
+                numTramas_env = numTramas_env;
+                numTramas_rec = numTramas_rec;
                 error=error;
                 @display("p=67,266");
         }
