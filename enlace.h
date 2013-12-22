@@ -19,6 +19,9 @@
 class enlace : public cSimpleModule
 {
     protected:
+    	//Inicializar módulo
+        virtual void initialize();
+
         //Procesador de mensaje desde Intermedio
         virtual void processMsgFromHigherLayer(cMessage *dato);
 
