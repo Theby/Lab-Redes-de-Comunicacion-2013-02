@@ -49,7 +49,7 @@ public:
     /*
      * Transforma un entero en un arreglo de int* donde cada posicion es un número binario
      */
-    static int* intToBitArray(int numero);
+    static int* intToBitArray(int numero, int tamano);
 
     /*
      * Para saber que tamaño tendrá el arreglo, se deben usar en conjunto con intToBitArray();

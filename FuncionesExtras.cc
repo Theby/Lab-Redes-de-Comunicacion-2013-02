@@ -151,8 +151,9 @@ const char* FuncionesExtras::intToString(int numero){
     return real_numero.c_str();
 }
 
-int* FuncionesExtras::intToBitArray(int numero){
+int* FuncionesExtras::intToBitArray(int numero, int tamano){
     int* bitArray;
+    bitArray = (int*)malloc(sizeof(int)*tamano);
 
     if(numero != 0){
         vector<int> numero_binario;
@@ -163,16 +164,20 @@ int* FuncionesExtras::intToBitArray(int numero){
             numero /= 2;
         }
 
-        int size = numero_binario.size();
-        bitArray = (int*)malloc(sizeof(int)*size);
+        int offset = tamano - numero_binario.size();
 
-        for(int i=0;i<size;i++){
+        for(int i=0;i < offset;i++){
+            bitArray[i] = 0;
+        }
+
+        for(int i=offset;i < tamano;i++){
             bitArray[i] = numero_binario.back();
             numero_binario.pop_back();
         }
     }else{
-        bitArray = (int*)malloc(sizeof(int)*1);
-        bitArray[0] = 0;
+        for(int i=0;i<tamano;i++){
+            bitArray[i] = 0;    
+        }        
     }
 
     return bitArray;
