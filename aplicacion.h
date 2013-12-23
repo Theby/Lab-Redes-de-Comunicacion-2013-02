@@ -25,6 +25,9 @@ class aplicacion : public cSimpleModule
         //Maneja los menasjes recibidos "desde_abajo"
         virtual void handleMessage(cMessage *msg);
 
+        //Para despues de verificar las variables
+        virtual void postInitialize();
+
         //Generador de la información
         virtual void generaInfo(int trama_id);
 };

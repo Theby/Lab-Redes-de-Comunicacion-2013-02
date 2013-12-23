@@ -107,6 +107,53 @@ void aplicacion::generaInfo(int trama_id){
 Define_Module( aplicacion );
 
 void aplicacion::initialize(){
+    int tamTrama = par("tamTrama");
+    int direccion_dest = par("direccion_dest");
+    int direccion_host = par("direccion_host");
+    int numTramas_env = par("numTramas_env");
+    int numTramas_rec = par("numTramas_rec");
+    int starter = par("starter");
+
+    bool not_valid_enviroment = false;
+
+    if(tamTrama < 0){
+        opp_error("\nLa el tamaño no puede ser negativo.\n");
+        not_valid_enviroment = true;
+    }
+
+    if(direccion_dest < 0){
+        opp_error("\nLa direccion de destino no puede ser negativa.\n");
+        not_valid_enviroment = true;        
+    }
+
+    if(direccion_host < 0){
+        opp_error("\nLa direccion del host no puede ser negativo.\n");
+        not_valid_enviroment = true;        
+    }
+
+    if(numTramas_env < 0){
+        opp_error("\nLa cantidad de tramas no puede ser negativa.\n");
+        not_valid_enviroment = true;        
+    }
+    
+    if(numTramas_rec < 0){
+        opp_error("\nLa cantidad de tramas no puede ser negativa.\n");
+        not_valid_enviroment = true;        
+    }
+    
+    if(starter < 0 || starter > 2){
+        opp_error("\nEl selector de hosts no puede ser negativo o mayor a 2.\n");
+        not_valid_enviroment = true;        
+    }
+
+    if(not_valid_enviroment){
+        endSimulation();
+    }else{
+        postInitialize();
+    }
+}
+
+void aplicacion::postInitialize(){
     //obtiene el valor de master para saber quien parte
     int master = par("starter");
 
@@ -207,6 +254,8 @@ void aplicacion::handleMessage(cMessage* msg){
 
                         //creando un mensaje END
                         cMessage *end = new cMessage("END");
+
+                        par("estado").setStringValue("END");
 
                         //Enviando el mensaje a Enlace
                         send(end, "hacia_abajo");
