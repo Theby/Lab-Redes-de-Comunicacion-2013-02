@@ -22,14 +22,14 @@ module sistema
 {
     //Parámetros
     parameters:
-        volatile int tamTrama = default(4);
-        volatile int numTramas;
-        volatile int numTramas_0 = default(0);
-        volatile int numTramas_1 = default(0);
-        volatile int tamVentana;
-        volatile int starter;       
+        volatile int starter;        
+       // volatile int numTramas;  
+        volatile int numTramas_0;
+        volatile int numTramas_1;      
+        volatile int tamVentana;           
         volatile int tramas_libres;
-        volatile int error;
+        volatile int error;        
+        volatile int tamTrama = default(4);
 
         @display("i=device/lan;is=n");
     //Submódulos que lo componen
@@ -39,8 +39,8 @@ module sistema
             //Parámetros
             parameters:
                 tamTrama = tamTrama;
-                numTramas_env = numTramas;
-                numTramas_rec = numTramas;
+                numTramas_env = numTramas_0;
+                numTramas_rec = numTramas_1;
                 tamVentana = tamVentana;
                 starter = starter;                
                 tramas_libres = tramas_libres;
@@ -55,8 +55,8 @@ module sistema
             //Parámetros
             parameters:
                 tamTrama = tamTrama;
-                numTramas_env = numTramas;
-                numTramas_rec = numTramas;
+                numTramas_env = numTramas_1;
+                numTramas_rec = numTramas_0;
                 tamVentana = tamVentana;
                 starter = starter;
                 tramas_libres = tramas_libres;
@@ -92,7 +92,9 @@ network red extends sistema
     parameters:
         starter @prompt("Ingrese cual host comenzará la transmisión: 0 o 1; si selecciona 2, comenzarán los dos al mismo tiempo.") = default(0);
         //Debe modularse para que se pasen por separados los valores a numTrama_0 y numTrama_1 (cambiar también en parametros host)
-        numTramas @prompt("Ingrese el máximo número de tramas que puede enviar un host") = default(1);
+        //numTramas @prompt("Ingrese el máximo número de tramas que puede enviar un host") = default(1);
+        numTramas_0 @prompt("Ingrese el máximo número de tramas que puede enviar el Host 0") = default(1);
+        numTramas_1 @prompt("Ingrese el máximo número de tramas que puede enviar el Host 1") = default(1);
 
         tamVentana @prompt("Tamaño de las ventanas deslizantes: ") = default(1);
         tramas_libres @prompt("Número de tramas a enviar/recibir antes de recibir un Asentimiento RR") = default(1);
