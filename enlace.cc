@@ -58,6 +58,11 @@ void enlace::initialize(){
         not_valid_enviroment = true;
     }
 
+    if(tramas_libres > numTramas_rec || tramas_libres > numTramas_env){
+        opp_error("\nLa cantidad de tramas a esperar antes de un RR no puede ser mayor que el numero de tramas que pueden enviar los Hosts.\n");
+        not_valid_enviroment = true;
+    }
+
     if(not_valid_enviroment){
         endSimulation();
     }
@@ -65,7 +70,11 @@ void enlace::initialize(){
 
 //Numero de la trama enviada con error
 int trama_con_error;
-std::queue<DataFrame*> ventanaDeslizante;
+//queue para el host 0
+std::queue<DataFrame*> ventanaDeslizante00;
+
+//queue para el host 1
+std::queue<DataFrame*> ventanaDeslizante01;
 
 void enlace::handleMessage(cMessage *msg){
     //Si el mensaje llega desde el otro Host
@@ -209,7 +218,11 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
         copiaParaVentana->createFrame(address_dest,informacion->getInformacionArraySize(),informacion->getInformacion(),0,bit_pf,0);
 
         //Se almacena la trama en la ventana
-        ventanaDeslizante.push(copiaParaVentana);
+        if(nombreHost==0){
+            ventanaDeslizante00.push(copiaParaVentana);
+        }else if(nombreHost==1){
+            ventanaDeslizante01.push(copiaParaVentana);
+        }
 
         //Actualiza el valor de las tramas en la ventana
         cant_tramasVentana = par("cant_tramasVentana");
@@ -241,10 +254,17 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
         //}        
 
         //Cantidad de tramas maximas en la ventana
-        int tamVentana = par("tamVentana");
-        ev << "Tramas en la ventana: " << cant_tramasVentana << " - Ventana de: " << tamVentana << " - queue: " << ventanaDeslizante.size() << endl;
+        unsigned int tamVentana = par("tamVentana");
+        unsigned int tamActVentana;
+        if(nombreHost==0){
+            tamActVentana = ventanaDeslizante00.size();    
+        }else if(nombreHost=1){
+            tamActVentana = ventanaDeslizante01.size();    
+        }        
+
+        ev << "Tramas en la ventana: " << cant_tramasVentana << " - Ventana de: " << tamVentana << " - queue: " << tamActVentana << endl;
         //Si aún hay espacio en la ventana se manda un ACK para recibir más información
-        if(ventanaDeslizante.size() != tamVentana){
+        if(tamActVentana != tamVentana){
             //Crea un ACK,N
             int valor_id = par("ult_ack_enviado");
             valor_id++;
@@ -378,34 +398,60 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                         int tramas_asentidas = 0;
 
                         //Datos del primer elemento de la trama
-                        DataFrame *primer_elemento = ventanaDeslizante.front();
+                        DataFrame *primer_elemento;
+                        if(nombreHost==0){
+                            primer_elemento = ventanaDeslizante00.front();
+                        }else if(nombreHost==1){
+                            primer_elemento = ventanaDeslizante01.front();
+                        }
+                        
                         string nombre_primer_elemento = primer_elemento->getName();
                         int id_tramaVD = FuncionesExtras::getValorId(nombre_primer_elemento.c_str());
 
                         //Recorre la Ventana removiendo los elementos asentidos
                         for(int i=0;id_tramaRR > id_tramaVD;i++){
                             if(id_tramaVD < id_tramaRR){
-                                ventanaDeslizante.pop();
+                                if(nombreHost==0){
+                                    ventanaDeslizante00.pop();
+                                }else if(nombreHost==1){
+                                    ventanaDeslizante01.pop();
+                                }
                                 tramas_asentidas++;
                             }
 
-                            if(!ventanaDeslizante.empty()){
-                                primer_elemento = ventanaDeslizante.front();
-                                nombre_primer_elemento = primer_elemento->getName();
+                            if(nombreHost==0){
+                                if(!ventanaDeslizante00.empty()){
+                                    primer_elemento = ventanaDeslizante00.front();
+                                    nombre_primer_elemento = primer_elemento->getName();
 
-                                id_tramaVD = FuncionesExtras::getValorId(nombre_primer_elemento.c_str());
-                            }else{
-                                break;
+                                    id_tramaVD = FuncionesExtras::getValorId(nombre_primer_elemento.c_str());
+                                }else{
+                                    break;
+                                }
+                            }else if(nombreHost==1){
+                                if(!ventanaDeslizante01.empty()){
+                                    primer_elemento = ventanaDeslizante01.front();
+                                    nombre_primer_elemento = primer_elemento->getName();
+
+                                    id_tramaVD = FuncionesExtras::getValorId(nombre_primer_elemento.c_str());
+                                }else{
+                                    break;
+                                }
                             }
                         }
 
                         //Actualiza el valor de las tramas en la ventana
-                        int cant_tramasVentana = ventanaDeslizante.size();
+                        int cant_tramasVentana;
+                        if(nombreHost==0){
+                            cant_tramasVentana = ventanaDeslizante00.size();
+                        }else if(nombreHost==1){
+                            cant_tramasVentana = ventanaDeslizante01.size();
+                        }
                         par("cant_tramasVentana").setLongValue(cant_tramasVentana);
 
-                        /*if(!ventanaDeslizante.empty()){
+                        /*if(!ventanaDeslizante00.empty()){
                             //Obtiene el valor de id de la ultima trama para solicitar las tramas a aplicacion que corresponden
-                            primer_elemento = ventanaDeslizante.back();
+                            primer_elemento = ventanaDeslizante00.back();
                             nombre_primer_elemento = primer_elemento->getName();
                             id_tramaVD = FuncionesExtras::getValorId(nombre_primer_elemento.c_str());
                             id_tramaVD++;
@@ -441,32 +487,61 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                         int tramas_asentidas = 0;
 
                         //Datos del primer elemento de la trama
-                        DataFrame *primer_elemento = ventanaDeslizante.front();
+                        DataFrame *primer_elemento;
+                        if(nombreHost==0){
+                            primer_elemento = ventanaDeslizante00.front();
+                        }else if(nombreHost==1){
+                            primer_elemento = ventanaDeslizante01.front();                            
+                        }
                         string nombre_primer_elemento = primer_elemento->getName();
                         int id_tramaVD = FuncionesExtras::getValorId(nombre_primer_elemento.c_str());
 
                         //Recorre la Ventana removiendo los elementos asentidos
                         for(int i=0;id_tramaRR > id_tramaVD;i++){
                             if(id_tramaVD < id_tramaRR){
-                                ventanaDeslizante.pop();
+                                if(nombreHost==0){
+                                    ventanaDeslizante00.pop();
+                                }else if(nombreHost==1){
+                                    ventanaDeslizante01.pop();
+                                }
                                 tramas_asentidas++;
                             }
 
-                            if(!ventanaDeslizante.empty()){
-                                primer_elemento = ventanaDeslizante.front();
-                                nombre_primer_elemento = primer_elemento->getName();
+                            if(nombreHost==0){
+                                if(!ventanaDeslizante00.empty()){
+                                    primer_elemento = ventanaDeslizante00.front();
+                                    nombre_primer_elemento = primer_elemento->getName();
 
-                                id_tramaVD = FuncionesExtras::getValorId(nombre_primer_elemento.c_str());
-                            }else{
-                                break;
+                                    id_tramaVD = FuncionesExtras::getValorId(nombre_primer_elemento.c_str());
+                                }else{
+                                    break;
+                                }
+                            }else if(nombreHost==1){
+                                if(!ventanaDeslizante01.empty()){
+                                    primer_elemento = ventanaDeslizante01.front();
+                                    nombre_primer_elemento = primer_elemento->getName();
+
+                                    id_tramaVD = FuncionesExtras::getValorId(nombre_primer_elemento.c_str());
+                                }else{
+                                    break;
+                                }
                             }
                         }
 
                         //Actualiza el valor de las tramas en la ventana
-                        int cant_tramasVentana = ventanaDeslizante.size();
+                        int cant_tramasVentana;
+                        bool vacio;
+                        if(nombreHost==0){
+                            cant_tramasVentana = ventanaDeslizante00.size();
+                            vacio = ventanaDeslizante00.empty();
+                        }else if(nombreHost==1){
+                            cant_tramasVentana = ventanaDeslizante01.size();
+                            vacio = ventanaDeslizante01.empty();
+                        }
+                        
                         par("cant_tramasVentana").setLongValue(cant_tramasVentana);
 
-                        if(ventanaDeslizante.empty()){
+                        if(vacio){
                             //Envia una trama de comando DISC al otro host
                             en_respuesta_a = "DISC";
                             par("en_respuesta_a").setStringValue(en_respuesta_a);
@@ -501,25 +576,42 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                 int tramas_asentidas = 0;
 
                 //Datos del primer elemento de la ventana
-                primer_elemento = ventanaDeslizante.front();
+                if(nombreHost==0){
+                    primer_elemento = ventanaDeslizante00.front();
+                }else if(nombreHost==1){
+                    primer_elemento = ventanaDeslizante01.front();
+                }
                 nombre_primer_elemento = primer_elemento->getName();
                 id_tramaVD = FuncionesExtras::getValorId(nombre_primer_elemento.c_str());
 
                 //Recorre la Ventana removiendo los elementos asentidos previos al REJ
                 for(int i=0;id_tramaREJ > id_tramaVD;i++){
                     if(id_tramaVD < id_tramaREJ){
-                        ventanaDeslizante.pop();
+                        if(nombreHost==0){
+                            ventanaDeslizante00.pop();
+                        }else if(nombreHost==1){
+                            ventanaDeslizante01.pop();
+                        }
                         tramas_asentidas++;
                     }
 
-                    primer_elemento = ventanaDeslizante.front();
+                    if(nombreHost==0){
+                        primer_elemento = ventanaDeslizante00.front();
+                    }else if(nombreHost==1){
+                        primer_elemento = ventanaDeslizante01.front();
+                    }
                     nombre_primer_elemento = primer_elemento->getName();
 
                     id_tramaVD = FuncionesExtras::getValorId(nombre_primer_elemento.c_str());
                 }
                 
                 //Actualiza el valor de las tramas en la ventana
-                int cant_tramasVentana = ventanaDeslizante.size();
+                int cant_tramasVentana;
+                if(nombreHost==0){
+                    cant_tramasVentana = ventanaDeslizante00.size();
+                }else if(nombreHost==1){
+                    cant_tramasVentana = ventanaDeslizante01.size();
+                }
                 par("cant_tramasVentana").setLongValue(cant_tramasVentana);
 
                 //Reinicia el valor de las tramas asentidas
@@ -528,7 +620,11 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                 par("tramas_no_asentidas").setLongValue(tramas_no_asentidas);
 
                 //Re-envia la trama que tenía el error
-                send(ventanaDeslizante.front(),"hacia_fisico");
+                if(nombreHost==0){
+                    send(ventanaDeslizante00.front(),"hacia_fisico");
+                }else if(nombreHost==1){
+                    send(ventanaDeslizante01.front(),"hacia_fisico");
+                }
             }
         
         }
