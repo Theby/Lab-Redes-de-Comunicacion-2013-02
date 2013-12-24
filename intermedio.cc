@@ -30,10 +30,10 @@ void intermedio::processMsgFromHigherLayer(cMessage *packet)
     string packet_name = packet->getName();
 
     if(packet_name == "START"){
-        //Verde de esperando confirmación
+        //Verde de esperando confirmaciÃ³n
         if (ev.isGUI()){
             getDisplayString().setTagArg("i",1,"green");
-            bubble("Esperando Confirmación");
+            bubble("Esperando ConfirmaciÃ³n");
         }
     }
     //Negro de desconectado
@@ -60,6 +60,6 @@ void intermedio::processMsgFromLowerLayer(cMessage *packet)
         bubble("Desconectado!");
     }
 
-    //Envía el paquete hacia la capa de aplicación
+    //EnvÃ­a el paquete hacia la capa de aplicaciÃ³n
     send(packet,"hacia_arriba");
 }

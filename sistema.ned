@@ -16,11 +16,11 @@
 package laboratorio_01_02;
 
 //
-// DefiniciÛn del mÛdulo
+// Definici√≥n del m√≥dulo
 //
 module sistema
 {
-    //Par·metros
+    //Par√°metros
     parameters:
         volatile int starter;        
        // volatile int numTramas;  
@@ -32,11 +32,11 @@ module sistema
         volatile int tamTrama = default(4);
 
         @display("i=device/lan;is=n");
-    //SubmÛdulos que lo componen
+    //Subm√≥dulos que lo componen
     submodules:
-        //DefiniciÛn del host 1
+        //Definici√≥n del host 1
         Host_0: host {
-            //Par·metros
+            //Par√°metros
             parameters:
                 tamTrama = tamTrama;
                 numTramas_env = numTramas_0;
@@ -45,14 +45,14 @@ module sistema
                 starter = starter;                
                 tramas_libres = tramas_libres;
                 error = error;
-                //Se suministra la direcciÛn que le corresponde al host y al destino
+                //Se suministra la direcci√≥n que le corresponde al host y al destino
                 direccion_host = 0;
                 direccion_dest = 1;
                 @display("p=70,50");
         }
-        //DefiniciÛn del host 2
+        //Definici√≥n del host 2
         Host_1: host {
-            //Par·metros
+            //Par√°metros
             parameters:
                 tamTrama = tamTrama;
                 numTramas_env = numTramas_1;
@@ -61,7 +61,7 @@ module sistema
                 starter = starter;
                 tramas_libres = tramas_libres;
                 error = error;
-                //Se suministra la direcciÛn que le corresponde al host y al destino
+                //Se suministra la direcci√≥n que le corresponde al host y al destino
                 direccion_host = 1;
                 direccion_dest = 0;
                 @display("p=170,50");
@@ -74,30 +74,30 @@ module sistema
         Host_1.salida --> canal --> Host_0.entrada;
 }
 
-//DefiniciÛn del canal de transmisiÛn
+//Definici√≥n del canal de transmisi√≥n
 channel canal extends ned.DatarateChannel
 {
-    //Retardo de propagaciÛn
+    //Retardo de propagaci√≥n
     delay = 100ms;
     //Velocidad de datos
     datarate = 128000bps;
 }
 
 //
-// InstanciaciÛn de la red
+// Instanciaci√≥n de la red
 //
 network red extends sistema
 {
-    //Par·metros
+    //Par√°metros
     parameters:
-        starter @prompt("Ingrese cual host comenzar· la transmisiÛn: 0 o 1; si selecciona 2, comenzar·n los dos al mismo tiempo.") = default(0);
-        //Debe modularse para que se pasen por separados los valores a numTrama_0 y numTrama_1 (cambiar tambiÈn en parametros host)
-        //numTramas @prompt("Ingrese el m·ximo n˙mero de tramas que puede enviar un host") = default(1);
-        numTramas_0 @prompt("Ingrese el m·ximo n˙mero de tramas que puede enviar el Host 0") = default(1);
-        numTramas_1 @prompt("Ingrese el m·ximo n˙mero de tramas que puede enviar el Host 1") = default(1);
+        starter @prompt("Ingrese cual host comenzar√° la transmisi√≥n: 0 o 1; si selecciona 2, comenzar√°n los dos al mismo tiempo.") = default(0);
+        //Debe modularse para que se pasen por separados los valores a numTrama_0 y numTrama_1 (cambiar tambi√©n en parametros host)
+        //numTramas @prompt("Ingrese el m√°ximo n√∫mero de tramas que puede enviar un host") = default(1);
+        numTramas_0 @prompt("Ingrese el m√°ximo n√∫mero de tramas que puede enviar el Host 0") = default(1);
+        numTramas_1 @prompt("Ingrese el m√°ximo n√∫mero de tramas que puede enviar el Host 1") = default(1);
 
-        tamVentana @prompt("TamaÒo de las ventanas deslizantes: ") = default(1);
-        tramas_libres @prompt("N˙mero de tramas a enviar/recibir antes de recibir un Asentimiento RR") = default(1);
+        tamVentana @prompt("Tama√±o de las ventanas deslizantes: ") = default(1);
+        tramas_libres @prompt("N√∫mero de tramas a enviar/recibir antes de recibir un Asentimiento RR") = default(1);
         error @prompt("Ingrese cual es la probabilidad de que la trama posea un error (de 0 a 100)") = default(0);        
         @display("bgi=background/green,t");
 }

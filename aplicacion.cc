@@ -1,6 +1,6 @@
 /*
-* En Èste mÛdulo se generan palabras de informaciÛn, la cual viaja
-* a los modulos inferiores para ser enviada al otro Host a travÈs del canal
+* En √©ste m√≥dulo se generan palabras de informaci√≥n, la cual viaja
+* a los modulos inferiores para ser enviada al otro Host a trav√©s del canal
 */
 
 #include <string.h>
@@ -20,7 +20,7 @@ void aplicacion::generaInfo(int trama_id){
     //Obtiene la direccion del host del modulo
     int nombreHost = par("direccion_host");
 
-    //Para guardar las tramas que se envian y reciben, asÌ como el modo de transmisiÛn
+    //Para guardar las tramas que se envian y reciben, as√≠ como el modo de transmisi√≥n
     int numTramas_env;
     int numTramas_rec;
     int contTramas_env;
@@ -48,7 +48,7 @@ void aplicacion::generaInfo(int trama_id){
         //Numero de tramas recibidas
         contTramas_rec = par("contTramas_rec");
 
-        //modo de transmisiÛn
+        //modo de transmisi√≥n
         starter = par("starter");
 
         ev << "Host " << nombreHost << ": " << "Tramas recibidas: " << contTramas_rec << " de " << numTramas_rec << endl;
@@ -57,7 +57,7 @@ void aplicacion::generaInfo(int trama_id){
         }else{
             ev << "Host " << nombreHost << ": " << "Enviadas todas las tramas" << endl;
         }
-        //Si se ha enviado el n˙mero m·ximo de tramas
+        //Si se ha enviado el n√∫mero m√°ximo de tramas
         if( (numTramas_env < contTramas_env && starter != 2) || (numTramas_env < contTramas_env && numTramas_rec == contTramas_rec && starter == 2)){
             //Negro de desconectado
             if (ev.isGUI()){
@@ -74,13 +74,13 @@ void aplicacion::generaInfo(int trama_id){
             send(end, "hacia_abajo");
             ev << "Host " << nombreHost << ": " << "Enviando mensaje END a Enlace" << endl;
         }else if( numTramas_env >= contTramas_env ){
-            //Obtiene la direcciÛn del destino al cual se le enviar· la informaciÛn, la cual es seteada por sistema.ned
+            //Obtiene la direcci√≥n del destino al cual se le enviar√° la informaci√≥n, la cual es seteada por sistema.ned
             int address_dest = par("direccion_dest");
 
-            //Obtiene el tamaÒo de la trama, el cual por defecto es 4 en sistema.ned
+            //Obtiene el tama√±o de la trama, el cual por defecto es 4 en sistema.ned
             int tamTrama = par("tamTrama");
 
-            //Crea la informaciÛn a enviar (ALEATORIO)
+            //Crea la informaci√≥n a enviar (ALEATORIO)
             srand(time(NULL));
             int* informacionRand = (int*)malloc(sizeof(int)*tamTrama);
 
@@ -88,7 +88,7 @@ void aplicacion::generaInfo(int trama_id){
                  informacionRand[i] = rand()%2;
             }
 
-            //Creando trama de comunicaciÛn con enlace
+            //Creando trama de comunicaci√≥n con enlace
             Informacion *tramaComunicacion = new Informacion(FuncionesExtras::nombrando("DATO,",trama_id));
 
             //Asignando valores correspondientes
@@ -117,7 +117,7 @@ void aplicacion::initialize(){
     bool not_valid_enviroment = false;
 
     if(tamTrama < 0){
-        opp_error("\nLa el tamaÒo no puede ser negativo.\n");
+        opp_error("\nLa el tama√±o no puede ser negativo.\n");
         not_valid_enviroment = true;
     }
 
@@ -174,13 +174,13 @@ void aplicacion::postInitialize(){
 
     //Es el turno de quien tenga la misma address que numero de master
     if(address_host == master){
-        //Les da un color de conectado al modulo de aplicaciÛn
+        //Les da un color de conectado al modulo de aplicaci√≥n
         if (ev.isGUI()) getDisplayString().setTagArg("i",1,"green");
 
-        //Generar palabra para envÌo
+        //Generar palabra para env√≠o
         generaInfo(-1);
     }else if(master == 2){
-        //Les da un color de conectado al modulo de aplicaciÛn
+        //Les da un color de conectado al modulo de aplicaci√≥n
         if (ev.isGUI()) getDisplayString().setTagArg("i",1,"green");
 
         //Ambos generan mensajes
@@ -240,7 +240,7 @@ void aplicacion::handleMessage(cMessage* msg){
                 ev << "Host " << nombreHost << ": " << "El dato: " << msg_name << " fue correctamente recivido." << endl;
                 delete msg;
 
-                //modo de transmisiÛn
+                //modo de transmisi√≥n
                 int starter = par("starter");
 
                 if(starter == 2){
@@ -256,7 +256,7 @@ void aplicacion::handleMessage(cMessage* msg){
                     //Numero de tramas recibidas
                     int contTramas_rec = par("contTramas_rec");
 
-                    //Si ya no se pueden enviar m·s tramas y se ha recibido el ˙ltimo dato, se desconecta
+                    //Si ya no se pueden enviar m√°s tramas y se ha recibido el √∫ltimo dato, se desconecta
                     if(numTramas_env < contTramas_env && numTramas_rec == contTramas_rec){
                         //Negro de desconectado
                         if (ev.isGUI()){

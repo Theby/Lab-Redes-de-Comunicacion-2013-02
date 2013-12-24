@@ -195,10 +195,10 @@ void DataFrame::createFrame(int destino, int tamInfo, int* informacion, int NS, 
     std::string name = FuncionesExtras::getNombreTrama(this->getName());
     std::vector<int> destino_binario;
 
-    //Transforma destino a un número binario
+    //Transforma destino a un nÃºmero binario
     int * destinoBin = FuncionesExtras::intToBitArray(destino,8);
 
-    //Lo pasa a vector para tener un manejo más directo
+    //Lo pasa a vector para tener un manejo mÃ¡s directo
     for(int i=0;i<8;i++){
         destino_binario.push_back(destinoBin[i]);
     }
@@ -327,7 +327,7 @@ void DataFrame::tramaI(std::vector<int> destino, int tamInfo, int* informacion, 
     //Fin Control
 
     //Inicio Informacion
-        //Copiando Información
+        //Copiando InformaciÃ³n
         this->setInformationArraySize(tamInfo);
         for(unsigned int i=0;i<this->getInformationArraySize();i++){
             this->setInformation(i,informacion[i]);

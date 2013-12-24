@@ -1,12 +1,12 @@
 High-Level Data Link Control - HDLC
 
-El protocolo usado en esta simulaciÛn tendr· las siguientes caracteristicas.
+El protocolo usado en esta simulaci√≥n tendr√° las siguientes caracteristicas.
 
-EstaciÛn combinada - Balanceada
-Modo Balanceado AsÌncrono (ABM)
+Estaci√≥n combinada - Balanceada
+Modo Balanceado As√≠ncrono (ABM)
 
-Usaremos tramas completas de informaciÛn y tramas de comando y respuesta.
-Se manipular· la informaciÛn a modo bit en arreglos int.
+Usaremos tramas completas de informaci√≥n y tramas de comando y respuesta.
+Se manipular√° la informaci√≥n a modo bit en arreglos int.
 
 Links sobre HDLC:
 http://es.wikipedia.org/wiki/High-Level_Data_Link_Control#Estructura

@@ -17,21 +17,21 @@ package laboratorio_01_02;
 
 simple enlace
 {
-    //Parámetros del nivel de Enlace
+    //ParÃ¡metros del nivel de Enlace
     parameters:
-        //Dirección de Host
+        //DirecciÃ³n de Host
         int direccion_host;
 
-		//Dirección de Destino
+		//DirecciÃ³n de Destino
         int direccion_dest;
         
-        //número de tramas que envia
+        //nÃºmero de tramas que envia
         int numTramas_env;
         
-        //número de tramas que recibe
+        //nÃºmero de tramas que recibe
         int numTramas_rec;
         
-        //Tamaño de ventana
+        //TamaÃ±o de ventana
         int tamVentana;
         
         //Cantidad de tramas en la ventana
@@ -43,7 +43,7 @@ simple enlace
         //define cual es la probabilidad de error
         int error; 
         
-        //Define cual host(0 o 1) comienza la comunicación
+        //Define cual host(0 o 1) comienza la comunicaciÃ³n
         int starter;
         
         //numero de tramas no asentidas

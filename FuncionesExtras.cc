@@ -17,7 +17,7 @@ using namespace std;
 int FuncionesExtras::getValorId(const char* input_complete_name){
     string nombre_completo = input_complete_name;
 
-    //Para guardar el tamaño del resto del mensaje
+    //Para guardar el tamaÃ±o del resto del mensaje
     int rest_tam_msg=0;
 
     for(int i=0;nombre_completo[i]!= ',';i++){
@@ -45,7 +45,7 @@ int FuncionesExtras::getValorId(const char* input_complete_name){
 int FuncionesExtras::getValorPF(const char* input_complete_name){
     string nombre_completo = input_complete_name;
 
-    //Para guardar el tamaño del resto del mensaje
+    //Para guardar el tamaÃ±o del resto del mensaje
     int rest_tam_msg=0;
 
     int contador;
@@ -158,7 +158,7 @@ int* FuncionesExtras::intToBitArray(int numero, int tamano){
     if(numero != 0){
         vector<int> numero_binario;
 
-        //Transforma numero a un número binario
+        //Transforma numero a un nÃºmero binario
         for(int i=0;numero>0;i++){
             numero_binario.push_back(numero%2);
             numero /= 2;
@@ -187,7 +187,7 @@ int FuncionesExtras::tamBitArray(int numero){
     if(numero != 0){
         int tam=1;
 
-        //Calcula el tamaño que tendrá el array
+        //Calcula el tamaÃ±o que tendrÃ¡ el array
         for(tam=0;numero>1;tam++){
             numero /= 2;
         }

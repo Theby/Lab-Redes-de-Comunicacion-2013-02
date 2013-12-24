@@ -19,7 +19,7 @@
 class aplicacion : public cSimpleModule
 {
     protected:
-        //Inicializar módulo
+        //Inicializar mÃ³dulo
         virtual void initialize();
 
         //Maneja los menasjes recibidos "desde_abajo"
@@ -28,7 +28,7 @@ class aplicacion : public cSimpleModule
         //Para despues de verificar las variables
         virtual void postInitialize();
 
-        //Generador de la información
+        //Generador de la informaciÃ³n
         virtual void generaInfo(int trama_id);
 };
 

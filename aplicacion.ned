@@ -17,30 +17,30 @@ package laboratorio_01_02;
 
 simple aplicacion
 {
-    //Par醡etros de la aplicaci髇
+    //Par谩metros de la aplicaci贸n
     parameters:
-        //Tama駉 de la trama
+        //Tama帽o de la trama
         int tamTrama;
 
-        //Direcci髇 de Destino
+        //Direcci贸n de Destino
         int direccion_dest;
 
-        //Direcci髇 de Destino
+        //Direcci贸n de Destino
         int direccion_host;
 
-        //n鷐ero de tramas que envia
+        //n煤mero de tramas que envia
         int numTramas_env;
         
-        //n鷐ero de tramas que recibe
+        //n煤mero de tramas que recibe
         int numTramas_rec;
         
-        //n鷐ero de tramas enviadas
+        //n煤mero de tramas enviadas
         int contTramas_env = default(0);
         
-        //n鷐ero de tramas recibidas
+        //n煤mero de tramas recibidas
         int contTramas_rec = default(0);
 
-        //Define cual host(0 o 1) comienza la comunicaci髇
+        //Define cual host(0 o 1) comienza la comunicaci贸n
         int starter;
         
         //Para saber el estado del nivel de aplicacion
@@ -49,9 +49,9 @@ simple aplicacion
         @display("i=block/cogwheel,black;is=n");
 
     gates:
-        //Recepci髇 de datos desde abajo
+        //Recepci贸n de datos desde abajo
         input desde_abajo;
-        //Env韔 de datos desde abajo
+        //Env铆o de datos desde abajo
         output hacia_abajo;
 
 }

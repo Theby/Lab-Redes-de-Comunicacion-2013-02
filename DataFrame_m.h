@@ -97,7 +97,7 @@ class DataFrame : public ::cMessage
     virtual void setFCS(unsigned int k, int FCS);
 
     /*
-     * Crea la trama según su nombre, asignando el campo de control según corresponda
+     * Crea la trama segÃºn su nombre, asignando el campo de control segÃºn corresponda
      */
     void createFrame(int destino, int tamInfo=0, int* informacion=NULL, int NS=0, int PF=0, int NR=0);
 };
