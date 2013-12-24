@@ -131,14 +131,26 @@ void aplicacion::initialize(){
         not_valid_enviroment = true;        
     }
 
-    if(numTramas_env < 0){
-        opp_error("\nLa cantidad de tramas no puede ser negativa.\n");
-        not_valid_enviroment = true;        
-    }
-    
-    if(numTramas_rec < 0){
-        opp_error("\nLa cantidad de tramas no puede ser negativa.\n");
-        not_valid_enviroment = true;        
+    if(starter==direccion_host){
+        if(numTramas_env < 0){
+            opp_error("\nLa cantidad de tramas no puede ser negativa.\n");
+            not_valid_enviroment = true;        
+        }
+        
+        if(numTramas_rec != 0){
+            opp_error("\nLa cantidad de tramas debe ser 0 si solo el host 0 envia datos.\n");
+            not_valid_enviroment = true;
+        }
+    }else if(starter==2){
+        if(numTramas_env < 0){
+            opp_error("\nLa cantidad de tramas no puede ser negativa.\n");
+            not_valid_enviroment = true;        
+        }
+        
+        if(numTramas_rec < 0){
+            opp_error("\nLa cantidad de tramas no puede ser negativa.\n");
+            not_valid_enviroment = true;
+        }
     }
     
     if(starter < 0 || starter > 2){
