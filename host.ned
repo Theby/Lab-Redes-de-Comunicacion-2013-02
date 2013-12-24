@@ -83,7 +83,8 @@ module host
                 tamVentana = tamVentana;
                 direccion_host = direccion_host;
                 direccion_dest = direccion_dest;
-                tramas_libres = tramas_libres;                
+                tramas_libres = tramas_libres;
+                starter = starter;                
                 numTramas_env = numTramas_env;
                 numTramas_rec = numTramas_rec;
                 error=error;

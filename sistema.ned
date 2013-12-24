@@ -98,6 +98,6 @@ network red extends sistema
 
         tamVentana @prompt("Tamaño de las ventanas deslizantes: ") = default(1);
         tramas_libres @prompt("Número de tramas a enviar/recibir antes de recibir un Asentimiento RR") = default(1);
-        error @prompt("Ingrese cual es la probabilidad de que la trama posea un error (de 0 a 99)") = default(0);        
+        error @prompt("Ingrese cual es la probabilidad de que la trama posea un error (de 0 a 100)") = default(0);        
         @display("bgi=background/green,t");
 }
