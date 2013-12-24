@@ -47,7 +47,7 @@ class DataFrame : public ::cMessage
 
         void tramaUI();
         void tramaSNRM();
-    void tramaDISC(std::vector<int> destino);   
+    void tramaDISC(std::vector<int> destino);
         void tramaRD();
     void tramaUP(std::vector<int> destino);
     void tramaUA(std::vector<int> destino);
@@ -89,7 +89,7 @@ class DataFrame : public ::cMessage
     virtual void setControl(unsigned int k, int control);
     virtual void setInformationArraySize(unsigned int size);
     virtual unsigned int getInformationArraySize() const;
-    virtual int* getInformation();    
+    virtual int* getInformation();
     virtual int getInformation(unsigned int k) const;
     virtual void setInformation(unsigned int k, int information);
     virtual unsigned int getFCSArraySize() const;
@@ -97,9 +97,9 @@ class DataFrame : public ::cMessage
     virtual void setFCS(unsigned int k, int FCS);
 
     /*
-     * Crea la trama segÃºn su nombre, asignando el campo de control segÃºn corresponda
+     * Crea la trama según su nombre, asignando el campo de control según corresponda
      */
-    void createFrame(int destino, int tamInfo=0, int* informacion=NULL, int NS=0, int PF=0, int NR=0);    
+    void createFrame(int destino, int tamInfo=0, int* informacion=NULL, int NS=0, int PF=0, int NR=0);
 };
 
 inline void doPacking(cCommBuffer *b, DataFrame& obj) {obj.parsimPack(b);}

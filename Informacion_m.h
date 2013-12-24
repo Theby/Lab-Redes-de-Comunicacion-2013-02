@@ -57,7 +57,7 @@ class Informacion : public ::cMessage
     virtual int getInformacion(unsigned int k) const;
     virtual void setInformacion(unsigned int k, int informacion);
 
-    //Permite crear una trama de informaciÃ³n, destino debe ser menor que 512
+    //Permite crear una trama de información, destino debe ser menor que 512
     void createFrame(int destino,int* informacion, int tamInfo);
 };
 

@@ -157,15 +157,15 @@ void Informacion::createFrame(int destino,int* informacion, int tamInfo){
     //Fin Address
 
     //Inicio Informacion
-        //Tamaño
+        //Tamaï¿½o
         this->setInformacionArraySize(tamInfo);
 
-        //Asignación
+        //Asignaciï¿½n
         for(int i=0;i<tamInfo;i++){
             this->setInformacion(i,informacion[i]);
         }
     //Fin Informacion
-}    
+}
 
 class InformacionDescriptor : public cClassDescriptor
 {
