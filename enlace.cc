@@ -297,31 +297,27 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
 
     //Si el dataframe corresponde a una trama de informacion
     if(dataframe->getControl(0) == 0){
-        //Si se está en respuesta a un ERROR
-        if(en_respuesta_a == "ERROR"){
-            int valor_trama = FuncionesExtras::getValorId(packet_name.c_str());
 
-            //Si corresponde al error se anula el modo de respuesta y se pueden seguir recibiendo tramas tras registrar el error
-            if(dataframe->getControl(4) == 1 && valor_trama == trama_con_error){
-                en_respuesta_a = "NONE";
+        //Si no se esta en estado de error
+        if(en_respuesta_a != "ERROR"){
+            //Si el paquete que ha llegado tiene error
+            if (packet_name[0] == 'E' && packet_name[1] == 'R' && packet_name[2] == 'R' && packet_name[3] == 'O' && packet_name[4] == 'R'){
+                trama_con_error = FuncionesExtras::getValorId(packet_name.c_str());
+
+                //Manda un REJ de error
+                en_respuesta_a = "ERROR";
                 par("en_respuesta_a").setStringValue(en_respuesta_a);
 
-            //Si no las tramas se rechazan hasta que recibe el ERROR
+                //Usando dataframe para modificar la informacion
+                dataframe->setName(FuncionesExtras::nombrando("REJ,",FuncionesExtras::getValorId(packet_name.c_str())));
+
+                dataframe->createFrame(address_dest);
+
+                send(dataframe,"hacia_fisico");
+
+            //Se recibe una trama correctamente
             }else{
-                delete packet;
-            }
-        }
-
-        //Si no está a la espera de ERROR
-        if(en_respuesta_a != "ERROR"){
-            if (packet_name[0] == 'E' && packet_name[1] == 'R' && packet_name[2] == 'R' && packet_name[3] == 'O' && packet_name[4] == 'R'){
-                bandera = 1; // bandera de error
-                trama_con_error = FuncionesExtras::getValorId(packet_name.c_str());
-            }
-
-            //Si no hay errores
-            if (bandera == 0){
-            //Se envia la información recibida a aplicacion
+                //Se envia la información recibida a aplicacion
                 //Crea el packete de informacion para mandarlo a Aplicacion
                 Informacion *tramaComunicacion = new Informacion(FuncionesExtras::nombrandoTrama(packet_name.c_str(),"DATO,"));
 
@@ -339,11 +335,9 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                 //Si se recibe el bit P/F en 1 se responde con un RR,N,1
                 if(dataframe->getControl(4) == 1){
                     //Se envia RR N al otro host
-                    //Usando dataframe para modificar la informacion
 
                     //Para asignar el valor_id
-                    int valor_id;
-                    valor_id = FuncionesExtras::getValorId(packet_name.c_str());
+                    int valor_id = FuncionesExtras::getValorId(packet_name.c_str());
                     valor_id++;
                     dataframe->setName(FuncionesExtras::nombrando("RR,",valor_id));
 
@@ -357,20 +351,23 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                     ev << "Host " << nombreHost << ": " << "Enviado Supervisory RR" << " a Host: " << address_dest;
                     par("tramas_no_asentidas").setLongValue(0);
                 }
+            }
 
-            //Si hay errores
-            }else{
-                //Manda un REJ de error
-                en_respuesta_a = "ERROR";
+        //Si ya se encontró un error en una trama y se espera que llegue correguida
+        }else if(en_respuesta_a == "ERROR"){
+            int valor_trama = FuncionesExtras::getValorId(packet_name.c_str());
+
+            //Si corresponde al error se anula el modo de respuesta y se pueden seguir recibiendo tramas tras registrar el error
+            if(dataframe->getControl(4) == 1 && valor_trama == trama_con_error){
+                en_respuesta_a = "NONE";
                 par("en_respuesta_a").setStringValue(en_respuesta_a);
 
-                //Usando dataframe para modificar la informacion
-                dataframe->setName(FuncionesExtras::nombrando("REJ,",FuncionesExtras::getValorId(packet_name.c_str())));
+                //Se inicializa el metodo con el error arreglado
+                processMsgFromLowerLayer(packet);
 
-                dataframe->createFrame(address_dest);
-
-                send(dataframe,"hacia_fisico");
-                
+            //Si no las tramas se rechazan hasta que recibe el ERROR
+            }else{
+                delete packet;
             }
         }
     
@@ -620,11 +617,60 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                 par("tramas_no_asentidas").setLongValue(tramas_no_asentidas);
 
                 //Re-envia la trama que tenía el error
+                queue<DataFrame*> ventanaAuxiliar;
                 if(nombreHost==0){
-                    send(ventanaDeslizante00.front(),"hacia_fisico");
+                    ventanaAuxiliar = ventanaDeslizante00;
                 }else if(nombreHost==1){
-                    send(ventanaDeslizante01.front(),"hacia_fisico");
+                    ventanaAuxiliar = ventanaDeslizante01;
                 }
+
+                //Envia la trama que tenía el error
+                send(ventanaAuxiliar.front(),"hacia_fisico");
+
+                //Retira el elemento enviado
+                ventanaAuxiliar.pop();
+
+                if(!ventanaAuxiliar.empty()){
+                    //Crea DATO,N de cada elemento restante en la ventana
+                    //Luego se los reenvia con un scheduleAt a si mismo
+                    queue<Informacion*> ventanaDatos;
+                    Informacion *auxiliar = new Informacion();
+
+                    for(int i=0;i<ventanaAuxiliar.size();i++){
+                        //Crea el packete de informacion para mandarlo a Aplicacion
+                        auxiliar->setName(FuncionesExtras::nombrando("DATO,",id_tramaVentana);
+
+                        //Asignando valores correspondientes
+                        auxiliar->createFrame(address_dest,ventanaAuxiliar.front()->getInformation(),ventanaAuxiliar.front()->getInformationArraySize());
+
+                        ventanaDatos.push(auxiliar);
+                    }
+                    
+
+
+
+
+
+                    for(int i=0;i<ventanaAuxiliar.size();i++){
+                        scheduleAt(simTime()+0,5*i,ventanaAuxiliar.front());
+                    }
+                }else{
+                    //Obtiene el valor del ultimo ACK pedido y pide el siguiente
+                    id_tramaVD = par("ult_ack_enviado");
+                    id_tramaVD++;
+
+                    //Mandar un ACK,N al modulo de aplicación
+                    cMessage *ack = new cMessage(FuncionesExtras::nombrando("ACK,",id_tramaVD));
+
+                    //Actualiza el valor del ultimo ack pedido
+                    int ult_ack_enviado = id_tramaVD;
+                    par("ult_ack_enviado").setLongValue(ult_ack_enviado);
+
+                    //Manda el mensaje a aplicacion
+                    send(ack,"hacia_arriba");
+                    ev << "Host " << nombreHost << ": " << "Mandando ACK al modulo de aplicación" << endl;
+                }
+
             }
         
         }
