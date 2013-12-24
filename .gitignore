@@ -10,10 +10,10 @@
 # Ignore all logfiles and tempfiles.
 /log
 /tmp
+.tkenvlog
 
 #Ignore compiler files
+Makefile
 .tkenvrc
 *.exe
-Makefile
 *.o
-.tkenvlog
