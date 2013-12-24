@@ -43,6 +43,9 @@ simple enlace
         //define cual es la probabilidad de error
         int error; 
         
+        //Define cual host(0 o 1) comienza la comunicación
+        int starter;
+        
         //numero de tramas no asentidas
         volatile int tramas_no_asentidas = default(0);
         
@@ -57,6 +60,9 @@ simple enlace
 
         //Para saber el estado del nivel de enlace
         volatile string en_respuesta_a = default("NONE");
+        
+        //Numero de la trama enviada con error
+		volatile int trama_con_error = default(0);
 
         @display("i=block/ifcard,black;is=n");
 

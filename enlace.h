@@ -29,6 +29,8 @@ class enlace : public cSimpleModule
         virtual void processMsgFromLowerLayer(cMessage *packet);
 
         virtual void handleMessage(cMessage *msg);
+
+        virtual void sending(cMessage *msg, const char* ngate);
 };
 
 

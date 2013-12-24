@@ -19,12 +19,30 @@ using namespace std;
 //Define la clase para trabajar directamente con el modulo de enlace
 Define_Module( enlace );
 
+void enlace::sending(cMessage* msg, const char* ngate){
+    cChannel *canal = gate(ngate)->getTransmissionChannel();;
+    simtime_t canalFinishTime = canal->getTransmissionFinishTime();
+
+    // Canal libre
+    if (canalFinishTime <= simTime()){
+        send(msg, "out");
+
+    }else{
+        // store packet and schedule timer; when the timer expires,
+        // the packet should be removed from the queue and sent out
+        txQueue.insert(msg);
+        scheduleAt(canalFinishTime, endTxMsg);
+    }
+}
+
 void enlace::initialize(){
     int error = par("error");
     int numTramas_env = par("numTramas_env");
     int numTramas_rec = par("numTramas_rec");
     int tamVentana = par("tamVentana");
     int tramas_libres = par("tramas_libres");
+    int starter = par("starter");
+    int direccion_host = par("direccion_host");
 
     bool not_valid_enviroment = false;
 
@@ -58,7 +76,7 @@ void enlace::initialize(){
         not_valid_enviroment = true;
     }
 
-    if(tramas_libres > numTramas_rec || tramas_libres > numTramas_env){
+    if(tramas_libres > numTramas_env && (starter==direccion_host || starter==2)){
         opp_error("\nLa cantidad de tramas a esperar antes de un RR no puede ser mayor que el numero de tramas que pueden enviar los Hosts.\n");
         not_valid_enviroment = true;
     }
@@ -68,8 +86,6 @@ void enlace::initialize(){
     }
 }
 
-//Numero de la trama enviada con error
-int trama_con_error;
 //queue para el host 0
 std::queue<DataFrame*> ventanaDeslizante00;
 
@@ -104,6 +120,20 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
 
     //Si es una trama START
     if(nombre_dato == "START"){
+        int starter = par("starter");
+
+        if(starter==nombreHost){
+            if(nombreHost==0){
+                while(!ventanaDeslizante00.empty()){
+                    ventanaDeslizante00.pop();
+                }
+            }else if(nombreHost==1){
+                while(!ventanaDeslizante01.empty()){
+                    ventanaDeslizante01.pop();
+                }
+            }
+        }
+
         delete dato;
 
         //Para saber cual fue la última trama asentida y si es que faltan por asentir
@@ -258,7 +288,7 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
         unsigned int tamActVentana;
         if(nombreHost==0){
             tamActVentana = ventanaDeslizante00.size();    
-        }else if(nombreHost=1){
+        }else if(nombreHost==1){
             tamActVentana = ventanaDeslizante01.size();    
         }        
 
@@ -290,8 +320,6 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
     int address_dest = par("direccion_dest");
     string packet_name = packet->getName();
 
-    int bandera = 0;
-
     //Se transforma el mensaje que ingresa en tipo DataFrame
     DataFrame *dataframe = check_and_cast<DataFrame *>(packet);
 
@@ -302,7 +330,8 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
         if(en_respuesta_a != "ERROR"){
             //Si el paquete que ha llegado tiene error
             if (packet_name[0] == 'E' && packet_name[1] == 'R' && packet_name[2] == 'R' && packet_name[3] == 'O' && packet_name[4] == 'R'){
-                trama_con_error = FuncionesExtras::getValorId(packet_name.c_str());
+                int trama_con_error = FuncionesExtras::getValorId(packet_name.c_str());
+                par("trama_con_error").setLongValue(trama_con_error);
 
                 //Manda un REJ de error
                 en_respuesta_a = "ERROR";
@@ -356,6 +385,7 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
         //Si ya se encontró un error en una trama y se espera que llegue correguida
         }else if(en_respuesta_a == "ERROR"){
             int valor_trama = FuncionesExtras::getValorId(packet_name.c_str());
+            int trama_con_error = par("trama_con_error");
 
             //Si corresponde al error se anula el modo de respuesta y se pueden seguir recibiendo tramas tras registrar el error
             if(dataframe->getControl(4) == 1 && valor_trama == trama_con_error){
@@ -381,7 +411,7 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
 
             //Se recibe un RR
             if(M1 == 0){
-
+                
                 if(en_respuesta_a != "DISC"){
 
                     //Revisa el valor del bit P/F
@@ -390,7 +420,7 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
 
                         //Trama a la que corresponde el RR
                         int id_tramaRR = FuncionesExtras::getValorId(packet_name.c_str());
-
+                        
                         //Para saber cuantas tramas se asentieron
                         int tramas_asentidas = 0;
 
@@ -401,8 +431,9 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                         }else if(nombreHost==1){
                             primer_elemento = ventanaDeslizante01.front();
                         }
-                        
+
                         string nombre_primer_elemento = primer_elemento->getName();
+
                         int id_tramaVD = FuncionesExtras::getValorId(nombre_primer_elemento.c_str());
 
                         //Recorre la Ventana removiendo los elementos asentidos
@@ -445,16 +476,6 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                             cant_tramasVentana = ventanaDeslizante01.size();
                         }
                         par("cant_tramasVentana").setLongValue(cant_tramasVentana);
-
-                        /*if(!ventanaDeslizante00.empty()){
-                            //Obtiene el valor de id de la ultima trama para solicitar las tramas a aplicacion que corresponden
-                            primer_elemento = ventanaDeslizante00.back();
-                            nombre_primer_elemento = primer_elemento->getName();
-                            id_tramaVD = FuncionesExtras::getValorId(nombre_primer_elemento.c_str());
-                            id_tramaVD++;
-                        }else{
-                            id_tramaVD = id_tramaRR;
-                        }*/
 
                         //Obtiene el valor del ultimo ACK pedido y pide el siguiente
                         id_tramaVD = par("ult_ack_enviado");
@@ -557,6 +578,7 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
             
             //Recibe un REJ
             }else if(M1 == 1){
+                delete dataframe;
                 //Retransmite a partir de la trama deseada
 
                 //Obtiene el id de la trama REJ
@@ -581,8 +603,10 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                 nombre_primer_elemento = primer_elemento->getName();
                 id_tramaVD = FuncionesExtras::getValorId(nombre_primer_elemento.c_str());
 
+                ev << "Host " << nombreHost << ": " << "Recibido REJ," << id_tramaREJ << " comenzando a analizar elementos, partiendo por: " << id_tramaVD << endl;
+
                 //Recorre la Ventana removiendo los elementos asentidos previos al REJ
-                for(int i=0;id_tramaREJ > id_tramaVD;i++){
+                for(int i=0;id_tramaREJ > id_tramaVD && ((nombreHost==0 && !ventanaDeslizante00.empty()) || (nombreHost==1 && !ventanaDeslizante01.empty()));i++){
                     if(id_tramaVD < id_tramaREJ){
                         if(nombreHost==0){
                             ventanaDeslizante00.pop();
@@ -592,9 +616,9 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                         tramas_asentidas++;
                     }
 
-                    if(nombreHost==0){
+                    if(nombreHost==0 && !ventanaDeslizante00.empty()){
                         primer_elemento = ventanaDeslizante00.front();
-                    }else if(nombreHost==1){
+                    }else if(nombreHost==1 && !ventanaDeslizante01.empty()){
                         primer_elemento = ventanaDeslizante01.front();
                     }
                     nombre_primer_elemento = primer_elemento->getName();
@@ -602,6 +626,8 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                     id_tramaVD = FuncionesExtras::getValorId(nombre_primer_elemento.c_str());
                 }
                 
+                ev << "Host " << nombreHost << ": " << "Tramas asentidas: " << tramas_asentidas << endl;
+
                 //Actualiza el valor de las tramas en la ventana
                 int cant_tramasVentana;
                 if(nombreHost==0){
@@ -624,37 +650,29 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                     ventanaAuxiliar = ventanaDeslizante01;
                 }
 
+                DataFrame *tramaAuxiliar = new DataFrame(ventanaAuxiliar.front()->getName());
+                tramaAuxiliar->createFrame(address_dest,ventanaAuxiliar.front()->getInformationArraySize(),ventanaAuxiliar.front()->getInformation(),0,ventanaAuxiliar.front()->getControl(4),0);
+
                 //Envia la trama que tenía el error
-                send(ventanaAuxiliar.front(),"hacia_fisico");
+                send(tramaAuxiliar,"hacia_fisico");
+                ev << "Host " << nombreHost << ": " << "Reenviando: " << ventanaAuxiliar.front()->getName() << endl;
 
                 //Retira el elemento enviado
                 ventanaAuxiliar.pop();
 
-                if(!ventanaAuxiliar.empty()){
-                    //Crea DATO,N de cada elemento restante en la ventana
-                    //Luego se los reenvia con un scheduleAt a si mismo
-                    queue<Informacion*> ventanaDatos;
-                    Informacion *auxiliar = new Informacion();
+                //Envia con delay cada una de las otras tramas faltantes
+                vector<DataFrame*> vectorAuxiliar;
+                vectorAuxiliar.resize(ventanaAuxiliar.size());
+                for(int i=0;!ventanaAuxiliar.empty();i++){
+                    vectorAuxiliar[i] = new DataFrame(ventanaAuxiliar.front()->getName());
+                    vectorAuxiliar[i]->createFrame(address_dest,ventanaAuxiliar.front()->getInformationArraySize(),ventanaAuxiliar.front()->getInformation(),0,ventanaAuxiliar.front()->getControl(4),0);
 
-                    for(int i=0;i<ventanaAuxiliar.size();i++){
-                        //Crea el packete de informacion para mandarlo a Aplicacion
-                        auxiliar->setName(FuncionesExtras::nombrando("DATO,",id_tramaVentana);
+                    sendDelayed(vectorAuxiliar[i],0.5*(1+i),"hacia_fisico");
+                    ventanaAuxiliar.pop();
+                }
 
-                        //Asignando valores correspondientes
-                        auxiliar->createFrame(address_dest,ventanaAuxiliar.front()->getInformation(),ventanaAuxiliar.front()->getInformationArraySize());
-
-                        ventanaDatos.push(auxiliar);
-                    }
-                    
-
-
-
-
-
-                    for(int i=0;i<ventanaAuxiliar.size();i++){
-                        scheduleAt(simTime()+0,5*i,ventanaAuxiliar.front());
-                    }
-                }else{
+                //Si se asentio almenos una trama se solicita un ACK a aplicacion
+                if(tramas_asentidas>0){
                     //Obtiene el valor del ultimo ACK pedido y pide el siguiente
                     id_tramaVD = par("ult_ack_enviado");
                     id_tramaVD++;
@@ -748,8 +766,9 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                     delete dataframe;
 
                     //Si la trama UA fue recibida por enviar un SABM
-                    if(en_respuesta_a == "SABM"){
-                        en_respuesta_a == "NONE";
+                    if(en_respuesta_a == "SABM"){    
+
+                        en_respuesta_a = "NONE";
                         par("en_respuesta_a").setStringValue(en_respuesta_a);
 
                         //Normal de activo
@@ -772,9 +791,10 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
 
                     //Si la trama UA fue recibida por enviar DISC
                     }else if(en_respuesta_a == "DISC"){
-                        en_respuesta_a == "NONE";
-                        par("en_respuesta_a").setStringValue(en_respuesta_a);
 
+                        en_respuesta_a = "NONE";
+                        par("en_respuesta_a").setStringValue(en_respuesta_a);
+                        
                         //Negro de desconectado
                         if (ev.isGUI()){
                             getDisplayString().setTagArg("i",1,"black");
