@@ -30,7 +30,8 @@ class enlace : public cSimpleModule
 
         virtual void handleMessage(cMessage *msg);
 
-        virtual void sending(cMessage *msg, const char* ngate);
+        virtual void sending(cMessage* msg, const char* ngate);
+
 };
 
 
