@@ -27,6 +27,11 @@ std::queue<DataFrame*> canalLibre00;
 std::queue<DataFrame*> ventanaDeslizante01;
 std::queue<DataFrame*> canalLibre01;
 
+vector<DataFrame*> temporizadores00;
+vector<string> tempoNames00;
+vector<DataFrame*> temporizadores01;
+vector<string> tempoNames01;
+
 void enlace::sending(cMessage* msg, const char* ngate){
     cChannel *canal = gate(ngate)->getTransmissionChannel();;
     simtime_t canalFinishTime = canal->getTransmissionFinishTime();
@@ -161,6 +166,10 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
                 while(!canalLibre00.empty()){
                     canalLibre00.pop();
                 }
+                
+                temporizadores00.clear();
+                tempoNames00.clear();
+
             }else if(nombreHost==1){
                 while(!ventanaDeslizante01.empty()){
                     ventanaDeslizante01.pop();
@@ -169,6 +178,9 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
                 while(!canalLibre01.empty()){
                     canalLibre01.pop();
                 }
+
+                temporizadores01.clear();
+                tempoNames01.clear();
             }
         }
 
@@ -253,9 +265,6 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
         // Probabilidad de que se envie de forma erronea una trama
         int error = par("error");
 
-        // Instancia de probabilidad que la trama se pierda durante el envio
-        //int prob_noEnvio = prob_error;
-
         //Para el bit P/F
         int bit_pf;
         int tramas_libres = par("tramas_libres");
@@ -273,8 +282,21 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
 
             esperandoRR->createFrame(nombreHost);
 
+            //Agrega el puntero del dataframe enviado
+            string tempo_name;
+            if(nombreHost==0){
+                tempo_name = esperandoRR->getName();
+                tempoNames00.push_back(tempo_name);
+                temporizadores00.push_back(esperandoRR);
+            }else if(nombreHost==1){
+                tempo_name = esperandoRR->getName();
+                tempoNames01.push_back(tempo_name);
+                temporizadores01.push_back(esperandoRR);
+            }            
+
             scheduleAt(simTime()+10,esperandoRR);
-            ev << "Host " << nombreHost << ": " << "Mandando un REJ," << id_dato << " a si mismo en caso que no llegue el RR," << id_dato << " en 5 segundos." << endl;
+            ev << "Host " << nombreHost << ": " << "Mandando un REJ," << id_dato << " a si mismo en caso que no llegue el RR," << id_dato << " en 10 segundos." << endl;
+            ev << "Host " << nombreHost << ": " << "Tiempo esperado para mandar el REJ: " << simTime()+10 << endl;
 
         }else{
             bit_pf = 0;
@@ -333,6 +355,7 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
             ev << "Host " << nombreHost << ": " << "Mandando trama de Información " << id_dato << " al host: " << address_dest;
         }else if(tipo_error == "Lost"){
             ev << "Host " << nombreHost << ": " << "La trama "<< nombre_dato.c_str() << " se ha perdido.";
+
         }else if(tipo_error == "BadSending")        {
             //Si no supera el umbral de error, la trama se setea como erronea.
             tramaInformacion->setName(FuncionesExtras::nombrandoTrama(nombre_dato.c_str(),"ERROR,"));
@@ -394,17 +417,19 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                 int trama_con_error = FuncionesExtras::getValorId(packet_name.c_str());
                 par("trama_con_error").setLongValue(trama_con_error);
 
+                ev << "Host " << nombreHost << ": " << "La trama " << trama_con_error << " ha sido recibida con errores" << endl;
+
                 //Manda un REJ de error
                 en_respuesta_a = "ERROR";
                 par("en_respuesta_a").setStringValue(en_respuesta_a);
 
                 //Usando dataframe para modificar la informacion
-                dataframe->setName(FuncionesExtras::nombrando("REJ,",FuncionesExtras::getValorId(packet_name.c_str())));
+                dataframe->setName(FuncionesExtras::nombrando("REJ,",trama_con_error));
 
                 dataframe->createFrame(address_dest);
 
                 sending(dataframe,"hacia_fisico");
-
+                ev << "Host " << nombreHost << ": " << "Mandando REJ," << trama_con_error << endl;
             //Se recibe una trama correctamente
             }else{
                 //Se envia la información recibida a aplicacion
@@ -416,7 +441,7 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
 
                 //Lo envia hacia aplicacion
                 send(tramaComunicacion,"hacia_arriba");
-                ev << "Host " << nombreHost << ": " << "Mandando mensaje recibido a aplicacion";
+                ev << "Host " << nombreHost << ": " << "Mandando mensaje recibido a aplicacion" << endl;
 
                 //Asigna el valor de la última trama recibida
                 int id_trama = FuncionesExtras::getValorId(packet_name.c_str());
@@ -442,7 +467,7 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                         dataframe->createFrame(address_dest,0,NULL,0,1,0);
 
                         sending(dataframe,"hacia_fisico");
-                        ev << "Host " << nombreHost << ": " << "Enviado Supervisory RR" << " a Host: " << address_dest;
+                        ev << "Host " << nombreHost << ": " << "Enviado Supervisory RR" << " a Host: " << address_dest << endl;
                         par("tramas_no_asentidas").setLongValue(0);
                     }
 
@@ -495,6 +520,8 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
             if(M1 == 0){
                 
                 if(en_respuesta_a != "DISC"){
+
+                    cancelarEventosPendientes(FuncionesExtras::getValorId(packet_name.c_str()));
 
                     //Revisa el valor del bit P/F
                     if(dataframe->getControl(4) == 1 && en_respuesta_a != "UP"){
@@ -658,13 +685,16 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                     }
                 }
             
-            //Recibe un REJ
+            //Se recibe un REJ
             }else if(M1 == 1){
                 delete dataframe;
                 //Retransmite a partir de la trama deseada
 
                 //Obtiene el id de la trama REJ
                 int id_tramaREJ = FuncionesExtras::getValorId(packet_name.c_str());
+
+                //Cancela los eventos relacionados
+                cancelarEventosPendientes(id_tramaREJ + 1);
 
                 //Trama a la que corresponden los elementos de la Ventana Deslizante
                 int id_tramaVD = 0;
@@ -819,7 +849,7 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
 
                     //Enia el UA por el medio físico
                     sending(dataframe,"hacia_fisico");
-                    ev << "Host " << nombreHost << ": " << "Enviado Unnumbered UA a Host: " << address_dest;
+                    ev << "Host " << nombreHost << ": " << "Enviado Unnumbered UA a Host: " << address_dest << endl;
                 
                 //Se recibe un UP
                 }else if(M2 == 4){
@@ -840,9 +870,9 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
 
                         //Envia la trama por el medio fisico
                         sending(dataframe,"hacia_fisico");
-                        ev << "Host " << nombreHost << ": " << "Enviado Supervisory RR" << " a Host: " << address_dest;
+                        ev << "Host " << nombreHost << ": " << "Enviado Supervisory RR" << " a Host: " << address_dest << endl;
                     }else{
-                        ev << "Host " << nombreHost << ": " << "UP no respondido debido a que ya se ha enviado un RR adecuado" << address_dest;
+                        ev << "Host " << nombreHost << ": " << "UP no respondido debido a que ya se ha enviado un RR adecuado" << address_dest << endl;
                     }
 
                 //Se recibe un UA
@@ -927,5 +957,27 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                 }
             }
         }
+    }
+}
+
+void enlace::cancelarEventosPendientes(int id_name){
+    int nombreHost = par("direccion_host");
+
+    string tempo_name;
+    if(nombreHost==0){
+        for(unsigned int i=0;i<temporizadores00.size();i++){
+            tempo_name = tempoNames00[i];
+            if(FuncionesExtras::getValorId(tempo_name.c_str()) < id_name){
+                cancelEvent(temporizadores00[i]);
+            }    
+        }                        
+    }else if(nombreHost==1){
+        for(unsigned int i=0;i<temporizadores01.size();i++){
+            tempo_name = tempoNames01[i];
+            if(FuncionesExtras::getValorId(tempo_name.c_str()) < id_name){
+                cancelEvent(temporizadores01[i]);
+            }    
+        }
+
     }
 }
