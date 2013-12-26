@@ -50,7 +50,7 @@ simple enlace
         volatile int tramas_no_asentidas = default(0);
         
         //ultima trama recibida
-        volatile int ult_trama_recibida = default(0);
+        volatile int ult_trama_recibida = default(-1);
         
         //Para guardar el valor del ultimo ACK enviado
         volatile int ult_ack_enviado = default(0);
