@@ -107,15 +107,13 @@ void enlace::initialize(){
     }
 }
 
-
-
 void enlace::handleMessage(cMessage *msg){
     string name = msg->getName();
     int nombreHost = par("direccion_host");
 
     if(name != "FREE"){
         //Si el mensaje llega desde el otro Host
-        if (msg->arrivedOn("desde_fisico")){
+        if (msg->arrivedOn("desde_fisico") || (name[0]=='R' && name[1]=='E' && name[2]=='J')){
             //Procesarlo como si viniera desde abajo
             processMsgFromLowerLayer(msg);
         }
@@ -270,9 +268,13 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
         if(id_dato%tramas_libres == (tramas_libres-1)){
             bit_pf = 1;
 
-            //Temporizador que espera un RR durante 3 segundos, si no, envia nuevamente la trama
-            cMessage *esperandoRR = new cMessage("RESEND,",FuncionesExtras::getValorId((nombre_dato.c_str())));
-            scheduleAt(simTime()+3,esperandoRR);
+            //Temporizador que espera un RR durante 10 segundos, si no, se auto envia un REJ para comenzar a enviar desde la trama no asentida
+            DataFrame *esperandoRR = new DataFrame(FuncionesExtras::nombrando("REJ,",id_dato));
+
+            esperandoRR->createFrame(nombreHost);
+
+            scheduleAt(simTime()+10,esperandoRR);
+            ev << "Host " << nombreHost << ": " << "Mandando un REJ," << id_dato << " a si mismo en caso que no llegue el RR," << id_dato << " en 5 segundos." << endl;
 
         }else{
             bit_pf = 0;
@@ -308,20 +310,21 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
         string tipo_error;
         if (prob_error < error && error != 0){
             if(rand()%100 < 50){
-                tipo_error == "BadSending";
+                tipo_error = "BadSending";
+                ev << "Host " << nombreHost << ": " << "Error en la informacion de la trama" << endl;
             }else{
-                tipo_error == "Lost";
+                tipo_error = "Lost";
+                ev << "Host " << nombreHost << ": " << "Error en el enviado de la trama" << endl;
             }            
         }else{
-            tipo_error == "NONE";
+            tipo_error = "NONE";
+            ev << "Host " << nombreHost << ": " << "no hay errores para esta trama:" <<  id_dato << endl;
         }           
         
         //Guarda el valor de las tramas enviadas y que no han recibido asentimiento RR
         int tramas_no_asentidas = par("tramas_no_asentidas");
         tramas_no_asentidas++;
-        par("tramas_no_asentidas").setLongValue(tramas_no_asentidas);
-
-        
+        par("tramas_no_asentidas").setLongValue(tramas_no_asentidas);        
 
         //En caso de ser menor a la probabilidad de error, la trama no se envia
         if (tipo_error == "NONE"){
@@ -746,7 +749,8 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                     vectorAuxiliar[i] = new DataFrame(ventanaAuxiliar.front()->getName());
                     vectorAuxiliar[i]->createFrame(address_dest,ventanaAuxiliar.front()->getInformationArraySize(),ventanaAuxiliar.front()->getInformation(),0,ventanaAuxiliar.front()->getControl(4),0);
 
-                    sendDelayed(vectorAuxiliar[i],0.5*(1+i),"hacia_fisico");
+                    //Envia todas las tramas con un retraso de 1 segundo acumulable
+                    sendDelayed(vectorAuxiliar[i],simTime()+1*(1+i),"hacia_fisico");
                     
                     ventanaAuxiliar.pop();
                 }
