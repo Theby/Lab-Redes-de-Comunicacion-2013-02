@@ -1,13 +1,8 @@
 =============== TODO ==============
 
-Errores de perdida de tramas
-	enlace.cc 168: comentarios en prueba sobre error cuando se pierde una trama
-	scheduleAt();
-	cancelEvent();
-
 =============== ERRORES ==============
 
-RESEND no implementado
+Revisar que pasa cuando hay varias tramas mandadas y llega un REJ,0,1
 
 
 =============== TESTING ==============
@@ -25,7 +20,7 @@ RESEND no implementado
 6) Ambos host envian: 0/1 envian 1/2, la ventana es de 2, RR cada 1.
 	Working
 7) solo un host envia: 0 - tiene 4 para enviar, la ventana es de 2, RR cada 2.
-	No se envia el DATO,0	
+	Working
 
 
 =============== ENTRADAS TODO ==============
