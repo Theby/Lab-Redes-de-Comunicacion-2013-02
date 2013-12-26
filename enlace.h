@@ -28,10 +28,14 @@ class enlace : public cSimpleModule
         //Procesador de Mensaje desde el otro host
         virtual void processMsgFromLowerLayer(cMessage *packet);
 
+        //Maneja los mensajes llegados al modulo
         virtual void handleMessage(cMessage *msg);
 
+        //Envia los mensajes revisando si hay acceso a la red
         virtual void sending(cMessage* msg, const char* ngate);
 
+        //Cancela eventos pendientes dados por scheduleAt
+        virtual void cancelarEventosPendientes(int id_name);
 };
 
 
