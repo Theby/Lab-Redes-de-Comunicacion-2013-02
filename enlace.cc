@@ -274,123 +274,129 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
 
         //Obtiene el valor del bit pf para esta trama
         int id_dato = FuncionesExtras::getValorId(nombre_dato.c_str());
-        if(id_dato%tramas_libres == (tramas_libres-1)){
-            bit_pf = 1;
+        int ult_ACK = par("ult_ack_enviado");
 
-            //Temporizador que espera un RR durante 10 segundos, si no, se auto envia un REJ para comenzar a enviar desde la trama no asentida
-            DataFrame *esperandoRR = new DataFrame(FuncionesExtras::nombrando("REJ,",id_dato));
+        if(id_dato == ult_ACK){
+            if(id_dato%tramas_libres == (tramas_libres-1)){
+                bit_pf = 1;
 
-            esperandoRR->createFrame(nombreHost);
+                //Temporizador que espera un RR durante 10 segundos, si no, se auto envia un REJ para comenzar a enviar desde la trama no asentida
+                DataFrame *esperandoRR = new DataFrame(FuncionesExtras::nombrando("REJ,",id_dato));
 
-            //Agrega el puntero del dataframe enviado
-            string tempo_name;
-            if(nombreHost==0){
-                tempo_name = esperandoRR->getName();
-                tempoNames00.push_back(tempo_name);
-                temporizadores00.push_back(esperandoRR);
-            }else if(nombreHost==1){
-                tempo_name = esperandoRR->getName();
-                tempoNames01.push_back(tempo_name);
-                temporizadores01.push_back(esperandoRR);
-            }            
+                esperandoRR->createFrame(nombreHost);
 
-            scheduleAt(simTime()+10,esperandoRR);
-            ev << "Host " << nombreHost << ": " << "Mandando un REJ," << id_dato << " a si mismo en caso que no llegue el RR," << id_dato << " en 10 segundos." << endl;
-            ev << "Host " << nombreHost << ": " << "Tiempo esperado para mandar el REJ: " << simTime()+10 << endl;
+                //Agrega el puntero del dataframe enviado
+                string tempo_name;
+                if(nombreHost==0){
+                    tempo_name = esperandoRR->getName();
+                    tempoNames00.push_back(tempo_name);
+                    temporizadores00.push_back(esperandoRR);
+                }else if(nombreHost==1){
+                    tempo_name = esperandoRR->getName();
+                    tempoNames01.push_back(tempo_name);
+                    temporizadores01.push_back(esperandoRR);
+                }            
 
-        }else{
-            bit_pf = 0;
-        }
+                scheduleAt(simTime()+10,esperandoRR);
+                ev << "Host " << nombreHost << ": " << "Mandando un REJ," << id_dato << " a si mismo en caso que no llegue el RR," << id_dato << " en 10 segundos." << endl;
+                ev << "Host " << nombreHost << ": " << "Tiempo esperado para mandar el REJ: " << simTime()+10 << endl;
 
-        DataFrame *tramaInformacion = new DataFrame(FuncionesExtras::nombrandoTrama(nombre_dato.c_str(),"I,"));
-        DataFrame *copiaParaVentana = new DataFrame(FuncionesExtras::nombrandoTrama(nombre_dato.c_str(),"I,"));
-
-        /*
-         * Para crear la trama se pasan los siguientes argumentos
-         * - destino de la trama en decimal
-         * - tamaño del array de información
-         * - vector del array de información
-         * - N(R) en decimal
-         * - Bit P/F
-         * - N(S) en decimal
-         */
-        tramaInformacion->createFrame(address_dest,informacion->getInformacionArraySize(),informacion->getInformacion(),0,bit_pf,0);
-        copiaParaVentana->createFrame(address_dest,informacion->getInformacionArraySize(),informacion->getInformacion(),0,bit_pf,0);
-
-        //Se almacena la trama en la ventana
-        if(nombreHost==0){
-            ventanaDeslizante00.push(copiaParaVentana);
-        }else if(nombreHost==1){
-            ventanaDeslizante01.push(copiaParaVentana);
-        }
-
-        //Actualiza el valor de las tramas en la ventana
-        cant_tramasVentana = par("cant_tramasVentana");
-        cant_tramasVentana++;
-        par("cant_tramasVentana").setLongValue(cant_tramasVentana);
-
-        string tipo_error;
-        if (prob_error < error && error != 0){
-            if(rand()%100 < 50){
-                tipo_error = "BadSending";
-                ev << "Host " << nombreHost << ": " << "Error en la informacion de la trama" << endl;
             }else{
-                tipo_error = "Lost";
-                ev << "Host " << nombreHost << ": " << "Error en el enviado de la trama" << endl;
-            }            
+                bit_pf = 0;
+            }
+
+            DataFrame *tramaInformacion = new DataFrame(FuncionesExtras::nombrandoTrama(nombre_dato.c_str(),"I,"));
+            DataFrame *copiaParaVentana = new DataFrame(FuncionesExtras::nombrandoTrama(nombre_dato.c_str(),"I,"));
+
+            /*
+             * Para crear la trama se pasan los siguientes argumentos
+             * - destino de la trama en decimal
+             * - tamaño del array de información
+             * - vector del array de información
+             * - N(R) en decimal
+             * - Bit P/F
+             * - N(S) en decimal
+             */
+            tramaInformacion->createFrame(address_dest,informacion->getInformacionArraySize(),informacion->getInformacion(),0,bit_pf,0);
+            copiaParaVentana->createFrame(address_dest,informacion->getInformacionArraySize(),informacion->getInformacion(),0,bit_pf,0);
+
+            //Se almacena la trama en la ventana
+            if(nombreHost==0){
+                ventanaDeslizante00.push(copiaParaVentana);
+            }else if(nombreHost==1){
+                ventanaDeslizante01.push(copiaParaVentana);
+            }
+
+            //Actualiza el valor de las tramas en la ventana
+            cant_tramasVentana = par("cant_tramasVentana");
+            cant_tramasVentana++;
+            par("cant_tramasVentana").setLongValue(cant_tramasVentana);
+
+            string tipo_error;
+            if (prob_error < error && error != 0){
+                if(rand()%100 < 100){
+                    tipo_error = "BadSending";
+                    ev << "Host " << nombreHost << ": " << "Error en la informacion de la trama" << endl;
+                }else{
+                    tipo_error = "Lost";
+                    ev << "Host " << nombreHost << ": " << "Error en el enviado de la trama" << endl;
+                }            
+            }else{
+                tipo_error = "NONE";
+                ev << "Host " << nombreHost << ": " << "no hay errores para esta trama:" <<  id_dato << endl;
+            }           
+            
+            //Guarda el valor de las tramas enviadas y que no han recibido asentimiento RR
+            int tramas_no_asentidas = par("tramas_no_asentidas");
+            tramas_no_asentidas++;
+            par("tramas_no_asentidas").setLongValue(tramas_no_asentidas);        
+
+            //En caso de ser menor a la probabilidad de error, la trama no se envia
+            if (tipo_error == "NONE"){
+                //Enviando trama por el medio fisico
+                sending(tramaInformacion,"hacia_fisico");
+                ev << "Host " << nombreHost << ": " << "Mandando trama de Información " << id_dato << " al host: " << address_dest;
+            }else if(tipo_error == "Lost"){
+                ev << "Host " << nombreHost << ": " << "La trama "<< nombre_dato.c_str() << " se ha perdido.";
+
+            }else if(tipo_error == "BadSending")        {
+                //Si no supera el umbral de error, la trama se setea como erronea.
+                tramaInformacion->setName(FuncionesExtras::nombrandoTrama(nombre_dato.c_str(),"ERROR,"));
+                ev << "Host " << nombreHost << ": " << "La trama "<< nombre_dato.c_str() << " se ha enviado con error.";
+
+                sending(tramaInformacion,"hacia_fisico");
+                ev << "Host " << nombreHost << ": " << "Mandando trama de Información " << id_dato << " al host: " << address_dest;
+            }
+
+            //Cantidad de tramas maximas en la ventana
+            unsigned int tamVentana = par("tamVentana");
+            unsigned int tamActVentana;
+            if(nombreHost==0){
+                tamActVentana = ventanaDeslizante00.size();    
+            }else if(nombreHost==1){
+                tamActVentana = ventanaDeslizante01.size();    
+            }        
+
+            ev << "Tramas en la ventana: " << cant_tramasVentana << " - Ventana de: " << tamVentana << " - queue: " << tamActVentana << endl;
+            //Si aún hay espacio en la ventana se manda un ACK para recibir más información
+            if(tamActVentana != tamVentana){
+                //Crea un ACK,N
+                int valor_id = par("ult_ack_enviado");
+                valor_id++;
+                cMessage *ack = new cMessage(FuncionesExtras::nombrando("ACK,",valor_id));
+
+                //Actualiza el valor del último ACK pedido
+                par("ult_ack_enviado").setLongValue(valor_id);
+
+                //Envia ACK,N al modulo de aplicacion
+                send(ack,"hacia_arriba");
+                ev << "Host " << nombreHost << ": " << "Mandando ACK al modulo de aplicación" << endl;
+            }
+
+            delete informacion;
         }else{
-            tipo_error = "NONE";
-            ev << "Host " << nombreHost << ": " << "no hay errores para esta trama:" <<  id_dato << endl;
-        }           
-        
-        //Guarda el valor de las tramas enviadas y que no han recibido asentimiento RR
-        int tramas_no_asentidas = par("tramas_no_asentidas");
-        tramas_no_asentidas++;
-        par("tramas_no_asentidas").setLongValue(tramas_no_asentidas);        
-
-        //En caso de ser menor a la probabilidad de error, la trama no se envia
-        if (tipo_error == "NONE"){
-            //Enviando trama por el medio fisico
-            sending(tramaInformacion,"hacia_fisico");
-            ev << "Host " << nombreHost << ": " << "Mandando trama de Información " << id_dato << " al host: " << address_dest;
-        }else if(tipo_error == "Lost"){
-            ev << "Host " << nombreHost << ": " << "La trama "<< nombre_dato.c_str() << " se ha perdido.";
-
-        }else if(tipo_error == "BadSending")        {
-            //Si no supera el umbral de error, la trama se setea como erronea.
-            tramaInformacion->setName(FuncionesExtras::nombrandoTrama(nombre_dato.c_str(),"ERROR,"));
-            ev << "Host " << nombreHost << ": " << "La trama "<< nombre_dato.c_str() << " se ha enviado con error.";
-
-            sending(tramaInformacion,"hacia_fisico");
-            ev << "Host " << nombreHost << ": " << "Mandando trama de Información " << id_dato << " al host: " << address_dest;
+            delete dato;
         }
-
-        //Cantidad de tramas maximas en la ventana
-        unsigned int tamVentana = par("tamVentana");
-        unsigned int tamActVentana;
-        if(nombreHost==0){
-            tamActVentana = ventanaDeslizante00.size();    
-        }else if(nombreHost==1){
-            tamActVentana = ventanaDeslizante01.size();    
-        }        
-
-        ev << "Tramas en la ventana: " << cant_tramasVentana << " - Ventana de: " << tamVentana << " - queue: " << tamActVentana << endl;
-        //Si aún hay espacio en la ventana se manda un ACK para recibir más información
-        if(tamActVentana != tamVentana){
-            //Crea un ACK,N
-            int valor_id = par("ult_ack_enviado");
-            valor_id++;
-            cMessage *ack = new cMessage(FuncionesExtras::nombrando("ACK,",valor_id));
-
-            //Actualiza el valor del último ACK pedido
-            par("ult_ack_enviado").setLongValue(valor_id);
-
-            //Envia ACK,N al modulo de aplicacion
-            send(ack,"hacia_arriba");
-            ev << "Host " << nombreHost << ": " << "Mandando ACK al modulo de aplicación" << endl;
-        }
-
-        delete informacion;
     }
 }
 
@@ -407,74 +413,35 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
     //Se transforma el mensaje que ingresa en tipo DataFrame
     DataFrame *dataframe = check_and_cast<DataFrame *>(packet);
 
-    //Si el dataframe corresponde a una trama de informacion
-    if(dataframe->getControl(0) == 0){
+    if(en_respuesta_a != "FIN"){
+        //Si el dataframe corresponde a una trama de informacion
+        if(dataframe->getControl(0) == 0 && en_respuesta_a != "DISC"){
+            int id_trama = FuncionesExtras::getValorId(packet_name.c_str());
+            //Asigna el valor de la última trama recibida
+            int ult_trama_recibida = par("ult_trama_recibida");
 
-        //Si no se esta en estado de error
-        if(en_respuesta_a != "ERROR"){
-            //Si el paquete que ha llegado tiene error
-            if (packet_name[0] == 'E' && packet_name[1] == 'R' && packet_name[2] == 'R' && packet_name[3] == 'O' && packet_name[4] == 'R'){
-                int trama_con_error = FuncionesExtras::getValorId(packet_name.c_str());
-                par("trama_con_error").setLongValue(trama_con_error);
+            if(en_respuesta_a == "ERROR"){
+                    int trama_con_error = par("trama_con_error");
 
-                ev << "Host " << nombreHost << ": " << "La trama " << trama_con_error << " ha sido recibida con errores" << endl;
+                    //Si corresponde al error se anula el modo de respuesta y se pueden seguir recibiendo tramas tras registrar el error
+                    if(dataframe->getControl(4) == 1 && id_trama == trama_con_error){
+                        en_respuesta_a = "NONE";
+                        par("en_respuesta_a").setStringValue(en_respuesta_a);
 
-                //Manda un REJ de error
-                en_respuesta_a = "ERROR";
-                par("en_respuesta_a").setStringValue(en_respuesta_a);
+                        //Se inicializa el metodo con el error arreglado
+                        processMsgFromLowerLayer(dataframe);
 
-                //Usando dataframe para modificar la informacion
-                dataframe->setName(FuncionesExtras::nombrando("REJ,",trama_con_error));
-
-                dataframe->createFrame(address_dest);
-
-                sending(dataframe,"hacia_fisico");
-                ev << "Host " << nombreHost << ": " << "Mandando REJ," << trama_con_error << endl;
-            //Se recibe una trama correctamente
-            }else{
-                //Se envia la información recibida a aplicacion
-                //Crea el packete de informacion para mandarlo a Aplicacion
-                Informacion *tramaComunicacion = new Informacion(FuncionesExtras::nombrandoTrama(packet_name.c_str(),"DATO,"));
-
-                //Asignando valores correspondientes
-                tramaComunicacion->createFrame(address_dest,dataframe->getInformation(),dataframe->getInformationArraySize());
-
-                //Lo envia hacia aplicacion
-                send(tramaComunicacion,"hacia_arriba");
-                ev << "Host " << nombreHost << ": " << "Mandando mensaje recibido a aplicacion" << endl;
-
-                //Asigna el valor de la última trama recibida
-                int id_trama = FuncionesExtras::getValorId(packet_name.c_str());
-                int ult_trama_recibida = par("ult_trama_recibida");
-
-                //Si la trama que llegó corresponde a la secuencia
-                if(ult_trama_recibida+1 == id_trama){
-                    par("ult_trama_recibida").setLongValue(id_trama);
-
-                    //Si se recibe el bit P/F en 1 se responde con un RR,N,1
-                    if(dataframe->getControl(4) == 1){
-                        //Se envia RR N al otro host
-
-                        //Para asignar el valor_id
-                        int valor_id = FuncionesExtras::getValorId(packet_name.c_str());
-                        valor_id++;
-                        dataframe->setName(FuncionesExtras::nombrando("RR,",valor_id));
-
-                        //Actualiza el valor del ultimo RR enviado
-                        par("ult_rr_enviado").setLongValue(valor_id);
-
-                        //Asignando los valores necesesarios para RR
-                        dataframe->createFrame(address_dest,0,NULL,0,1,0);
-
-                        sending(dataframe,"hacia_fisico");
-                        ev << "Host " << nombreHost << ": " << "Enviado Supervisory RR" << " a Host: " << address_dest << endl;
-                        par("tramas_no_asentidas").setLongValue(0);
+                    //Si no las tramas se rechazan hasta que recibe el ERROR
+                    }else{
+                        delete packet;
                     }
-
-                //Si no, significa que se perdio una trama en el camino
-                }else{
-                    int trama_con_error = ult_trama_recibida+1;
+            }else if(ult_trama_recibida+1 == id_trama){
+                //Si el paquete que ha llegado tiene error
+                if (packet_name[0] == 'E' && packet_name[1] == 'R' && packet_name[2] == 'R' && packet_name[3] == 'O' && packet_name[4] == 'R'){
+                    int trama_con_error = id_trama;
                     par("trama_con_error").setLongValue(trama_con_error);
+
+                    ev << "Host " << nombreHost << ": " << "La trama " << trama_con_error << " ha sido recibida con errores" << endl;
 
                     //Manda un REJ de error
                     en_respuesta_a = "ERROR";
@@ -486,41 +453,69 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                     dataframe->createFrame(address_dest);
 
                     sending(dataframe,"hacia_fisico");
+                    ev << "Host " << nombreHost << ": " << "Mandando REJ," << trama_con_error << endl;
+                //Se recibe una trama correctamente
+                }else{
+                    //Se envia la información recibida a aplicacion
+                    //Crea el packete de informacion para mandarlo a Aplicacion
+                    Informacion *tramaComunicacion = new Informacion(FuncionesExtras::nombrando("DATO,",id_trama));
+
+                    //Asignando valores correspondientes
+                    tramaComunicacion->createFrame(address_dest,dataframe->getInformation(),dataframe->getInformationArraySize());
+
+                    //Lo envia hacia aplicacion
+                    send(tramaComunicacion,"hacia_arriba");
+                    ev << "Host " << nombreHost << ": " << "Mandando mensaje " << id_trama << " recibido a aplicacion" << endl;
+
+                    //Si la trama que llegó corresponde a la secuencia
+                    par("ult_trama_recibida").setLongValue(id_trama);
+
+                    //Si se recibe el bit P/F en 1 se responde con un RR,N,1
+                    if(dataframe->getControl(4) == 1){
+                        //Se envia RR N al otro host
+
+                        //Para asignar el id_trama
+                        id_trama++;
+                        dataframe->setName(FuncionesExtras::nombrando("RR,",id_trama));
+
+                        //Actualiza el valor del ultimo RR enviado
+                        par("ult_rr_enviado").setLongValue(id_trama);
+
+                        //Asignando los valores necesesarios para RR
+                        dataframe->createFrame(address_dest,0,NULL,0,1,0);
+
+                        sending(dataframe,"hacia_fisico");
+                        ev << "Host " << nombreHost << ": " << "Enviado Supervisory RR," << id_trama << " a Host: " << address_dest << endl;
+                        par("tramas_no_asentidas").setLongValue(0);
+                    }                    
                 }
-            }
+            
+            //Si no, significa que se perdio una trama en el camino
+            }else if(ult_trama_recibida+1 != id_trama){
+                int trama_con_error = ult_trama_recibida+1;
+                par("trama_con_error").setLongValue(trama_con_error);
 
-        //Si ya se encontró un error en una trama y se espera que llegue correguida
-        }else if(en_respuesta_a == "ERROR"){
-            int valor_trama = FuncionesExtras::getValorId(packet_name.c_str());
-            int trama_con_error = par("trama_con_error");
-
-            //Si corresponde al error se anula el modo de respuesta y se pueden seguir recibiendo tramas tras registrar el error
-            if(dataframe->getControl(4) == 1 && valor_trama == trama_con_error){
-                en_respuesta_a = "NONE";
+                //Manda un REJ de error
+                en_respuesta_a = "ERROR";
                 par("en_respuesta_a").setStringValue(en_respuesta_a);
 
-                //Se inicializa el metodo con el error arreglado
-                processMsgFromLowerLayer(packet);
+                //Usando dataframe para modificar la informacion
+                dataframe->setName(FuncionesExtras::nombrando("REJ,",trama_con_error));
+                dataframe->createFrame(address_dest);
 
-            //Si no las tramas se rechazan hasta que recibe el ERROR
-            }else{
-                delete packet;
+                sending(dataframe,"hacia_fisico");
             }
-        }
-    
-    //Si no, puede ser de control o no-numerada
-    }else{
-        //Si el dataframe corresponde a una trama supervisora
-        if(dataframe->getControl(1) == 0){
-            int M1;
+        
+        //Si no, puede ser de control o no-numerada
+        }else{
+            //Si el dataframe corresponde a una trama supervisora
+            if(dataframe->getControl(1) == 0 && en_respuesta_a != "DISC"){
+                int M1;
 
-            M1 = pow(2,1)*dataframe->getControl(2) + pow(2,0)*dataframe->getControl(3);
+                M1 = pow(2,1)*dataframe->getControl(2) + pow(2,0)*dataframe->getControl(3);
 
-            //Se recibe un RR
-            if(M1 == 0){
-                
-                if(en_respuesta_a != "DISC"){
-
+                //Se recibe un RR
+                if(M1 == 0){
                     cancelarEventosPendientes(FuncionesExtras::getValorId(packet_name.c_str()));
 
                     //Revisa el valor del bit P/F
@@ -590,21 +585,44 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                         id_tramaVD = par("ult_ack_enviado");
                         id_tramaVD++;
 
-                        //Mandar un ACK,N al modulo de aplicación
-                        cMessage *ack = new cMessage(FuncionesExtras::nombrando("ACK,",id_tramaVD));
+                        cMessage *ack = new cMessage();
+                        int starter = par("starter");
+                        int numTramas_env = par("numTramas_env");
+                        
+                        if(starter==0 || starter==1){
+                            if(id_tramaVD < numTramas_env){
+                                //endSimulation();
+                                //Mandar un ACK,N al modulo de aplicación
+                                ack->setName(FuncionesExtras::nombrando("ACK,",id_tramaVD));
 
-                        //Actualiza el valor del ultimo ack pedido
-                        int ult_ack_enviado = id_tramaVD;
-                        par("ult_ack_enviado").setLongValue(ult_ack_enviado);
+                                //Actualiza el valor del ultimo ack pedido
+                                par("ult_ack_enviado").setLongValue(id_tramaVD);                            
+                            }else{
+                                //Mandar un ACK,N al modulo de aplicación
+                                 ack->setName("FIN");
 
-                        //Reinicia el valor de las tramas asentidas
-                        int tramas_no_asentidas = par("tramas_no_asentidas");
-                        tramas_no_asentidas -= tramas_asentidas;
-                        par("tramas_no_asentidas").setLongValue(tramas_no_asentidas);
+                                 en_respuesta_a = "FIN";
+                                 par("en_respuesta_a").setStringValue(en_respuesta_a);
+
+                                 //Cancela los eventos pendientes
+                                cancelarEventosPendientes(numTramas_env+1);
+                            }
+                        }else{
+                            //Mandar un ACK,N al modulo de aplicación
+                            ack->setName(FuncionesExtras::nombrando("ACK,",id_tramaVD));
+
+                            //Actualiza el valor del ultimo ack pedido
+                            par("ult_ack_enviado").setLongValue(id_tramaVD);   
+                        }
 
                         //Manda el mensaje a aplicacion
                         send(ack,"hacia_arriba");
                         ev << "Host " << nombreHost << ": " << "Mandando ACK al modulo de aplicación" << endl;
+
+                        //Reinicia el valor de las tramas asentidas
+                        int tramas_no_asentidas = par("tramas_no_asentidas");
+                        tramas_no_asentidas -= tramas_asentidas;
+                        par("tramas_no_asentidas").setLongValue(tramas_no_asentidas);                       
 
                     }else if(en_respuesta_a == "UP"){
                         //Trama a la que corresponde el RR
@@ -682,278 +700,257 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                             sending(dataframe,"hacia_fisico");
                             ev << "Host " << nombreHost << ": " << "Se envia trama DISC" << endl;
                         }
-                    }
-                }
-            
-            //Se recibe un REJ
-            }else if(M1 == 1){
-                delete dataframe;
-                //Retransmite a partir de la trama deseada
+                    }                    
+                
+                //Se recibe un REJ
+                }else if(M1 == 1){
+                    delete dataframe;
+                    //Retransmite a partir de la trama deseada
 
-                //Obtiene el id de la trama REJ
-                int id_tramaREJ = FuncionesExtras::getValorId(packet_name.c_str());
+                    //Obtiene el id de la trama REJ
+                    int id_tramaREJ = FuncionesExtras::getValorId(packet_name.c_str());
 
-                //Cancela los eventos relacionados
-                cancelarEventosPendientes(id_tramaREJ + 1);
+                    //Cancela los eventos relacionados
+                    cancelarEventosPendientes(id_tramaREJ + 1);
 
-                //Trama a la que corresponden los elementos de la Ventana Deslizante
-                int id_tramaVD = 0;
+                    //Trama a la que corresponden los elementos de la Ventana Deslizante
+                    int id_tramaVD = 0;
 
-                //Para ir guardando los datos de la ventana deslizante
-                DataFrame *primer_elemento;
-                string nombre_primer_elemento;
+                    //Para ir guardando los datos de la ventana deslizante
+                    DataFrame *primer_elemento;
+                    string nombre_primer_elemento;
 
-                //Para saber cuantas tramas se asentieron
-                int tramas_asentidas = 0;
-
-                //Datos del primer elemento de la ventana
-                if(nombreHost==0){
-                    primer_elemento = ventanaDeslizante00.front();
-                }else if(nombreHost==1){
-                    primer_elemento = ventanaDeslizante01.front();
-                }
-                nombre_primer_elemento = primer_elemento->getName();
-                id_tramaVD = FuncionesExtras::getValorId(nombre_primer_elemento.c_str());
-
-                ev << "Host " << nombreHost << ": " << "Recibido REJ," << id_tramaREJ << " comenzando a analizar elementos, partiendo por: " << id_tramaVD << endl;
-
-                //Recorre la Ventana removiendo los elementos asentidos previos al REJ
-                for(int i=0;id_tramaREJ > id_tramaVD && ((nombreHost==0 && !ventanaDeslizante00.empty()) || (nombreHost==1 && !ventanaDeslizante01.empty()));i++){
-                    if(id_tramaVD < id_tramaREJ){
-                        if(nombreHost==0){
-                            ventanaDeslizante00.pop();
-                        }else if(nombreHost==1){
-                            ventanaDeslizante01.pop();
-                        }
-                        tramas_asentidas++;
-                    }
-
-                    if(nombreHost==0 && !ventanaDeslizante00.empty()){
+                    //Datos del primer elemento de la ventana
+                    if(nombreHost==0){
                         primer_elemento = ventanaDeslizante00.front();
-                    }else if(nombreHost==1 && !ventanaDeslizante01.empty()){
+                    }else if(nombreHost==1){
                         primer_elemento = ventanaDeslizante01.front();
                     }
                     nombre_primer_elemento = primer_elemento->getName();
-
                     id_tramaVD = FuncionesExtras::getValorId(nombre_primer_elemento.c_str());
-                }
-                
-                ev << "Host " << nombreHost << ": " << "Tramas asentidas: " << tramas_asentidas << endl;
 
-                //Actualiza el valor de las tramas en la ventana
-                int cant_tramasVentana;
-                if(nombreHost==0){
-                    cant_tramasVentana = ventanaDeslizante00.size();
-                }else if(nombreHost==1){
-                    cant_tramasVentana = ventanaDeslizante01.size();
-                }
-                par("cant_tramasVentana").setLongValue(cant_tramasVentana);
+                    ev << "Host " << nombreHost << ": " << "Recibido REJ," << id_tramaREJ << " comenzando a analizar elementos, partiendo por: " << id_tramaVD << endl;
 
-                //Reinicia el valor de las tramas asentidas
-                int tramas_no_asentidas = par("tramas_no_asentidas");
-                tramas_no_asentidas -= tramas_asentidas;
-                par("tramas_no_asentidas").setLongValue(tramas_no_asentidas);
+                    //Recorre la Ventana removiendo los elementos asentidos previos al REJ
+                    for(int i=0;id_tramaREJ > id_tramaVD && ((nombreHost==0 && !ventanaDeslizante00.empty()) || (nombreHost==1 && !ventanaDeslizante01.empty()));i++){
+                        if(id_tramaVD < id_tramaREJ){
+                            if(nombreHost==0){
+                                ventanaDeslizante00.pop();
+                            }else if(nombreHost==1){
+                                ventanaDeslizante01.pop();
+                            }
+                        }
 
-                //Re-envia la trama que tenía el error
-                queue<DataFrame*> ventanaAuxiliar;
-                if(nombreHost==0){
-                    ventanaAuxiliar = ventanaDeslizante00;
-                }else if(nombreHost==1){
-                    ventanaAuxiliar = ventanaDeslizante01;
-                }
+                        if(nombreHost==0 && !ventanaDeslizante00.empty()){
+                            primer_elemento = ventanaDeslizante00.front();
+                        }else if(nombreHost==1 && !ventanaDeslizante01.empty()){
+                            primer_elemento = ventanaDeslizante01.front();
+                        }
+                        nombre_primer_elemento = primer_elemento->getName();
 
-                DataFrame *tramaAuxiliar = new DataFrame(ventanaAuxiliar.front()->getName());
-                tramaAuxiliar->createFrame(address_dest,ventanaAuxiliar.front()->getInformationArraySize(),ventanaAuxiliar.front()->getInformation(),0,ventanaAuxiliar.front()->getControl(4),0);
-
-                //Envia la trama que tenía el error
-                sending(tramaAuxiliar,"hacia_fisico");
-                ev << "Host " << nombreHost << ": " << "Reenviando: " << ventanaAuxiliar.front()->getName() << endl;
-
-                //Retira el elemento enviado
-                ventanaAuxiliar.pop();
-
-                //Envia con delay cada una de las otras tramas faltantes
-                vector<DataFrame*> vectorAuxiliar;
-                vectorAuxiliar.resize(ventanaAuxiliar.size());
-                for(int i=0;!ventanaAuxiliar.empty();i++){
-                    vectorAuxiliar[i] = new DataFrame(ventanaAuxiliar.front()->getName());
-                    vectorAuxiliar[i]->createFrame(address_dest,ventanaAuxiliar.front()->getInformationArraySize(),ventanaAuxiliar.front()->getInformation(),0,ventanaAuxiliar.front()->getControl(4),0);
-
-                    //Envia todas las tramas con un retraso de 1 segundo acumulable
-                    sendDelayed(vectorAuxiliar[i],simTime()+1*(1+i),"hacia_fisico");
+                        id_tramaVD = FuncionesExtras::getValorId(nombre_primer_elemento.c_str());
+                    }
                     
-                    ventanaAuxiliar.pop();
-                }
+                    //Re-envia la trama que tenía el error
+                    DataFrame *tramaAuxiliar = new DataFrame();
+                    DataFrame *tramaCopiaAuxiliar = new DataFrame();
+                    if(nombreHost==0){
+                        string auxiliarName = ventanaDeslizante00.front()->getName();
+                        tramaAuxiliar->setName(FuncionesExtras::nombrando("I,",FuncionesExtras::getValorId(auxiliarName.c_str())));
+                        tramaAuxiliar->createFrame(address_dest,ventanaDeslizante00.front()->getInformationArraySize(),ventanaDeslizante00.front()->getInformation(),0,1,0);
 
-                //Si se asentio almenos una trama se solicita un ACK a aplicacion
-                if(tramas_asentidas>0){
-                    //Obtiene el valor del ultimo ACK pedido y pide el siguiente
-                    id_tramaVD = par("ult_ack_enviado");
-                    id_tramaVD++;
+                        tramaCopiaAuxiliar->setName(FuncionesExtras::nombrando("I,",FuncionesExtras::getValorId(auxiliarName.c_str())));
+                        tramaCopiaAuxiliar->createFrame(address_dest,ventanaDeslizante00.front()->getInformationArraySize(),ventanaDeslizante00.front()->getInformation(),0,ventanaDeslizante00.front()->getControl(4),0);
+
+                        while(!ventanaDeslizante00.empty()){
+                            ventanaDeslizante00.pop();
+                        }
+
+                        ventanaDeslizante00.push(tramaCopiaAuxiliar);
+                    }else if(nombreHost==1){
+                        string auxiliarName = ventanaDeslizante01.front()->getName();
+                        tramaAuxiliar->setName(FuncionesExtras::nombrando("I,",FuncionesExtras::getValorId(auxiliarName.c_str())));
+                        tramaAuxiliar->createFrame(address_dest,ventanaDeslizante01.front()->getInformationArraySize(),ventanaDeslizante01.front()->getInformation(),0,1,0);
+
+                        tramaCopiaAuxiliar->setName(FuncionesExtras::nombrando("I,",FuncionesExtras::getValorId(auxiliarName.c_str())));
+                        tramaCopiaAuxiliar->createFrame(address_dest,ventanaDeslizante01.front()->getInformationArraySize(),ventanaDeslizante01.front()->getInformation(),0,ventanaDeslizante01.front()->getControl(4),0);
+
+                        while(!ventanaDeslizante01.empty()){
+                            ventanaDeslizante01.pop();
+                        }
+
+                        ventanaDeslizante01.push(tramaCopiaAuxiliar);
+                    }           
+
+                    par("cant_tramasVentana").setLongValue(1);
+                    par("tramas_no_asentidas").setLongValue(1);     
+
+                    //Envia la trama que tenía el error
+                    sending(tramaAuxiliar,"hacia_fisico");
+                    ev << "Host " << nombreHost << ": " << "Reenviando: " << tramaAuxiliar->getName() << endl;
 
                     //Mandar un ACK,N al modulo de aplicación
-                    cMessage *ack = new cMessage(FuncionesExtras::nombrando("ACK,",id_tramaVD));
+                    cMessage *ack = new cMessage(FuncionesExtras::nombrando("ACK,",id_tramaVD+1));
 
                     //Actualiza el valor del ultimo ack pedido
-                    int ult_ack_enviado = id_tramaVD;
+                    int ult_ack_enviado = id_tramaVD+1;
                     par("ult_ack_enviado").setLongValue(ult_ack_enviado);
 
                     //Manda el mensaje a aplicacion
                     send(ack,"hacia_arriba");
                     ev << "Host " << nombreHost << ": " << "Mandando ACK al modulo de aplicación" << endl;
                 }
-
+            
             }
-        
-        }
-        //Si el dataframe corresponde a una trama no-numerada (Unnumbered)
-        else{
-            //Para obtener los identificadores de la trama
-            int M1,M2;
+            //Si el dataframe corresponde a una trama no-numerada (Unnumbered)
+            else{
+                //Para obtener los identificadores de la trama
+                int M1,M2;
 
-            M1 = pow(2,1)*dataframe->getControl(2) + pow(2,0)*dataframe->getControl(3);
-            M2 = pow(2,2)*dataframe->getControl(5) + pow(2,1)*dataframe->getControl(6) + pow(2,0)*dataframe->getControl(7);
+                M1 = pow(2,1)*dataframe->getControl(2) + pow(2,0)*dataframe->getControl(3);
+                M2 = pow(2,2)*dataframe->getControl(5) + pow(2,1)*dataframe->getControl(6) + pow(2,0)*dataframe->getControl(7);
 
-            if(M1 == 0){
+                if(M1 == 0){
 
-                //Se recibe un DISC
-                if(M2 == 2){
-                    //Negro de desconectado
-                    if (ev.isGUI()){
-                        getDisplayString().setTagArg("i",1,"black");
-                        bubble("Desconectado!");
-                    }
-
-                    //Se manda de respuesta un UA Frame y se desconecta
-                    dataframe->setName("UA, Trama Comando");
-
-                    //Seteando los valores necesarios para la trama UA
-                    dataframe->createFrame(address_dest);
-
-                    //Negro de desconectado
-                    if (ev.isGUI()){
-                        getParentModule()->getDisplayString().setTagArg("i",1,"black");
-                        getParentModule()->bubble("Desconectado!");
-                    }
-
-                    int master = getParentModule()->par("starter");
-                    int address_host = par("direccion_host");
-
-                    //El modulo que recibio el DISC manda un DISCONNECT a los modulos superiores si es que no están ambos transmitiendo
-                    if(master != address_host && master!= 2){
-                        cMessage *disconnect = new cMessage("DISCONNECT");
-
-                        //Se envia hacia los modulos superiores
-                        send(disconnect,"hacia_arriba");
-                    }
-
-                    //Enia el UA por el medio físico
-                    sending(dataframe,"hacia_fisico");
-                    ev << "Host " << nombreHost << ": " << "Enviado Unnumbered UA a Host: " << address_dest << endl;
-                
-                //Se recibe un UP
-                }else if(M2 == 4){
-                    //Se responde con la última RR
-                    int ult_trama_recibida = par("ult_trama_recibida");
-                    ult_trama_recibida++;
-                    int ult_rr_enviado = par("ult_rr_enviado");
-
-                    if(ult_trama_recibida > ult_rr_enviado){
-                        //Para asignar el valor_id
-                        dataframe->setName(FuncionesExtras::nombrando("RR,",ult_trama_recibida));
-
-                        //Setea los valores necesarios para la trama RR
-                        dataframe->createFrame(address_dest);
-
-                        //Actualiza el valor del ultimo RR enviado
-                        par("ult_rr_enviado").setLongValue(ult_trama_recibida);
-
-                        //Envia la trama por el medio fisico
-                        sending(dataframe,"hacia_fisico");
-                        ev << "Host " << nombreHost << ": " << "Enviado Supervisory RR" << " a Host: " << address_dest << endl;
-                    }else{
-                        ev << "Host " << nombreHost << ": " << "UP no respondido debido a que ya se ha enviado un RR adecuado" << address_dest << endl;
-                    }
-
-                //Se recibe un UA
-                }else if(M2 == 6){
-                    delete dataframe;
-
-                    //Si la trama UA fue recibida por enviar un SABM
-                    if(en_respuesta_a == "SABM"){    
-
-                        en_respuesta_a = "NONE";
-                        par("en_respuesta_a").setStringValue(en_respuesta_a);
-
-                        //Normal de activo
-                        if (ev.isGUI()){
-                            getDisplayString().setTagArg("i",1,"");
-                            bubble("Conectado!");
-                            getParentModule()->getDisplayString().setTagArg("i",1,"");
-                            getParentModule()->bubble("Conectado!");
-                        }
-
-                        //Mandar un ACK N al modulo de aplicación
-                        cMessage *ack = new cMessage("ACK,0");
-
-                        //Actualiza el valor del último ACK pedido
-                        int ult_ack_enviado = 0;
-                        par("ult_ack_enviado").setLongValue(ult_ack_enviado);
-
-                        send(ack,"hacia_arriba");
-                        ev << "Host " << nombreHost << ": " << "Mandando ACK,0 al modulo de aplicación" << endl;
-
-                    //Si la trama UA fue recibida por enviar DISC
-                    }else if(en_respuesta_a == "DISC"){
-
-                        en_respuesta_a = "NONE";
-                        par("en_respuesta_a").setStringValue(en_respuesta_a);
-                        
+                    //Se recibe un DISC
+                    if(M2 == 2){
                         //Negro de desconectado
                         if (ev.isGUI()){
                             getDisplayString().setTagArg("i",1,"black");
                             bubble("Desconectado!");
+                        }
+
+                        //Se manda de respuesta un UA Frame y se desconecta
+                        dataframe->setName("UA, Trama Comando");
+
+                        //Seteando los valores necesarios para la trama UA
+                        dataframe->createFrame(address_dest);
+
+                        //Negro de desconectado
+                        if (ev.isGUI()){
                             getParentModule()->getDisplayString().setTagArg("i",1,"black");
                             getParentModule()->bubble("Desconectado!");
                         }
-                    }
-                }
-            }else if(M1 == 1){
-
-            }else if(M1 == 2){
-
-            }else if(M1 == 3){
-                //Se recibe un SABM
-                if(M2 == 4){
-                    //Normal de activo
-                    if (ev.isGUI()){
-                        getDisplayString().setTagArg("i",1,"");
-                        bubble("Conectado!");
-                    }
-
-                    //Se manda de respuesta un UA Frame
-                    dataframe->setName("UA, Trama Comando");
-
-                    //Fija los valores necesarios para la trama UA
-                    dataframe->createFrame(address_dest);
-
-                    //Normal de conectado
-                    if (ev.isGUI()){
-                        getParentModule()->getDisplayString().setTagArg("i",1,"");
-                        getParentModule()->bubble("Conectado!");
 
                         int master = getParentModule()->par("starter");
                         int address_host = par("direccion_host");
-                        if(master != address_host && master!= 2){
-                            cMessage *connect = new cMessage("CONNECT");
 
-                            send(connect,"hacia_arriba");
+                        //El modulo que recibio el DISC manda un DISCONNECT a los modulos superiores si es que no están ambos transmitiendo
+                        if(master != address_host && master!= 2){
+                            cMessage *disconnect = new cMessage("DISCONNECT");
+
+                            //Se envia hacia los modulos superiores
+                            send(disconnect,"hacia_arriba");
+                        }
+
+                        //Enia el UA por el medio físico
+                        sending(dataframe,"hacia_fisico");
+                        ev << "Host " << nombreHost << ": " << "Enviado Unnumbered UA a Host: " << address_dest << endl;
+                    
+                    //Se recibe un UP
+                    }else if(M2 == 4){
+                        //Se responde con la última RR
+                        int ult_trama_recibida = par("ult_trama_recibida");
+                        ult_trama_recibida++;
+                        int ult_rr_enviado = par("ult_rr_enviado");
+
+                        //if(ult_trama_recibida > ult_rr_enviado){
+                            //Para asignar el valor_id
+                            dataframe->setName(FuncionesExtras::nombrando("RR,",ult_trama_recibida));
+
+                            //Setea los valores necesarios para la trama RR
+                            dataframe->createFrame(address_dest);
+
+                            //Actualiza el valor del ultimo RR enviado
+                            par("ult_rr_enviado").setLongValue(ult_trama_recibida);
+
+                            //Envia la trama por el medio fisico
+                            sending(dataframe,"hacia_fisico");
+                            ev << "Host " << nombreHost << ": " << "Enviado Supervisory RR" << " a Host: " << address_dest << endl;
+                        /*}else{
+                            ev << "Host " << nombreHost << ": " << "UP no respondido debido a que ya se ha enviado un RR adecuado a " << address_dest << endl;
+                        }*/
+
+                    //Se recibe un UA
+                    }else if(M2 == 6){
+                        delete dataframe;
+
+                        //Si la trama UA fue recibida por enviar un SABM
+                        if(en_respuesta_a == "SABM"){    
+
+                            en_respuesta_a = "NONE";
+                            par("en_respuesta_a").setStringValue(en_respuesta_a);
+
+                            //Normal de activo
+                            if (ev.isGUI()){
+                                getDisplayString().setTagArg("i",1,"");
+                                bubble("Conectado!");
+                                getParentModule()->getDisplayString().setTagArg("i",1,"");
+                                getParentModule()->bubble("Conectado!");
+                            }
+
+                            //Mandar un ACK N al modulo de aplicación
+                            cMessage *ack = new cMessage("ACK,0");
+
+                            //Actualiza el valor del último ACK pedido
+                            int ult_ack_enviado = 0;
+                            par("ult_ack_enviado").setLongValue(ult_ack_enviado);
+
+                            send(ack,"hacia_arriba");
+                            ev << "Host " << nombreHost << ": " << "Mandando ACK,0 al modulo de aplicación" << endl;
+
+                        //Si la trama UA fue recibida por enviar DISC
+                        }else if(en_respuesta_a == "DISC"){
+
+                            en_respuesta_a = "NONE";
+                            par("en_respuesta_a").setStringValue(en_respuesta_a);
+                            
+                            //Negro de desconectado
+                            if (ev.isGUI()){
+                                getDisplayString().setTagArg("i",1,"black");
+                                bubble("Desconectado!");
+                                getParentModule()->getDisplayString().setTagArg("i",1,"black");
+                                getParentModule()->bubble("Desconectado!");
+                            }
                         }
                     }
+                }else if(M1 == 1){
 
-                    //Envia la trama por el canal físico
-                    sending(dataframe,"hacia_fisico");
-                    ev << "Host " << nombreHost << ": " << "Enviado Unnumbered UA a Host: " << address_dest;
+                }else if(M1 == 2){
+
+                }else if(M1 == 3){
+                    //Se recibe un SABM
+                    if(M2 == 4){
+                        //Normal de activo
+                        if (ev.isGUI()){
+                            getDisplayString().setTagArg("i",1,"");
+                            bubble("Conectado!");
+                        }
+
+                        //Se manda de respuesta un UA Frame
+                        dataframe->setName("UA, Trama Comando");
+
+                        //Fija los valores necesarios para la trama UA
+                        dataframe->createFrame(address_dest);
+
+                        //Normal de conectado
+                        if (ev.isGUI()){
+                            getParentModule()->getDisplayString().setTagArg("i",1,"");
+                            getParentModule()->bubble("Conectado!");
+
+                            int master = getParentModule()->par("starter");
+                            int address_host = par("direccion_host");
+                            if(master != address_host && master!= 2){
+                                cMessage *connect = new cMessage("CONNECT");
+
+                                send(connect,"hacia_arriba");
+                            }
+                        }
+
+                        //Envia la trama por el canal físico
+                        sending(dataframe,"hacia_fisico");
+                        ev << "Host " << nombreHost << ": " << "Enviado Unnumbered UA a Host: " << address_dest;
+                    }
                 }
             }
         }
