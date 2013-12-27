@@ -16,92 +16,8 @@
 
 using namespace std;
 
-void aplicacion::generaInfo(int trama_id){
-    //Obtiene la direccion del host del modulo
-    int nombreHost = par("direccion_host");
-
-    //Para guardar las tramas que se envian y reciben, así como el modo de transmisión
-    int numTramas_env;
-    int numTramas_rec;
-    int contTramas_env;
-    int contTramas_rec;
-    int starter;
-
-    //Si es primera vez que se inicia
-    if(trama_id == -1){
-        //creando un mensaje START
-        cMessage *start = new cMessage("START");
-
-        //Enviando el mensaje a Enlace
-        send(start, "hacia_abajo");
-        ev << "Host " << nombreHost << ": " << "Enviando mensaje START a Enlace" << endl;
-    }else{
-        //Numero maximo de tramas a enviar
-        numTramas_env = par("numTramas_env");
-
-        //Obtiene el numero maximo de tramas a recibir
-        numTramas_rec = par("numTramas_rec");
-
-        //Numero de tramas enviadas
-        contTramas_env = par("contTramas_env");
-
-        //Numero de tramas recibidas
-        contTramas_rec = par("contTramas_rec");
-
-        //modo de transmisión
-        starter = par("starter");
-
-        ev << "Host " << nombreHost << ": " << "Tramas recibidas: " << contTramas_rec << " de " << numTramas_rec << endl;
-        if(contTramas_env < numTramas_env){
-            ev << "Host " << nombreHost << ": " << "Tramas enviadas: " << contTramas_env << " de " << numTramas_env << endl;
-        }else{
-            ev << "Host " << nombreHost << ": " << "Enviadas todas las tramas" << endl;
-        }
-        //Si se ha enviado el número máximo de tramas
-        if( (numTramas_env < contTramas_env && starter != 2) || (numTramas_env < contTramas_env && numTramas_rec == contTramas_rec && starter == 2)){
-            //Negro de desconectado
-            if (ev.isGUI()){
-                getDisplayString().setTagArg("i",1,"black");
-                bubble("Desconectado!");
-            }
-
-            //creando un mensaje END
-            cMessage *end = new cMessage("END");
-
-            par("estado").setStringValue("END");
-
-            //Enviando el mensaje a Enlace
-            send(end, "hacia_abajo");
-            ev << "Host " << nombreHost << ": " << "Enviando mensaje END a Enlace" << endl;
-        }else if( numTramas_env >= contTramas_env ){
-            //Obtiene la dirección del destino al cual se le enviará la información, la cual es seteada por sistema.ned
-            int address_dest = par("direccion_dest");
-
-            //Obtiene el tamaño de la trama, el cual por defecto es 4 en sistema.ned
-            int tamTrama = par("tamTrama");
-
-            //Crea la información a enviar (ALEATORIO)
-            srand(time(NULL));
-            int* informacionRand = (int*)malloc(sizeof(int)*tamTrama);
-
-            for(int i=0;i<tamTrama;i++){
-                 informacionRand[i] = rand()%2;
-            }
-
-            //Creando trama de comunicación con enlace
-            Informacion *tramaComunicacion = new Informacion(FuncionesExtras::nombrando("DATO,",trama_id));
-
-            //Asignando valores correspondientes
-            tramaComunicacion->createFrame(address_dest,informacionRand,tamTrama);
-
-            //Se envia el mensaje a intermedio
-            send(tramaComunicacion, "hacia_abajo");
-
-            //Informando al Usuario el dato enviado
-            ev << "Host " << nombreHost << ": " << "Enviado trama " << trama_id << " al modulo de enlace " << address_dest;
-        }
-    }
-}
+std::vector<Informacion*> buffer00;
+std::vector<Informacion*> buffer01;
 
 //Define la clase para trabajar directamente con el modulo de aplicacion
 Define_Module( aplicacion );
@@ -172,6 +88,12 @@ void aplicacion::postInitialize(){
     //obtiene el valor del host en el que se ubica
     int address_host = par("direccion_host");
 
+    if(address_host==0){
+        buffer00.clear();
+    }else if(address_host==1){
+        buffer01.clear();
+    }
+
     //Es el turno de quien tenga la misma address que numero de master
     if(address_host == master){
         //Les da un color de conectado al modulo de aplicación
@@ -192,15 +114,13 @@ void aplicacion::handleMessage(cMessage* msg){
     //Obtiene la direccion del host del modulo
     int nombreHost = par("direccion_host");
 
-    string ack = "ACK";
-    string dato = "DATO";
     string msg_name = msg->getName();    
 
     //Si el mensaje ha llegado desde intermedio
     if (msg->arrivedOn("desde_abajo")){
 
         //Es ACK
-        if(msg_name[0] == ack[0] && msg_name[1] == ack[1] && msg_name[2] == ack[2]){
+        if(msg_name[0] == 'A' && msg_name[1] == 'C' && msg_name[2] == 'K'){
             ev << "Host " << nombreHost << ": " << "El mensaje: " << msg_name << " fue correctamente recivido." << endl;
             delete msg;
 
@@ -213,19 +133,55 @@ void aplicacion::handleMessage(cMessage* msg){
                 //Mensaje de conectado
                 if(msg_name[4] == '0'){
                     if (ev.isGUI()) bubble("Conectado!");
-                }                
-            
-                //Actualiza el valor de tramas enviadas
-                int contTramas_env = par("contTramas_env");
-                contTramas_env ++;
-                par("contTramas_env").setLongValue(contTramas_env);
+                }
 
-                //Comienza a generar informacion
-                generaInfo(FuncionesExtras::getValorId(msg_name.c_str()));
+                int valor_id = FuncionesExtras::getValorId(msg_name.c_str());
+
+                if(!isInBuffer(valor_id)){
+                    //Actualiza el valor de tramas enviadas
+                    int contTramas_env = par("contTramas_env");
+                    contTramas_env ++;
+                    par("contTramas_env").setLongValue(contTramas_env);
+
+                    //Comienza a generar informacion
+                    generaInfo(FuncionesExtras::getValorId(msg_name.c_str()));
+                }else{
+                    int address_dest = par("direccion_host");
+
+                    Informacion *tramaComunicacion = new Informacion(FuncionesExtras::nombrando("DATO,",valor_id));
+
+                    //Asignando valores correspondientes
+                    if(nombreHost==0){
+                        tramaComunicacion->createFrame(address_dest,buffer00[valor_id]->getInformacion(),buffer00[valor_id]->getInformacionArraySize());
+                    }else if(nombreHost==1){
+                        tramaComunicacion->createFrame(address_dest,buffer01[valor_id]->getInformacion(),buffer01[valor_id]->getInformacionArraySize());
+                    }
+
+                    //Se envia el mensaje a intermedio
+                    send(tramaComunicacion, "hacia_abajo");
+                }
+            }else{
+                int address_dest = par("direccion_host");
+                int valor_id = FuncionesExtras::getValorId(msg_name.c_str());
+                int numTramas_env = par("numTramas_env");
+
+                if(valor_id < numTramas_env){
+                    Informacion *tramaComunicacion = new Informacion(FuncionesExtras::nombrando("DATO,",valor_id));
+
+                    //Asignando valores correspondientes
+                    if(nombreHost==0){
+                        tramaComunicacion->createFrame(address_dest,buffer00[valor_id]->getInformacion(),buffer00[valor_id]->getInformacionArraySize());
+                    }else if(nombreHost==1){
+                        tramaComunicacion->createFrame(address_dest,buffer01[valor_id]->getInformacion(),buffer01[valor_id]->getInformacionArraySize());
+                    }
+
+                    //Se envia el mensaje a intermedio
+                    send(tramaComunicacion, "hacia_abajo");
+                }
             }
 
         //Es DATO
-        }else if(msg_name[0] == dato[0] && msg_name[1] == dato[1] && msg_name[2] == dato[2] && msg_name[3] == dato[3]){
+        }else if(msg_name[0] == 'D' && msg_name[1] == 'A' && msg_name[2] == 'T' && msg_name[3] == 'O'){
             string estado = par("estado");
 
             if(estado != "END"){
@@ -277,6 +233,7 @@ void aplicacion::handleMessage(cMessage* msg){
                 }
             }
 
+        //Es Connect
         }else if(msg_name == "CONNECT"){
             //Normal de activo
             if (ev.isGUI()) getDisplayString().setTagArg("i",1,"");
@@ -284,6 +241,8 @@ void aplicacion::handleMessage(cMessage* msg){
             //Mensaje de conectado
             if (ev.isGUI()) bubble("Conectado!");
             delete msg;
+       
+        //Es Disconnect
         }else if(msg_name == "DISCONNECT"){
             //Normal de activo
             if (ev.isGUI()) getDisplayString().setTagArg("i",1,"");
@@ -294,6 +253,27 @@ void aplicacion::handleMessage(cMessage* msg){
                 bubble("Desconectado!");
             }
             delete msg;
+        
+        //Es Fin
+        }else if(msg_name == "FIN"){
+            delete msg;
+
+            //Negro de desconectado
+            if (ev.isGUI()){
+                getDisplayString().setTagArg("i",1,"black");
+                bubble("Desconectado!");
+            }
+
+            //creando un mensaje END
+            cMessage *end = new cMessage("END");
+
+            par("estado").setStringValue("END");
+
+            //Enviando el mensaje a Enlace
+            send(end, "hacia_abajo");
+            ev << "Host " << nombreHost << ": " << "Enviando mensaje END a Enlace" << endl;
+
+        //Desconocido
         }else{
             //Normal de activo
             if (ev.isGUI()) getDisplayString().setTagArg("i",1,"");
@@ -310,4 +290,121 @@ void aplicacion::handleMessage(cMessage* msg){
     }
 }
 
+void aplicacion::generaInfo(int trama_id){
+    //Obtiene la direccion del host del modulo
+    int nombreHost = par("direccion_host");
+
+    //Para guardar las tramas que se envian y reciben, así como el modo de transmisión
+    int numTramas_env;
+    int numTramas_rec;
+    int contTramas_env;
+    int contTramas_rec;
+    int starter;
+
+    //Si es primera vez que se inicia
+    if(trama_id == -1){
+        //creando un mensaje START
+        cMessage *start = new cMessage("START");
+
+        //Enviando el mensaje a Enlace
+        send(start, "hacia_abajo");
+        ev << "Host " << nombreHost << ": " << "Enviando mensaje START a Enlace" << endl;
+    }else{
+        //Numero maximo de tramas a enviar
+        numTramas_env = par("numTramas_env");
+
+        //Obtiene el numero maximo de tramas a recibir
+        numTramas_rec = par("numTramas_rec");
+
+        //Numero de tramas enviadas
+        contTramas_env = par("contTramas_env");
+
+        //Numero de tramas recibidas
+        contTramas_rec = par("contTramas_rec");
+
+        //modo de transmisión
+        starter = par("starter");
+
+        ev << "Host " << nombreHost << ": " << "Tramas recibidas: " << contTramas_rec << " de " << numTramas_rec << endl;
+        if(contTramas_env < numTramas_env){
+            ev << "Host " << nombreHost << ": " << "Tramas enviadas: " << contTramas_env << " de " << numTramas_env << endl;
+        }else{
+            ev << "Host " << nombreHost << ": " << "Enviadas todas las tramas" << endl;
+        }
+        //Si se ha enviado el número máximo de tramas
+        if(numTramas_env < contTramas_env && numTramas_rec == contTramas_rec && starter == 2){
+            //Negro de desconectado
+            if (ev.isGUI()){
+                getDisplayString().setTagArg("i",1,"black");
+                bubble("Desconectado!");
+            }
+
+            //creando un mensaje END
+            cMessage *end = new cMessage("END");
+
+            par("estado").setStringValue("END");
+
+            //Enviando el mensaje a Enlace
+            send(end, "hacia_abajo");
+            ev << "Host " << nombreHost << ": " << "Enviando mensaje END a Enlace" << endl;
+        }else if( numTramas_env >= contTramas_env ){
+            //Obtiene la dirección del destino al cual se le enviará la información, la cual es seteada por sistema.ned
+            int address_dest = par("direccion_dest");
+
+            //Obtiene el tamaño de la trama, el cual por defecto es 4 en sistema.ned
+            int tamTrama = par("tamTrama");
+
+            //Crea la información a enviar (ALEATORIO)
+            srand(time(NULL));
+            int* informacionRand = (int*)malloc(sizeof(int)*tamTrama);
+
+            for(int i=0;i<tamTrama;i++){
+                 informacionRand[i] = rand()%2;
+            }
+
+            //Creando trama de comunicación con enlace
+            Informacion *tramaComunicacion = new Informacion(FuncionesExtras::nombrando("DATO,",trama_id));
+            Informacion *copiaBuffer = new Informacion(FuncionesExtras::nombrando("DATO,",trama_id));
+
+            //Asignando valores correspondientes
+            tramaComunicacion->createFrame(address_dest,informacionRand,tamTrama);
+            copiaBuffer->createFrame(address_dest,informacionRand,tamTrama);
+
+            if(nombreHost==0){
+                buffer00.push_back(copiaBuffer);
+            }else if(nombreHost==1){
+                buffer01.push_back(copiaBuffer);
+            }
+
+            //Se envia el mensaje a intermedio
+            send(tramaComunicacion, "hacia_abajo");
+
+            //Informando al Usuario el dato enviado
+            ev << "Host " << nombreHost << ": " << "Enviado trama " << trama_id << " al modulo de enlace " << address_dest;
+        }
+    }
+}
+
+bool aplicacion::isInBuffer(int valor_id){
+    int nombreHost = par("direccion_host");
+    string nombre;
+
+    if(nombreHost==0){
+        for(unsigned int i=0;i<buffer00.size();i++){
+            nombre = buffer00[i]->getName();
+            if(valor_id == FuncionesExtras::getValorId(nombre.c_str())){
+                return true;
+            }
+        }
+    }else if(nombreHost==1){
+        for(unsigned int i=0;i<buffer01.size();i++){
+            nombre = buffer01[i]->getName();
+            if(valor_id == FuncionesExtras::getValorId(nombre.c_str())){
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
 

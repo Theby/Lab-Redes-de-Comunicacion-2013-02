@@ -30,6 +30,9 @@ class aplicacion : public cSimpleModule
 
         //Generador de la información
         virtual void generaInfo(int trama_id);
+
+        //Retornar verdadero si el DATO dado por valor_id pertenece al buffer
+        virtual bool isInBuffer(int valor_id);
 };
 
 
