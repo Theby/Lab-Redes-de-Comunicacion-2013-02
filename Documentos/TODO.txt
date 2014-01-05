@@ -2,9 +2,6 @@
 
 =============== ERRORES ==============
 
-Revisar que pasa cuando hay varias tramas mandadas y llega un REJ,0,1
-
-
 =============== TESTING ==============
 
 1) Solo un host envia: 0 - envia 5, RR cada 3.
@@ -21,7 +18,6 @@ Revisar que pasa cuando hay varias tramas mandadas y llega un REJ,0,1
 	Working
 7) solo un host envia: 0 - tiene 4 para enviar, la ventana es de 2, RR cada 2.
 	Working
-
 
 =============== ENTRADAS TODO ==============
 
