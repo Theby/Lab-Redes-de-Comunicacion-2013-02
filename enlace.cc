@@ -22,16 +22,16 @@ Define_Module( enlace );
 //queue para el host 0
 std::queue<DataFrame*> ventanaDeslizante00;
 std::queue<DataFrame*> canalLibre00;
+vector<DataFrame*> temporizadores00;
+vector<string> tempoNames00;
 
 //queue para el host 1
 std::queue<DataFrame*> ventanaDeslizante01;
 std::queue<DataFrame*> canalLibre01;
-
-vector<DataFrame*> temporizadores00;
-vector<string> tempoNames00;
 vector<DataFrame*> temporizadores01;
 vector<string> tempoNames01;
 
+//Solo usado para cuando se mandan mensajes atravez del canal físico
 void enlace::sending(cMessage* msg, const char* ngate){
     cChannel *canal = gate(ngate)->getTransmissionChannel();;
     simtime_t canalFinishTime = canal->getTransmissionFinishTime();
@@ -61,6 +61,7 @@ void enlace::sending(cMessage* msg, const char* ngate){
     }
 }
 
+//Valida las variables
 void enlace::initialize(){
     int error = par("error");
     int numTramas_env = par("numTramas_env");
@@ -112,9 +113,9 @@ void enlace::initialize(){
     }
 }
 
+//Maneja el mensaje ingresado
 void enlace::handleMessage(cMessage *msg){
     string name = msg->getName();
-    int nombreHost = par("direccion_host");
 
     if(name != "FREE"){
         //Si el mensaje llega desde el otro Host
@@ -122,14 +123,17 @@ void enlace::handleMessage(cMessage *msg){
             //Procesarlo como si viniera desde abajo
             processMsgFromLowerLayer(msg);
         }
+
         //Sino, el mensaje viene desde intermedio
         else{
             //Procesarlo como si viniera desde arriba
             processMsgFromHigherLayer(msg);
         }
 
-    //Corresponde enviar un mensaje en la cola
+    //Corresponde enviar un mensaje de la cola
     }else{
+        int nombreHost = par("direccion_host");
+
         if(nombreHost==0){
             sending(canalLibre00.front(),"hacia_fisico");
             canalLibre00.pop();
@@ -140,6 +144,7 @@ void enlace::handleMessage(cMessage *msg){
     }
 }
 
+//Lo que llega desde aplicacion
 void enlace::processMsgFromHigherLayer(cMessage *dato){
     //Obtiene el estado del modulo
     string en_respuesta_a = par("en_respuesta_a");
@@ -155,6 +160,8 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
 
     //Si es una trama START
     if(nombre_dato == "START"){
+        delete dato;
+
         int starter = par("starter");
 
         if(starter==nombreHost){
@@ -182,13 +189,11 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
                 temporizadores01.clear();
                 tempoNames01.clear();
             }
-        }
-
-        delete dato;
+        }        
 
         //Para saber cual fue la última trama asentida y si es que faltan por asentir
         par("tramas_no_asentidas").setLongValue(0);
-        par("ult_trama_recibida").setLongValue(0);
+        par("ult_trama_recibida").setLongValue(-1);
 
         //Verde de esperando confirmación
         if (ev.isGUI()){
@@ -272,38 +277,38 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
         //Pasar los datos de un paquete a otro (Informacion -> DataFrame)
         Informacion *informacion = check_and_cast<Informacion *>(dato);
 
-        //Obtiene el valor del bit pf para esta trama
+        //Obtiene el valor id y lo compara con el último ACK enviado
         int id_dato = FuncionesExtras::getValorId(nombre_dato.c_str());
         int ult_ACK = par("ult_ack_enviado");
 
         if(id_dato == ult_ACK){
+            //Para el bit P/F
             if(id_dato%tramas_libres == (tramas_libres-1)){
                 bit_pf = 1;
-
-                //Temporizador que espera un RR durante 10 segundos, si no, se auto envia un REJ para comenzar a enviar desde la trama no asentida
-                DataFrame *esperandoRR = new DataFrame(FuncionesExtras::nombrando("REJ,",id_dato));
-
-                esperandoRR->createFrame(nombreHost);
-
-                //Agrega el puntero del dataframe enviado
-                string tempo_name;
-                if(nombreHost==0){
-                    tempo_name = esperandoRR->getName();
-                    tempoNames00.push_back(tempo_name);
-                    temporizadores00.push_back(esperandoRR);
-                }else if(nombreHost==1){
-                    tempo_name = esperandoRR->getName();
-                    tempoNames01.push_back(tempo_name);
-                    temporizadores01.push_back(esperandoRR);
-                }            
-
-                scheduleAt(simTime()+10,esperandoRR);
-                ev << "Host " << nombreHost << ": " << "Mandando un REJ," << id_dato << " a si mismo en caso que no llegue el RR," << id_dato << " en 10 segundos." << endl;
-                ev << "Host " << nombreHost << ": " << "Tiempo esperado para mandar el REJ: " << simTime()+10 << endl;
-
             }else{
                 bit_pf = 0;
             }
+
+            //Temporizador que espera un RR durante 10 segundos, si no, se auto envia un REJ para comenzar a enviar desde la trama no asentida
+            DataFrame *esperandoRR = new DataFrame(FuncionesExtras::nombrando("REJ,",id_dato));
+            esperandoRR->createFrame(nombreHost);
+
+            //Agrega el puntero del dataframe enviado
+            string tempo_name;
+            if(nombreHost==0){
+                tempo_name = esperandoRR->getName();
+                tempoNames00.push_back(tempo_name);
+                temporizadores00.push_back(esperandoRR);
+            }else if(nombreHost==1){
+                tempo_name = esperandoRR->getName();
+                tempoNames01.push_back(tempo_name);
+                temporizadores01.push_back(esperandoRR);
+            }            
+
+            int timer = par("timer");
+            scheduleAt(simTime()+timer,esperandoRR);
+            ev << "Host " << nombreHost << ": " << "Mandando un REJ," << id_dato << " a si mismo en caso que no llegue el RR," << id_dato << " en 10 segundos." << endl;
+            ev << "Host " << nombreHost << ": " << "Tiempo esperado para mandar el REJ: " << simTime()+10 << endl;
 
             DataFrame *tramaInformacion = new DataFrame(FuncionesExtras::nombrandoTrama(nombre_dato.c_str(),"I,"));
             DataFrame *copiaParaVentana = new DataFrame(FuncionesExtras::nombrandoTrama(nombre_dato.c_str(),"I,"));
@@ -320,6 +325,8 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
             tramaInformacion->createFrame(address_dest,informacion->getInformacionArraySize(),informacion->getInformacion(),0,bit_pf,0);
             copiaParaVentana->createFrame(address_dest,informacion->getInformacionArraySize(),informacion->getInformacion(),0,bit_pf,0);
 
+            delete dato;
+
             //Se almacena la trama en la ventana
             if(nombreHost==0){
                 ventanaDeslizante00.push(copiaParaVentana);
@@ -334,7 +341,7 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
 
             string tipo_error;
             if (prob_error < error && error != 0){
-                if(rand()%100 < 100){
+                if(rand()%100 < 0){
                     tipo_error = "BadSending";
                     ev << "Host " << nombreHost << ": " << "Error en la informacion de la trama" << endl;
                 }else{
@@ -349,18 +356,17 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
             //Guarda el valor de las tramas enviadas y que no han recibido asentimiento RR
             int tramas_no_asentidas = par("tramas_no_asentidas");
             tramas_no_asentidas++;
-            par("tramas_no_asentidas").setLongValue(tramas_no_asentidas);        
+            par("tramas_no_asentidas").setLongValue(tramas_no_asentidas);
 
-            //En caso de ser menor a la probabilidad de error, la trama no se envia
+            //Revisa bajo que condiciones se enviará la trama
             if (tipo_error == "NONE"){
                 //Enviando trama por el medio fisico
                 sending(tramaInformacion,"hacia_fisico");
                 ev << "Host " << nombreHost << ": " << "Mandando trama de Información " << id_dato << " al host: " << address_dest;
             }else if(tipo_error == "Lost"){
                 ev << "Host " << nombreHost << ": " << "La trama "<< nombre_dato.c_str() << " se ha perdido.";
-
             }else if(tipo_error == "BadSending")        {
-                //Si no supera el umbral de error, la trama se setea como erronea.
+                //Si no supera el umbral de error, la trama se setea como erronea
                 tramaInformacion->setName(FuncionesExtras::nombrandoTrama(nombre_dato.c_str(),"ERROR,"));
                 ev << "Host " << nombreHost << ": " << "La trama "<< nombre_dato.c_str() << " se ha enviado con error.";
 
@@ -379,10 +385,15 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
 
             ev << "Tramas en la ventana: " << cant_tramasVentana << " - Ventana de: " << tamVentana << " - queue: " << tamActVentana << endl;
             //Si aún hay espacio en la ventana se manda un ACK para recibir más información
-            if(tamActVentana != tamVentana){
-                //Crea un ACK,N
-                int valor_id = par("ult_ack_enviado");
-                valor_id++;
+
+            int numTramas_env = par("numTramas_env");
+            int valor_id = par("ult_ack_enviado");
+            valor_id++;
+
+            //Solo si hay espacio en la ventana y no se piden más datos de los que se deben enviar
+            if(tamActVentana != tamVentana && valor_id < numTramas_env){
+
+                //Crea un ACK,N               
                 cMessage *ack = new cMessage(FuncionesExtras::nombrando("ACK,",valor_id));
 
                 //Actualiza el valor del último ACK pedido
@@ -393,13 +404,14 @@ void enlace::processMsgFromHigherLayer(cMessage *dato){
                 ev << "Host " << nombreHost << ": " << "Mandando ACK al modulo de aplicación" << endl;
             }
 
-            delete informacion;
         }else{
             delete dato;
+            ev << "Host " << nombreHost << ": " << "La trama \"DATO," << id_dato << "\" no corresponde a la ultima trama enviada: " << ult_ACK << " por lo que ha sido descartada" << endl;
         }
     }
 }
 
+//Maneja todas las tramas recibidas desde el otro host
 void enlace::processMsgFromLowerLayer(cMessage *packet){
     //Obtiene el estado del modulo
     string en_respuesta_a = par("en_respuesta_a");
@@ -435,6 +447,8 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                     }else{
                         delete packet;
                     }
+
+            //Llego la trama esperada
             }else if(ult_trama_recibida+1 == id_trama){
                 //Si el paquete que ha llegado tiene error
                 if (packet_name[0] == 'E' && packet_name[1] == 'R' && packet_name[2] == 'R' && packet_name[3] == 'O' && packet_name[4] == 'R'){
@@ -486,12 +500,13 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
 
                         sending(dataframe,"hacia_fisico");
                         ev << "Host " << nombreHost << ": " << "Enviado Supervisory RR," << id_trama << " a Host: " << address_dest << endl;
-                        par("tramas_no_asentidas").setLongValue(0);
                     }                    
                 }
             
             //Si no, significa que se perdio una trama en el camino
             }else if(ult_trama_recibida+1 != id_trama){
+                ev << "Host " << nombreHost << ": " << "No ha llegado la trama " << ult_trama_recibida+1 << "que corresponde. Llegó: " << id_trama << endl;
+
                 int trama_con_error = ult_trama_recibida+1;
                 par("trama_con_error").setLongValue(trama_con_error);
 
@@ -516,8 +531,6 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
 
                 //Se recibe un RR
                 if(M1 == 0){
-                    cancelarEventosPendientes(FuncionesExtras::getValorId(packet_name.c_str()));
-
                     //Revisa el valor del bit P/F
                     if(dataframe->getControl(4) == 1 && en_respuesta_a != "UP"){
                         delete dataframe;
@@ -525,6 +538,9 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                         //Trama a la que corresponde el RR
                         int id_tramaRR = FuncionesExtras::getValorId(packet_name.c_str());
                         
+                        //Cancela los eventos hasta el RR recibido
+                        cancelarEventosPendientes(id_tramaRR);
+
                         //Para saber cuantas tramas se asentieron
                         int tramas_asentidas = 0;
 
@@ -585,34 +601,25 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                         id_tramaVD = par("ult_ack_enviado");
                         id_tramaVD++;
 
-                        cMessage *ack = new cMessage();
-                        int starter = par("starter");
+                        //Obtiene el valor de datos que se pueden enviar
                         int numTramas_env = par("numTramas_env");
+
+                        cMessage *ack = new cMessage();                        
                         
-                        if(starter==0 || starter==1){
+                        if(id_tramaRR < numTramas_env){
                             if(id_tramaVD < numTramas_env){
-                                //endSimulation();
                                 //Mandar un ACK,N al modulo de aplicación
                                 ack->setName(FuncionesExtras::nombrando("ACK,",id_tramaVD));
 
                                 //Actualiza el valor del ultimo ack pedido
-                                par("ult_ack_enviado").setLongValue(id_tramaVD);                            
-                            }else{
-                                //Mandar un ACK,N al modulo de aplicación
-                                 ack->setName("FIN");
-
-                                 en_respuesta_a = "FIN";
-                                 par("en_respuesta_a").setStringValue(en_respuesta_a);
-
-                                 //Cancela los eventos pendientes
-                                cancelarEventosPendientes(numTramas_env+1);
-                            }
+                                par("ult_ack_enviado").setLongValue(id_tramaVD);      
+                            }                      
                         }else{
-                            //Mandar un ACK,N al modulo de aplicación
-                            ack->setName(FuncionesExtras::nombrando("ACK,",id_tramaVD));
+                            //Mandar un ACK,id_tramaRR al modulo de aplicación
+                            ack->setName(FuncionesExtras::nombrando("ACK,",id_tramaRR));
 
                             //Actualiza el valor del ultimo ack pedido
-                            par("ult_ack_enviado").setLongValue(id_tramaVD);   
+                            par("ult_ack_enviado").setLongValue(id_tramaRR); 
                         }
 
                         //Manda el mensaje a aplicacion
@@ -622,9 +629,12 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                         //Reinicia el valor de las tramas asentidas
                         int tramas_no_asentidas = par("tramas_no_asentidas");
                         tramas_no_asentidas -= tramas_asentidas;
-                        par("tramas_no_asentidas").setLongValue(tramas_no_asentidas);                       
+                        par("tramas_no_asentidas").setLongValue(tramas_no_asentidas);       
 
                     }else if(en_respuesta_a == "UP"){
+                        //Cancela todos los eventos
+                        cancelarEventosPendientes();
+
                         //Trama a la que corresponde el RR
                         int id_tramaRR = FuncionesExtras::getValorId(packet_name.c_str());
 
@@ -686,19 +696,37 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                         
                         par("cant_tramasVentana").setLongValue(cant_tramasVentana);
 
+                        //Si se logran asentir todas las tramas
                         if(vacio){
                             //Envia una trama de comando DISC al otro host
-                            en_respuesta_a = "DISC";
+                            en_respuesta_a = "NONE";
                             par("en_respuesta_a").setStringValue(en_respuesta_a);
 
-                            //Trama commando DISC
-                            dataframe->setName("DISC, Trama Comando");
+                            //Mandar un ACK,id_tramaRR al modulo de aplicación
+                            cMessage *ack = new cMessage();
+                            ack->setName(FuncionesExtras::nombrando("ACK,",id_tramaRR));
 
-                            //Fija los datos necesarios para la trama DISC
-                            dataframe->createFrame(address_dest);
+                            //Actualiza el valor del ultimo ack pedido
+                            par("ult_ack_enviado").setLongValue(id_tramaRR); 
 
-                            sending(dataframe,"hacia_fisico");
-                            ev << "Host " << nombreHost << ": " << "Se envia trama DISC" << endl;
+                            //Manda el mensaje a aplicacion
+                            send(ack,"hacia_arriba");
+                            ev << "Host " << nombreHost << ": " << "Mandando ACK al modulo de aplicación" << endl;
+
+                            //Reinicia el valor de las tramas asentidas
+                            par("tramas_no_asentidas").setLongValue(0);
+
+                        //Si no vuelve a enviar un UP
+                        }else{
+                            //Si faltan tramas por ser asentidas por un RR se manda un UP para exigir respuesta
+                            DataFrame *unnumberedFrame = new DataFrame("UP, Trama Comando");
+                            
+                            //Asignando valores necesarios para crear la trama
+                            unnumberedFrame->createFrame(address_dest);
+
+                            //Enviando a travez del canal fisico
+                            sending(unnumberedFrame,"hacia_fisico");
+                            ev << "Host " << nombreHost << ": " << "Se envia UP para confirmar las ultimas tramas" << endl;
                         }
                     }                    
                 
@@ -711,7 +739,7 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                     int id_tramaREJ = FuncionesExtras::getValorId(packet_name.c_str());
 
                     //Cancela los eventos relacionados
-                    cancelarEventosPendientes(id_tramaREJ + 1);
+                    cancelarEventosPendientes();
 
                     //Trama a la que corresponden los elementos de la Ventana Deslizante
                     int id_tramaVD = 0;
@@ -731,7 +759,7 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
 
                     ev << "Host " << nombreHost << ": " << "Recibido REJ," << id_tramaREJ << " comenzando a analizar elementos, partiendo por: " << id_tramaVD << endl;
 
-                    //Recorre la Ventana removiendo los elementos asentidos previos al REJ
+                    //Recorre la Ventana removiendo los elementos asentidos previos al REJ para buscar la trama con el error
                     for(int i=0;id_tramaREJ > id_tramaVD && ((nombreHost==0 && !ventanaDeslizante00.empty()) || (nombreHost==1 && !ventanaDeslizante01.empty()));i++){
                         if(id_tramaVD < id_tramaREJ){
                             if(nombreHost==0){
@@ -751,49 +779,29 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                         id_tramaVD = FuncionesExtras::getValorId(nombre_primer_elemento.c_str());
                     }
                     
-                    //Re-envia la trama que tenía el error
-                    DataFrame *tramaAuxiliar = new DataFrame();
-                    DataFrame *tramaCopiaAuxiliar = new DataFrame();
+                    //Vacia las ventanas
                     if(nombreHost==0){
-                        string auxiliarName = ventanaDeslizante00.front()->getName();
-                        tramaAuxiliar->setName(FuncionesExtras::nombrando("I,",FuncionesExtras::getValorId(auxiliarName.c_str())));
-                        tramaAuxiliar->createFrame(address_dest,ventanaDeslizante00.front()->getInformationArraySize(),ventanaDeslizante00.front()->getInformation(),0,1,0);
-
-                        tramaCopiaAuxiliar->setName(FuncionesExtras::nombrando("I,",FuncionesExtras::getValorId(auxiliarName.c_str())));
-                        tramaCopiaAuxiliar->createFrame(address_dest,ventanaDeslizante00.front()->getInformationArraySize(),ventanaDeslizante00.front()->getInformation(),0,ventanaDeslizante00.front()->getControl(4),0);
-
                         while(!ventanaDeslizante00.empty()){
                             ventanaDeslizante00.pop();
                         }
-
-                        ventanaDeslizante00.push(tramaCopiaAuxiliar);
                     }else if(nombreHost==1){
-                        string auxiliarName = ventanaDeslizante01.front()->getName();
-                        tramaAuxiliar->setName(FuncionesExtras::nombrando("I,",FuncionesExtras::getValorId(auxiliarName.c_str())));
-                        tramaAuxiliar->createFrame(address_dest,ventanaDeslizante01.front()->getInformationArraySize(),ventanaDeslizante01.front()->getInformation(),0,1,0);
-
-                        tramaCopiaAuxiliar->setName(FuncionesExtras::nombrando("I,",FuncionesExtras::getValorId(auxiliarName.c_str())));
-                        tramaCopiaAuxiliar->createFrame(address_dest,ventanaDeslizante01.front()->getInformationArraySize(),ventanaDeslizante01.front()->getInformation(),0,ventanaDeslizante01.front()->getControl(4),0);
-
                         while(!ventanaDeslizante01.empty()){
                             ventanaDeslizante01.pop();
                         }
-
-                        ventanaDeslizante01.push(tramaCopiaAuxiliar);
                     }           
 
-                    par("cant_tramasVentana").setLongValue(1);
-                    par("tramas_no_asentidas").setLongValue(1);     
+                    par("cant_tramasVentana").setLongValue(0);
+                    par("tramas_no_asentidas").setLongValue(0);     
 
-                    //Envia la trama que tenía el error
-                    sending(tramaAuxiliar,"hacia_fisico");
-                    ev << "Host " << nombreHost << ": " << "Reenviando: " << tramaAuxiliar->getName() << endl;
+                    // //Envia la trama que tenía el error
+                    // sending(tramaAuxiliar,"hacia_fisico");
+                    // ev << "Host " << nombreHost << ": " << "Reenviando: " << tramaAuxiliar->getName() << endl;
 
                     //Mandar un ACK,N al modulo de aplicación
-                    cMessage *ack = new cMessage(FuncionesExtras::nombrando("ACK,",id_tramaVD+1));
+                    cMessage *ack = new cMessage(FuncionesExtras::nombrando("ACK,",id_tramaVD));
 
                     //Actualiza el valor del ultimo ack pedido
-                    int ult_ack_enviado = id_tramaVD+1;
+                    int ult_ack_enviado = id_tramaVD;
                     par("ult_ack_enviado").setLongValue(ult_ack_enviado);
 
                     //Manda el mensaje a aplicacion
@@ -854,22 +862,17 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
                         ult_trama_recibida++;
                         int ult_rr_enviado = par("ult_rr_enviado");
 
-                        //if(ult_trama_recibida > ult_rr_enviado){
-                            //Para asignar el valor_id
-                            dataframe->setName(FuncionesExtras::nombrando("RR,",ult_trama_recibida));
+                        dataframe->setName(FuncionesExtras::nombrando("RR,",ult_trama_recibida));
 
-                            //Setea los valores necesarios para la trama RR
-                            dataframe->createFrame(address_dest);
+                        //Setea los valores necesarios para la trama RR
+                        dataframe->createFrame(address_dest);
 
-                            //Actualiza el valor del ultimo RR enviado
-                            par("ult_rr_enviado").setLongValue(ult_trama_recibida);
+                        //Actualiza el valor del ultimo RR enviado
+                        par("ult_rr_enviado").setLongValue(ult_trama_recibida);
 
-                            //Envia la trama por el medio fisico
-                            sending(dataframe,"hacia_fisico");
-                            ev << "Host " << nombreHost << ": " << "Enviado Supervisory RR" << " a Host: " << address_dest << endl;
-                        /*}else{
-                            ev << "Host " << nombreHost << ": " << "UP no respondido debido a que ya se ha enviado un RR adecuado a " << address_dest << endl;
-                        }*/
+                        //Envia la trama por el medio fisico
+                        sending(dataframe,"hacia_fisico");
+                        ev << "Host " << nombreHost << ": " << "Enviado Supervisory RR" << " a Host: " << address_dest << endl;
 
                     //Se recibe un UA
                     }else if(M2 == 6){
@@ -940,6 +943,8 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
 
                             int master = getParentModule()->par("starter");
                             int address_host = par("direccion_host");
+
+                            //Si no estan ambos transmitiendo
                             if(master != address_host && master!= 2){
                                 cMessage *connect = new cMessage("CONNECT");
 
@@ -957,6 +962,26 @@ void enlace::processMsgFromLowerLayer(cMessage *packet){
     }
 }
 
+//Cancela todos los eventos agendados
+void enlace::cancelarEventosPendientes(){
+    int nombreHost = par("direccion_host");
+
+    if(nombreHost==0){
+        for(unsigned int i=0;i<temporizadores00.size();i++){
+            cancelEvent(temporizadores00[i]); 
+        }                        
+        temporizadores00.clear();
+
+    }else if(nombreHost==1){
+        for(unsigned int i=0;i<temporizadores01.size();i++){
+                cancelEvent(temporizadores01[i]);  
+        }
+        temporizadores01.clear();
+
+    }
+}
+
+//Cancela hasta id_name
 void enlace::cancelarEventosPendientes(int id_name){
     int nombreHost = par("direccion_host");
 
