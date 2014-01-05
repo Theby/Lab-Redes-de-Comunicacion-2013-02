@@ -34,8 +34,12 @@ class enlace : public cSimpleModule
         //Envia los mensajes revisando si hay acceso a la red
         virtual void sending(cMessage* msg, const char* ngate);
 
-        //Cancela eventos pendientes dados por scheduleAt
+        //Cancela todos los eventos pendientes dados por scheduleAt
+        virtual void cancelarEventosPendientes();
+
+        //Cancela los eventos pendientes dados por scheduleAt hasta id_name
         virtual void cancelarEventosPendientes(int id_name);
+    
 };
 
 
