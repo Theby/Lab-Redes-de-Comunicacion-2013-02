@@ -46,6 +46,9 @@ simple enlace
         //Define cual host(0 o 1) comienza la comunicación
         int starter;
         
+        //Timer para re-enviarse mensajes con scheduleAt();
+        volatile int timer = default(10);
+        
         //numero de tramas no asentidas
         volatile int tramas_no_asentidas = default(0);
         
