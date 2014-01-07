@@ -45,6 +45,9 @@ simple aplicacion
         
         //Para saber el estado del nivel de aplicacion
         volatile string estado = default("NONE");
+        
+        //Para saber si esta conectado o no
+        volatile bool conectado = default(false);
 
         @display("i=block/cogwheel,black;is=n");
 

@@ -15,22 +15,36 @@
 
 package laboratorio_01_02;
 
-simple intermedio
+simple mac
 {
-    //Parámetros de intermedio
+    //Parámetros del nivel de MAC
     parameters:
+        //Dirección de Host
+        int direccion_host;
+
+		//Dirección de Destino
+        int direccion_dest;
+        
         //Para saber si esta conectado o no
         volatile bool conectado = default(false);
         
-    	@display("i=block/layer,black;is=n");
+        //Para saber si tiene el testigo o no
+        volatile bool holder = default(false);
+        
+        //Para saber cuantas veces ha llegado consecutivamente y sin interrumpciones el Testigo al host
+        volatile int cant_holder = default(0);
+        
+        //Para saber si los hosts se desconectan o no tras mandar todas sus tramas
+        volatile bool desconectar = default(false);
+        
+    	@display("i=block/rxtx,black;is=n");
     	
-    //Conexiones
     gates:
-        //Hacia el nivel superior
+        //Con el nivel inferior
+        input desde_fisico;
+        output hacia_fisico;
+
+        //con el nivel superior
         input desde_arriba;
         output hacia_arriba;
-
-        //Hacia el nivel inferior
-        input desde_abajo;
-        output hacia_abajo;
 }

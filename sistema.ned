@@ -22,16 +22,14 @@ module sistema
 {
     //Parámetros
     parameters:
-        volatile int starter;        
-       // volatile int numTramas;  
-        volatile int numTramas_0;
-        volatile int numTramas_1;      
-        volatile int tamVentana;           
+        volatile int starter = default(0);
+        volatile int numTramas;
+        volatile int tamVentana;
         volatile int tramas_libres;
-        volatile int error;        
+        volatile int error;
         volatile int tamTrama = default(4);
 
-        @display("i=device/lan;is=n");
+        @display("i=old/ring;is=n");
     //Submódulos que lo componen
     submodules:
         //Definición del host 1
@@ -39,10 +37,10 @@ module sistema
             //Parámetros
             parameters:
                 tamTrama = tamTrama;
-                numTramas_env = numTramas_0;
-                numTramas_rec = numTramas_1;
+                numTramas_env = numTramas;
+                numTramas_rec = numTramas;
                 tamVentana = tamVentana;
-                starter = starter;                
+                starter = starter;
                 tramas_libres = tramas_libres;
                 error = error;
                 //Se suministra la dirección que le corresponde al host y al destino
@@ -55,23 +53,59 @@ module sistema
             //Parámetros
             parameters:
                 tamTrama = tamTrama;
-                numTramas_env = numTramas_1;
-                numTramas_rec = numTramas_0;
+                numTramas_env = numTramas;
+                numTramas_rec = numTramas;
                 tamVentana = tamVentana;
                 starter = starter;
                 tramas_libres = tramas_libres;
                 error = error;
                 //Se suministra la dirección que le corresponde al host y al destino
                 direccion_host = 1;
-                direccion_dest = 0;
+                direccion_dest = 2;
                 @display("p=170,50");
+        }
+        //Definición del host 3
+        Host_2: host {
+            //Parámetros
+            parameters:
+                tamTrama = tamTrama;
+                numTramas_env = numTramas;
+                numTramas_rec = numTramas;
+                tamVentana = tamVentana;
+                starter = starter;
+                tramas_libres = tramas_libres;
+                error = error;
+                //Se suministra la dirección que le corresponde al host y al destino
+                direccion_host = 2;
+                direccion_dest = 3;
+                @display("p=170,150");
+        }
+        //Definición del host 4
+        Host_3: host {
+            //Parámetros
+            parameters:
+                tamTrama = tamTrama;
+                numTramas_env = numTramas;
+                numTramas_rec = numTramas;
+                tamVentana = tamVentana;
+                starter = starter;
+                tramas_libres = tramas_libres;
+                error = error;
+                //Se suministra la dirección que le corresponde al host y al destino
+                direccion_host = 3;
+                direccion_dest = 0;
+                @display("p=70,150");
         }
     //Conexiones de la red
     connections:
         //Desde el Host 1 hacia el Host 2
         Host_0.salida --> canal --> Host_1.entrada;
-        //Desde el Host 2 hacia el Host 1
-        Host_1.salida --> canal --> Host_0.entrada;
+        //Desde el Host 2 hacia el Host 3
+        Host_1.salida --> canal --> Host_2.entrada;
+        //Desde el Host 3 hacia el Host 4
+        Host_2.salida --> canal --> Host_3.entrada;
+        //Desde el Host 4 hacia el Host 0
+        Host_3.salida --> canal --> Host_0.entrada;
 }
 
 //Definición del canal de transmisión
@@ -90,14 +124,9 @@ network red extends sistema
 {
     //Parámetros
     parameters:
-        starter @prompt("Ingrese cual host comenzará la transmisión: 0 o 1; si selecciona 2, comenzarán los dos al mismo tiempo.") = default(0);
-        //Debe modularse para que se pasen por separados los valores a numTrama_0 y numTrama_1 (cambiar también en parametros host)
-        //numTramas @prompt("Ingrese el máximo número de tramas que puede enviar un host") = default(1);
-        numTramas_0 @prompt("Ingrese el máximo número de tramas que puede enviar el Host 0") = default(1);
-        numTramas_1 @prompt("Ingrese el máximo número de tramas que puede enviar el Host 1") = default(1);
-
+        numTramas @prompt("Ingrese el máximo número de tramas que pueden enviar los hosts") = default(1);
         tamVentana @prompt("Tamaño de las ventanas deslizantes: ") = default(1);
         tramas_libres @prompt("Número de tramas a enviar/recibir antes de recibir un Asentimiento RR") = default(1);
-        error @prompt("Ingrese cual es la probabilidad de que la trama posea un error (de 0 a 100)") = default(0);        
+        error @prompt("Ingrese cual es la probabilidad de que la trama posea un error (de 0 a 100)") = default(0);
         @display("bgi=background/green,t");
 }

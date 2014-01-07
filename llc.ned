@@ -15,12 +15,9 @@
 
 package laboratorio_01_02;
 
-//
-// TODO auto-generated type
-//
-module enlace
+simple llc
 {
-    //Parámetros del nivel de Enlace
+    //Parámetros del nivel de LLC
     parameters:
         //Dirección de Host
         int direccion_host;
@@ -69,54 +66,20 @@ module enlace
 
         //Numero de la trama enviada con error
         volatile int trama_con_error = default(0);
+        
+        //Para saber si esta conectado o no
+        volatile bool conectado = default(false);
+        
+        volatile int direccion_actual = default(0);
 
-        @display("i=block/ifcard,black;is=n;bgb=130,246;bgi=background/terrain");
+        @display("i=block/uparrow,black;is=n");
+
     gates:
         //Con el nivel inferior
-        input desde_fisico;
-        output hacia_fisico;
+        input desde_abajo;
+        output hacia_abajo;
 
         //con el nivel superior
         input desde_arriba;
         output hacia_arriba;
-
-    submodules:
-        //Llamado al nivel de aplicación
-        Modulo_LLC: llc {
-            //parámetros del nivel
-            parameters:
-                tamVentana = tamVentana;
-                direccion_host = direccion_host;
-                direccion_dest = direccion_dest;
-                tramas_libres = tramas_libres;
-                starter = starter;
-                numTramas_env = numTramas_env;
-                numTramas_rec = numTramas_rec;
-                error = error;
-                @display("p=67,48");
-        }
-
-        //Llamado al nivel intermedio
-        Modulo_MAC: mac {
-            //parámetros del nivel
-            parameters:
-                direccion_host = direccion_host;
-                direccion_dest = direccion_dest;
-                @display("p=67,155");
-        }
-
-    connections:
-        //Desde LLC hacia MAC
-        Modulo_LLC.hacia_abajo --> Modulo_MAC.desde_arriba;
-        //Desde LLC hacia intermedio
-        Modulo_LLC.hacia_arriba --> hacia_arriba;
-        //Desde MAC hacia el otro host
-        Modulo_MAC.hacia_fisico --> hacia_fisico;
-        //Desde MAC hacia LLC
-        Modulo_MAC.hacia_arriba --> Modulo_LLC.desde_abajo;
-        //Desde intermedio a LLC
-        desde_arriba --> Modulo_LLC.desde_arriba;
-        //Desde el otro host a MAC
-        desde_fisico --> Modulo_MAC.desde_fisico;
-
 }
