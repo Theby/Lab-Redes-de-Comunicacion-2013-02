@@ -3,22 +3,21 @@
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-//
+// 
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
-//
+// 
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
-//
+// 
 
-#ifndef ENLACE_H_
-#define ENLACE_H_
+#ifndef MAC_H_
+#define MAC_H_
 
-class enlace : public cSimpleModule
-{
-    protected:
+class mac : public cSimpleModule {
+	protected:
     	//Inicializar módulo
         virtual void initialize();
 
@@ -26,26 +25,13 @@ class enlace : public cSimpleModule
         virtual void processMsgFromHigherLayer(cMessage *dato);
 
         //Procesador de Mensaje desde el otro host
-        virtual void processMsgFromLowerLayer(cMessage *packet);
+        virtual void processMsgFromLowerLayer(cMessage *dato);
 
         //Maneja los mensajes llegados al modulo
         virtual void handleMessage(cMessage *msg);
 
         //Envia los mensajes revisando si hay acceso a la red
         virtual void sending(cMessage* msg, const char* ngate);
-
-        //Cancela todos los eventos pendientes dados por scheduleAt
-        virtual void cancelarEventosPendientes();
-
-        //Cancela los eventos pendientes dados por scheduleAt hasta id_name
-        virtual void cancelarEventosPendientes(int id_name);
-    
 };
 
-
-#endif /* ENLACE_H_ */
-
-
-
-
-
+#endif /* MAC_H_ */
