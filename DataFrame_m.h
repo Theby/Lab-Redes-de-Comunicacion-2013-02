@@ -82,6 +82,7 @@ class DataFrame : public ::cMessage
 
     // field getter/setter methods
     virtual unsigned int getAddressArraySize() const;
+    virtual int* getAddress();
     virtual int getAddress(unsigned int k) const;
     virtual void setAddress(unsigned int k, int address);
     virtual unsigned int getControlArraySize() const;

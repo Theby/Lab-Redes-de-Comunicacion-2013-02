@@ -111,6 +111,10 @@ unsigned int DataFrame::getAddressArraySize() const
     return 8;
 }
 
+int* DataFrame::getAddress(){
+    return address_var;
+}
+
 int DataFrame::getAddress(unsigned int k) const
 {
     if (k>=8) throw cRuntimeError("Array of size 8 indexed by %lu", (unsigned long)k);
