@@ -21,108 +21,138 @@ aplicacion:
 				Manda un mensaje de burbuja y cambia su color a desconectado
 			"FIN"
 				Manda un mensaje de burbuja y cambia su color a conectado, luego manda un "END" hacia_abajo
-enlace:
+llc:
 	en_respuesta_a:
-		!"FIN"
-			"NONE"
-				envia:
+		"NONE"
+			envia:
+				"REJ,N"
+					Se autoenvia este mensaje cuando envia una trama "I,N,bit_pf", el mensaje llega si es que no se recibe antes el "RR,N,1" correspondiente.
+				hacia_arriba:
+					"ACK,N+1"
+						Al enviar una trama "I,N,bit_pf" hacia_fisico existiendo aún espacio en la ventana siendo N+1 menor al numero de tramas totales.
+						Al recibir un "RR,N+1,1" desde_fisico siempre que se cumpla la posibilidad de enviar uno.
+						Al recibir un "REJ,N+1" desde_fisico.
+					"CONNECT"
+						Al recibir un "SABM" desde_fisico.
+					"DATO,N"
+						Al recibir satisfactoriamente un "I,N,bit_pf" desde_fisico.
+				hacia_abajo:
+					"DISC"
+						Al recibir un "END" desde_abajo.
+					"I,N,bit_pf"
+						Al recibir un "DATO,N" desde_arriba de forma satisfactoria.
+						Al recibir un "FREE" desde_arriba(sí mismo), esto es cuando existen tramas en espera del canal.
+					"BADSENDING,N"
+						Al recibir un "DATO,N" desde_arriba, pero se generan errores al enviar.
+					"LOST,N"
+						Al recibir un "DATO,N" desde_arriba, pero la trama se pierde al enviarse.
+					"UA"
+						Al recibir un "SABM" desde_fisico.
+						Al recibir un "DISC" desde_fisico.
+					"RR,N,1"
+						Al recibir un "UA" desde_fisico con N = K tal que K es la última trama recibida + 1.
+					"START"
+						Al recibir "START" desde_arriba redirecciona el mensaje.
 					"REJ,N"
-						Se autoenvia este mensaje cuando envia una trama "I,N,bit_pf", el mensaje llega si es que no se recibe antes el "RR,N,1" correspondiente.
-					hacia_arriba:
-						"ACK,N+1"
-							Al enviar una trama "I,N,bit_pf" hacia_fisico existiendo aún espacio en la ventana siendo N+1 menor al numero de tramas totales.
-							Al recibir un "RR,N+1,1" desde_fisico siempre que se cumpla la posibilidad de enviar uno.
-							Al recibir un "REJ,N+1" desde_fisico.
-						"CONNECT"
-							Al recibir un "SABM" desde_fisico.
-						"DISCONNECT"
-							Al recibir un "DISC" desde_fisico.
-						"DATO,N"
-							Al recibir satisfactoriamente un "I,N,bit_pf" desde_fisico.
-					hacia_fisico:
-						"SABM"
-							Al recibir un "START" desde_arriba.
-						"DISC"
-							Al recibir un "END" desde_arriba y si todas las tramas han sido asentidas.
-						"UP"
-							Al recibir un "END" desde_arriba y si faltan tramas por ser asentidas.
-						"I,N,bit_pf"
-							Al recibir un "DATO,N" desde_arriba de forma satisfactoria.
-							Al recibir un "FREE" desde_arriba(sí mismo), esto es cuando existen tramas en espera del canal.
-						"ERROR,N"
-							Al recibir un "DATO,N" desde_arriba, pero se generan errores al enviar.
-						"UA"
-							Al recibir un "SABM" desde_fisico.
-							Al recibir un "DISC" desde_fisico.
-						"RR,N,1"
-							Al recibir un "UA" desde_fisico con N = K tal que K es la última trama recibida + 1.
-				recibe:
-					desde_arriba:
-						"START"
-							Manda mensaje de burbuja y cambia su color a esperando confirmacion,  entra en respuesta a "SABM" y envia un "SABM" hacia_fisico.
-						"END"
-							Si faltan tramas por ser asentidas entra en respuesta a "UP" y envia un "UP" hacia_fisico.
-							Si no faltan tramas por ser asentidas entra en respuesta a "DISC" y envia un "DISC" hacia_fisico.
-						"DATO,N"
-							Si no corresponde al último ACK enviado se borra.
-							Si la trama a enviar corresponde a un bit P/F 1 se agenda un "REJ,N" para enviarselo a si mismo en 10 segundos (llega desde_arriba).
-							tipo_error:
-								"NONE"
-									Envia "I,N,bit_pf" hacia_fisico.
-								"BadSending"
-									Envia "ERROR,N" hacia_fisico.
-								"Lost"
-									No envia la trama
-							Si hay espacio disponible en la trama envia "ACK,N+1" hacia_arriba.
-						"FREE"
-							Envia el "I,N,bit_pf" hacia_fisico guardado en la lista de espera de liberacion del canal hacia_fisico.
-						"REJ,N"
-							Se redirecciona como si se estuviera recibiendo desde_fisico.
-					desde_fisico:
-						"I,N,bit_pf"
-							Si la trama corresponde a la esperada, pero tiene Error se entra en respuesta a "ERROR" y se envia un "REJ,N" hacia_fisico.
-							Si la trama corresponde a la esperada se envia un "DATO,N" hacia_arriba y si ademas el bit_pf = 1 se responde con un "RR,N+1,1" hacia_fisico.
-							Si la trama no corresponde a la esperada se entra en respuesta a "ERROR" ya que se perdio una trama y se envia un "REJ,K" hacia_fisico, donde K corresponde a la trama perdida.
-						"SABM"
-							Manda mensaje de burbuja y cambia su color a conectado, luego manda un "UA" hacia_fisico y si es que ambos no están transmitiendo envia un "CONNECT" hacia_arriba.
-						"UP"
-							Responde con un "RR,K,1" hacia_fisico donde K se la ultima trama recibida + 1.
-						"DISC"
-							Manda mensaje de burbuja y cambia su color a desconectado, luego se manda un "UA" hacia_fisico y si es que ambos no están transmitiendo envia un "DISCONNECT" hacia_arriba.
-						"RR,N,1"
-							Actualiza la ventana.
-							Si N es igual al numero de datos a enviar envía el último "ACK,N" hacia_arriba.
-							Si no revisa si aún faltan datos por pedir, de ser así envía el "ACK,N" que corresponde a la ventana.
-						"REJ,N"
-							Vacia la ventana, reinicia los temporizadores y envia "ACK,N" hacia_arriba para reenviar la trama con error.
-			"SABM"
-				envia:
-					hacia_arriba:
-						"ACK,0"
-							Tras recibir un "UA" desde_fisico para empezar la transmisión.
-				recibe:
-					desde_fisico:
-						"UA"
-							Cambia en respuesta a "NONE", manda mensaje de burbuja y cambia su color a conectado, luego manda "ACK,0" hacia_arriba para empezar la transmición.
-			"UP"
-				envia:
-					hacia_arriba:
-						"ACK,N"
-							Si todas las tramas son asentidas tras recibir un "RR,N,0" desde_fisico.
-						"UP"
-							Si todas las tramas no son asentidas tras recibir un "RR,N,0" desde_fisico.
-				recibe:
-					desde_fisico:
-						"RR,N,0"
-							Este RR busca asentir todas las tramas faltantes, si esto sucede se envia un "ACK,N" hacia_arriba, el cual corresponde al último ACK.
-							Si no se asienten todas las tramas se vuelve a enviar un "UP" hacia_fisico.
-			"DISC"
-				recibe:
-					desde_fisico:
-						"UA"
-							Cambia en respuesta a "NONE", manda mensaje de burbuja y cambia su color a desconectado.
-			"ERROR"
-				recibe:
-					desde_fisico:
-						"I,N,bit_pf"
-							Lo elimina si es que no corresponde a la trama con error (pero corregida.), si es cambia a en respuesta a "NONE" y reenvia la trama "I,N,bit_pf" a si mismo como si fuera todo normal.
+						Al recibir "REJ,N" de si mismo.
+			recibe:
+				desde_arriba:
+					"START"
+						Manda mensaje de burbuja y cambia su color a conectado, luego envia el mensaje "START" hacia_abajo.
+					"END"
+						Manda mensaje de burbuja y cambia su color a desconectado, luego envia el mensaje "END" hacia_abajo.
+					"DATO,N"
+						Si no corresponde al último ACK enviado se borra.
+						Si la trama a enviar corresponde a un bit P/F 1 se agenda un "REJ,N" para enviarselo a si mismo en 10 segundos (llega desde_arriba).
+						tipo_error:
+							"NONE"
+								Envia "I,N,bit_pf" hacia_fisico.
+							"BadSending"
+								Envia "ERROR,N" hacia_fisico.
+							"Lost"
+								No envia la trama
+						Si hay espacio disponible en la trama envia "ACK,N+1" hacia_arriba.
+					"FREE"
+						Envia el "I,N,bit_pf" hacia_fisico guardado en la lista de espera de liberacion del canal hacia_fisico.
+					"REJ,N"
+						Se redirecciona hacia_abajo para que sea tratado como un "REJ,N" normal.
+				desde_abajo:
+					"END"
+						Responde con un "DISC" hacia_abajo.
+					"START"
+						Envia un "ACK,0" hacia_arriba.
+					"I,N,bit_pf"
+						Si la trama corresponde a la esperada, pero tiene Error se entra en respuesta a "ERROR" y se envia un "REJ,N" hacia_fisico.
+						Si la trama corresponde a la esperada se envia un "DATO,N" hacia_arriba y si ademas el bit_pf = 1 se responde con un "RR,N+1,1" hacia_fisico.
+						Si la trama no corresponde a la esperada se entra en respuesta a "ERROR" ya que se perdio una trama y se envia un "REJ,K" hacia_fisico, donde K corresponde a la trama perdida.
+					"SABM"
+						Manda mensaje de burbuja y cambia su color a conectado, luego manda un "UA" hacia_fisico y si es que ambos no están transmitiendo envia un "CONNECT" hacia_arriba.
+					"UP"
+						Responde con un "RR,K,1" hacia_fisico donde K se la ultima trama recibida + 1.
+					"DISC"
+						Manda mensaje de burbuja y cambia su color a desconectado, luego se manda un "UA" hacia_fisico.
+					"RR,N,1"
+						Actualiza la ventana.
+						Si N es igual al numero de datos a enviar envía el último "ACK,N" hacia_arriba.
+						Si no revisa si aún faltan datos por pedir, de ser así envía el "ACK,N" que corresponde a la ventana.
+					"REJ,N"
+						Vacia la ventana, reinicia los temporizadores y envia "ACK,N" hacia_arriba para reenviar la trama con error.
+		"SABM"
+			envia:
+				hacia_arriba:
+					"ACK,0"
+						Tras recibir un "UA" desde_fisico para empezar la transmisión.
+			recibe:
+				desde_fisico:
+					"UA"
+						Cambia en respuesta a "NONE", manda mensaje de burbuja y cambia su color a conectado, luego manda "ACK,0" hacia_arriba para empezar la transmición.
+		"UP"
+			envia:
+				hacia_arriba:
+					"ACK,N"
+						Si todas las tramas son asentidas tras recibir un "RR,N,0" desde_fisico.
+					"UP"
+						Si todas las tramas no son asentidas tras recibir un "RR,N,0" desde_fisico.
+			recibe:
+				desde_fisico:
+					"RR,N,0"
+						Este RR busca asentir todas las tramas faltantes, si esto sucede se envia un "ACK,N" hacia_arriba, el cual corresponde al último ACK.
+						Si no se asienten todas las tramas se vuelve a enviar un "UP" hacia_fisico.
+		"DISC"
+			recibe:
+				desde_fisico:
+					"UA"
+						Cambia en respuesta a "NONE" y espera por el otro host conectado a él que lo desconecte.
+		"ERROR"
+			recibe:
+				desde_fisico:
+					"I,N,bit_pf"
+						Lo elimina si es que no corresponde a la trama con error (pero corregida.), si es cambia a en respuesta a "NONE" y reenvia la trama "I,N,bit_pf" a si mismo como si fuera todo normal.
+mac:
+	envia:
+		hacia_arriba:
+			DataFrame*
+				Cualquier trama que sea con su direccion recibida desde_fisico, esto ocurre cuando le llega "TESTIGO" desde_fisico.
+			"TESTIGO"
+				Cuando recibe una trama desde_arriba, se pelotea testigo con llc.
+		hacia_fisico:
+			"TESTIGO"
+				Cuando recibe "START" desde_arriba.
+				Cuando recibe "TESTIGO" desde_arriba.
+			DataFrame*
+				Cualquier trama que no sea de su direccion es redirecionada hacia_fisico.
+	recibe:
+		desde_fisico:
+			"TESTIGO"
+				Comienza a ejecutar sus acciones.
+			DataFrame*
+				Las almacenas o las usa, dependiendo si ha recibido "TESTIGO" desde_fisico.
+		desde_arriba:
+			"START"
+				Envia "TESTIGO" hacia_fisico.
+			DataFrame*
+				Envia y despues se pelotea "TESTIGO" con lcc hacia_arriba.
+			"TESTIGO"
+				Envia "TESTIGO" hacia_fisico.
+			"REJ,N"
+				Lo redireciona como si viniera desde_fisico.
