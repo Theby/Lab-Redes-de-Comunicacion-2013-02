@@ -42,6 +42,11 @@ public:
     static const char* nombrando(const char* input_original_name, int valor);
 
     /*
+     * Concatena original name con coma y con valor
+     */
+    static const char* nombrando(const char* input_original_name, char coma, int valor);
+
+    /*
      * Transforma de entero a string
      */
     static const char* intToString(int numero);
@@ -59,7 +64,7 @@ public:
     /*
      * Transforma un arreglo de numeros binario en un numero decimal
      */
-    static int bitArrayToInt(std::vector<int> numero_binario);
+    static int bitArrayToInt(int* numero_binario, int size);
 };
 
 #endif /* FUNCIONESEXTRAS_H_ */

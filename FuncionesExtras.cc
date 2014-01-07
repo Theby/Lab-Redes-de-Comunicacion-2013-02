@@ -123,6 +123,21 @@ const char* FuncionesExtras::nombrando(const char* input_original_name, int valo
     return buffer.c_str();
 }
 
+const char* FuncionesExtras::nombrando(const char* input_original_name, char coma, int valor){
+    string nombre_original = input_original_name;
+    string nombre_valor;
+    string separador;
+    separador.push_back(coma);
+
+    nombre_valor = intToString(valor);
+
+    //Para el nombre de la trama
+    string buffer;
+    buffer = nombre_original + coma + nombre_valor;
+
+    return buffer.c_str();
+}
+
 const char* FuncionesExtras::intToString(int numero){
     //String con el numero invertido
     string inv_numero;
@@ -198,13 +213,18 @@ int FuncionesExtras::tamBitArray(int numero){
     }
 }
 
-int FuncionesExtras::bitArrayToInt(vector<int> numero_binario){
-    int numero;
-    int size = numero_binario.size();
+int FuncionesExtras::bitArrayToInt(int* numero_binario, int size){
+    int numero=0;
+    std::vector<int> vector_binario; 
+    int* direccion_binaria = numero_binario;
 
     for(int i=0;i<size;i++){
-        numero += pow(2,i)*numero_binario.back();
-        numero_binario.pop_back();
+        vector_binario.push_back(direccion_binaria[i]);
+    }
+
+    for(int i=0;i<size;i++){
+        numero += pow(2,i)*vector_binario.back();
+        vector_binario.pop_back();
     }
 
     return numero;
