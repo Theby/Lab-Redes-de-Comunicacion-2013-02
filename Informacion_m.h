@@ -49,6 +49,7 @@ class Informacion : public ::cMessage
 
     // field getter/setter methods
     virtual unsigned int getAddress_destArraySize() const;
+    virtual int* getAddress();
     virtual int getAddress_dest(unsigned int k) const;
     virtual void setAddress_dest(unsigned int k, int address_dest);
     virtual void setInformacionArraySize(unsigned int size);

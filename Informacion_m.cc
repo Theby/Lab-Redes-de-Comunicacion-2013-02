@@ -99,6 +99,10 @@ unsigned int Informacion::getAddress_destArraySize() const
     return 8;
 }
 
+int* Informacion::getAddress(){
+    return address_dest_var;
+}
+
 int Informacion::getAddress_dest(unsigned int k) const
 {
     if (k>=8) throw cRuntimeError("Array of size 8 indexed by %lu", (unsigned long)k);
