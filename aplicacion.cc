@@ -174,11 +174,14 @@ void aplicacion::handleMessage(cMessage* msg){
                 }else if(contTramas_env < numTramas_env){
                     //Si el DATO,valor_id no ha sido enviado aún
                     if(!isInBuffer(valor_id)){
+                        ev << "Host " << nombreHost << ": " << "Generando nueva trama de información DATO," << valor_id << endl;
+
                         //Comienza a generar informacion
                         generaInfo(FuncionesExtras::getValorId(msg_name.c_str()));
 
                     //Si ya fue enviado con anterioridad                    
                     }else{
+                        ev << "Host " << nombreHost << ": " << "remandando tama ya existente DATO," << valor_id << endl;
                         //Se envia una trama "nueva" con la información ya guardada con anterioridad
                         int direccion_dest = par("direccion_dest");
 
@@ -196,7 +199,6 @@ void aplicacion::handleMessage(cMessage* msg){
                     }
                 }
             }
-
         //Es DATO
         }else if(msg_name[0] == 'D' && msg_name[1] == 'A' && msg_name[2] == 'T' && msg_name[3] == 'O'){
             delete msg;
@@ -291,8 +293,7 @@ void aplicacion::handleMessage(cMessage* msg){
             //Normal de activo
             if (ev.isGUI()) getDisplayString().setTagArg("i",1,"");
 
-            ev << "Host " << nombreHost << ": " << "El mensaje: " << msg_name << " no es valido y ha sido eliminado" << endl;
-            
+            ev << "Host " << nombreHost << ": " << "El mensaje: " << msg_name << " no es valido y ha sido eliminado" << endl;            
         }
     }else{
         delete msg;
@@ -300,8 +301,7 @@ void aplicacion::handleMessage(cMessage* msg){
         //Normal de activo
         if (ev.isGUI()) getDisplayString().setTagArg("i",1,""); 
 
-        ev << "Host " << nombreHost << ": " << "Mensaje llegado desde un lugar desconocido" << endl;
-        
+        ev << "Host " << nombreHost << ": " << "Mensaje llegado desde un lugar desconocido" << endl;        
     }
 }
 
@@ -319,6 +319,17 @@ void aplicacion::generaInfo(int trama_id){
     int tramasPorHost = numTramas_env/3;
 
     if(trama_id==tramasPorHost){
+
+        if(nombreHost==0){
+            buffer00.clear();
+        }else if(nombreHost==1){
+            buffer01.clear();
+        }else if(nombreHost==2){
+            buffer02.clear();
+        }else if(nombreHost==3){
+            buffer03.clear();
+        }
+
         trama_id = trama_id%tramasPorHost;
         direccion_dest = (direccion_dest+1)%4;
         par("direccion_dest").setLongValue(direccion_dest);
@@ -326,6 +337,7 @@ void aplicacion::generaInfo(int trama_id){
 
     //Si es primera vez que se inicia
     if(trama_id == -1){
+        par("conectado").setBoolValue(true);
         //creando un mensaje START
         cMessage *start = new cMessage("START");
 
