@@ -47,7 +47,7 @@ simple llc
         int starter;
 
         //Timer para re-enviarse mensajes con scheduleAt();
-        volatile int timer = default(10);
+        volatile int timer = default(3);
 
         //numero de tramas no asentidas
         volatile int tramas_no_asentidas = default(0);

@@ -106,8 +106,21 @@ void llc::handleMessage(cMessage *msg){
     //Sino, el mensaje viene desde intermedio
     }else{
         if(name[0]=='R' && name[1]=='E' && name[2]=='J'){
-            //Envia el REJ,N hacia abajo para que sea tratado cómo un REJ normal
-            send(msg,"hacia_abajo");
+            delete msg;
+            int direccion_host = par("direccion_host");
+            int direccion_dest = par("direccion_dest");
+
+            //Si faltan tramas por ser asentidas por un RR se manda un UP para exigir respuesta
+            DataFrame *unnumberedFrame = new DataFrame("UP,Trama Comando,");
+            
+            //Asignando valores necesarios para crear la trama
+            unnumberedFrame->createFrame(direccion_dest);
+            unnumberedFrame->setName(FuncionesExtras::nombrando(unnumberedFrame->getName(),direccion_dest));
+
+            par("en_respuesta_a").setStringValue("UP");
+            //Enviando a travez del canal fisico
+            send(unnumberedFrame,"hacia_abajo");
+            ev << "Host " << direccion_host << ": " << "Se envia UP para confirmar las ultimas tramas" << endl;
         }else{
             //Procesarlo como si viniera desde arriba
             processMsgFromHigherLayer(msg);
@@ -176,7 +189,6 @@ void llc::processMsgFromHigherLayer(cMessage *dato){
 
         //Manda el mensaje START a MAC
         send(dato,"hacia_abajo");
-
     //Si es una trama END
     }else if(nombre_dato == "END"){
      //Se dseconecta
@@ -187,7 +199,6 @@ void llc::processMsgFromHigherLayer(cMessage *dato){
 
      //manda el mensaje END a MAC
      send(dato,"hacia_abajo");
-
     //Si es trama de informacion
     }else{
         //Se recibe un DATO,N por lo que se envia una trama de informacion al otro host
@@ -240,9 +251,11 @@ void llc::processMsgFromHigherLayer(cMessage *dato){
                 temporizadores03.push_back(esperandoRR);
             }           
 
+            //Guardando el mensaje que se autoenviara
             int timer = par("timer");
+            timer *= tramas_libres;
             scheduleAt(simTime()+timer,esperandoRR);
-            ev << "Host " << direccion_host << ": " << "Mandando un REJ," << id_dato << " a si mismo en caso que no llegue el RR," << id_dato << " en 10 segundos." << endl;
+            ev << "Host " << direccion_host << ": " << "Mandando un REJ," << id_dato << " a si mismo en caso que no llegue el RR," << id_dato << " en " << timer << " segundos." << endl;
             ev << "Host " << direccion_host << ": " << "Tiempo esperado para mandar el REJ: " << simTime()+10 << endl;
 
             int direccion_actual = FuncionesExtras::bitArrayToInt(informacion->getAddress(),8);
@@ -306,16 +319,16 @@ void llc::processMsgFromHigherLayer(cMessage *dato){
             //Revisa bajo que condiciones se enviará la trama
             if (tipo_error == "NONE"){
                 send(tramaInformacion,"hacia_abajo");
-                ev << "Host " << direccion_host << ": " << "Mandando trama de Información " << id_dato << " al host: " << direccion_dest;
+                ev << "Host " << direccion_host << ": " << "Mandando trama de Información " << id_dato << " al host: " << direccion_dest << endl;
             }else if(tipo_error == "Lost"){
                 tramaInformacion->setName(FuncionesExtras::nombrandoTrama(nombre_dato.c_str(),"LOST,"));
 
                 send(tramaInformacion,"hacia_abajo");
-                ev << "Host " << direccion_host << ": " << "La trama "<< nombre_dato.c_str() << " se ha perdido.";
+                ev << "Host " << direccion_host << ": " << "La trama "<< nombre_dato.c_str() << " se ha perdido." << endl;
             }else if(tipo_error == "BadSending")        {
                 tramaInformacion->setName(FuncionesExtras::nombrandoTrama(nombre_dato.c_str(),"ERROR,"));
                 tramaInformacion->setName(FuncionesExtras::nombrando(tramaInformacion->getName(),',',direccion_actual));
-                ev << "Host " << direccion_host << ": " << "La trama "<< nombre_dato.c_str() << " se ha enviado con error.";
+                ev << "Host " << direccion_host << ": " << "La trama "<< nombre_dato.c_str() << " se ha enviado con error." << endl;
 
                 send(tramaInformacion,"hacia_abajo");
                 ev << "Host " << direccion_host << ": " << "Mandando trama de Información " << id_dato << " a MAC";
@@ -479,9 +492,9 @@ void llc::processMsgFromLowerLayer(cMessage *packet){
                         valor_id++;
 
                         ev << "Tramas en la ventana: " << cant_tramasVentana << " - Ventana de: " << tamVentana << " - queue: " << tamActVentana << endl;
-
+                        int tramas_no_asentidas = par("tramas_no_asentidas");
                         //Solo si hay espacio en la ventana y no se piden más datos de los que se deben enviar
-                        if(tamActVentana != tamVentana && valor_id < numTramas_env){
+                        if(tamActVentana != tamVentana && valor_id < numTramas_env && valor_id < tramasPorHost){
                             //Crea un ACK,N               
                             cMessage *ack = new cMessage(FuncionesExtras::nombrando("ACK,",valor_id));
 
@@ -491,6 +504,10 @@ void llc::processMsgFromLowerLayer(cMessage *packet){
                             //Envia ACK,N al modulo de aplicacion
                             send(ack,"hacia_arriba");
                             ev << "Host " << direccion_host << ": " << "Mandando ACK al modulo de aplicación" << endl;
+                        //Envia testigo para que el token ring siga su funcionamiento
+                        }else if(valor_id == tramasPorHost){
+                            DataFrame *testigo = new DataFrame("TESTIGO");
+                            send(testigo,"hacia_abajo");
                         }
                     }                    
                 }
@@ -738,10 +755,10 @@ void llc::processMsgFromLowerLayer(cMessage *packet){
                             vacio = ventanaDeslizante01.empty();
                         }else if(direccion_host==2){
                             cant_tramasVentana = ventanaDeslizante02.size();
-                            vacio = ventanaDeslizante01.empty();
+                            vacio = ventanaDeslizante02.empty();
                         }else if(direccion_host==3){
                             cant_tramasVentana = ventanaDeslizante03.size();
-                            vacio = ventanaDeslizante01.empty();
+                            vacio = ventanaDeslizante03.empty();
                         }
                         
                         par("cant_tramasVentana").setLongValue(cant_tramasVentana);
@@ -907,22 +924,31 @@ void llc::processMsgFromLowerLayer(cMessage *packet){
                         par("en_respuesta_a").setStringValue(en_respuesta_a);
                     //Se recibe un UP
                     }else if(M2 == 4){
-                        //Se responde con la última RR
-                        int ult_trama_recibida = par("ult_trama_recibida");
-                        ult_trama_recibida++;
 
-                        dataframe->setName(FuncionesExtras::nombrando("RR,",ult_trama_recibida));
+                        int direccion = FuncionesExtras::bitArrayToInt(dataframe->getAddress(),8);
 
-                        //Setea los valores necesarios para la trama RR
-                        dataframe->createFrame(direccion_host);
-                        dataframe->setName(FuncionesExtras::nombrando(dataframe->getName(),',',direccion_host));
+                        if(direccion == direccion_host){
+                            //Se responde con la última RR
+                            int ult_trama_recibida = par("ult_trama_recibida");
+                            ult_trama_recibida++;
 
-                        //Actualiza el valor del ultimo RR enviado
-                        par("ult_rr_enviado").setLongValue(ult_trama_recibida);
+                            dataframe->setName(FuncionesExtras::nombrando("RR,",ult_trama_recibida));
 
-                        //Envia la trama por el medio fisico
-                        send(dataframe,"hacia_abajo");
-                        ev << "Host " << direccion_host << ": " << "Enviado Supervisory RR" << " a Host: " << direccion_dest << endl;
+                            //Setea los valores necesarios para la trama RR
+                            dataframe->createFrame(direccion_host);
+                            dataframe->setName(FuncionesExtras::nombrando(dataframe->getName(),',',direccion_host));
+
+                            //Actualiza el valor del ultimo RR enviado
+                            par("ult_rr_enviado").setLongValue(ult_trama_recibida);
+
+                            //Envia la trama por el medio fisico
+                            send(dataframe,"hacia_abajo");
+                            ev << "Host " << direccion_host << ": " << "Enviado Supervisory RR" << " a Host: " << direccion_dest << endl;
+                        }else{
+                            //Peloteo con MAC
+                            //Se envia hacia abajo
+                            send(dataframe,"hacia_abajo");
+                        }
 
                     //Se recibe un UA
                     }else if(M2 == 6){
