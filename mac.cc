@@ -118,6 +118,7 @@ void mac::initialize(){
 //Maneja el mensaje ingresado
 void mac::handleMessage(cMessage *msg){
 	string name = msg->getName();
+    bool holder = par("holder");
 
 	if(name != "FREE"){
 	    //Si el mensaje llega desde el otro Host
@@ -127,7 +128,7 @@ void mac::handleMessage(cMessage *msg){
 
 	    //Sino, el mensaje viene desde LLC    
 	    }else{
-	    	if(name[0]=='R' && name[1]=='E' && name[2]=='J'){
+	    	if(name[0]=='U' && name[1]=='P' && !holder){
 	    		//Procesarlo como si viniera desde el otro host
 	        	processMsgFromLowerLayer(msg);
 	    	}else{
@@ -157,7 +158,7 @@ void mac::handleMessage(cMessage *msg){
 
 void mac::processMsgFromHigherLayer(cMessage *dato){
 	string packet_name = dato->getName();
-	// int cant_holder = par("cant_holder");
+    bool holder = par("holder");
 
 	//Si es un mensaje "START"
 	if(packet_name == "START"){
@@ -178,17 +179,21 @@ void mac::processMsgFromHigherLayer(cMessage *dato){
 
 		//lo envia al anillo
 		sending(testigo,"hacia_fisico");
+        par("holder").setBoolValue(false);
 	//Si recibe cualquier otro tipo de trama
 	}else if(packet_name == "TESTIGO"){
-		//Envia el testigo peloteado
-		bool conectado = par("conectado");
-		if(conectado){
-			if(ev.isGUI()){
-				getParentModule()->getParentModule()->getDisplayString().setTagArg("i",1,"");
-			 	getParentModule()->getParentModule()->bubble("Testigo enviado");
-			} 
-		}
-		sending(dato,"hacia_fisico");
+        if(holder){
+    		//Envia el testigo peloteado
+    		bool conectado = par("conectado");
+    		if(conectado){
+    			if(ev.isGUI()){
+    				getParentModule()->getParentModule()->getDisplayString().setTagArg("i",1,"");
+    			 	getParentModule()->getParentModule()->bubble("Testigo enviado");
+    			} 
+    		}
+    		sending(dato,"hacia_fisico");
+            par("holder").setBoolValue(false);
+        }
 	//Peloteo de ACK
 	}else if(packet_name[0]=='A' && packet_name[1]=='C' && packet_name[2]=='K'){
 		//Se lo pelotea de vuelta para mantener una visual más amigable
@@ -223,6 +228,14 @@ void mac::processMsgFromHigherLayer(cMessage *dato){
 		//Pelota el testigo consigo mismo para crear un interfaz más agradable y que el testigo no salga junto a la trama enviada
 		send(testigo,"hacia_arriba");
 	}else{
+
+        if(packet_name[0] == 'I'){
+            DataFrame *dataframe = check_and_cast<DataFrame *>(dato);
+            int direccion = FuncionesExtras::bitArrayToInt(dataframe->getAddress(),8);
+
+            par("direccion_dest").setLongValue(direccion);
+        }
+
 		//Lo envia hacia fisico y se pelotea testigo con LLC
 		sending(dato,"hacia_fisico");
 
@@ -263,13 +276,12 @@ void mac::processMsgFromLowerLayer(cMessage *dato){
         	send(start,"hacia_arriba");
         }else{
         	//Hace uso de las tramas que le llegaron mientras no era holder
-
         	//Manda solo una trama hacia arriba y la saca de la cola
         	if(direccion_host==0){
         		if(!colaDeTramas00.empty()){
-	                send(colaDeTramas00.front(),"hacia_arriba");
+                    send(colaDeTramas00.front(),"hacia_arriba");	                
 	                colaDeTramas00.pop();
-            	}else if(cant_holder == 2){
+            	}else if(cant_holder == 2 && desconectar){
             		if(!desconectar){
             			DataFrame *testigo = new DataFrame("TESTIGO");
             			send(testigo,"hacia_arriba");
@@ -280,14 +292,22 @@ void mac::processMsgFromLowerLayer(cMessage *dato){
 	            	}
             	}else{
             		//Suelta el testigo
-            		DataFrame *testigo = new DataFrame("TESTIGO");
-        			send(testigo,"hacia_arriba");
+                    bool conectado = par("conectado");
+                    if(conectado){
+                        if(ev.isGUI()){
+                            getParentModule()->getParentModule()->getDisplayString().setTagArg("i",1,"");
+                            getParentModule()->getParentModule()->bubble("Testigo enviado");
+                        } 
+                    }
+                    DataFrame *testigo = new DataFrame("TESTIGO");
+                    sending(testigo,"hacia_fisico");
+                    par("holder").setBoolValue(false);
             	}
             }else if(direccion_host==1){
                 if(!colaDeTramas01.empty()){
-	                send(colaDeTramas01.front(),"hacia_arriba");
+                    send(colaDeTramas01.front(),"hacia_arriba");
 	                colaDeTramas01.pop();
-            	}else if(cant_holder == 2){
+            	}else if(cant_holder == 2 && desconectar){
             		if(!desconectar){
             			DataFrame *testigo = new DataFrame("TESTIGO");
             			send(testigo,"hacia_arriba");
@@ -298,14 +318,22 @@ void mac::processMsgFromLowerLayer(cMessage *dato){
 	            	}
             	}else{
             		//Suelta el testigo
-            		DataFrame *testigo = new DataFrame("TESTIGO");
-        			send(testigo,"hacia_arriba");
+                    bool conectado = par("conectado");
+                    if(conectado){
+                        if(ev.isGUI()){
+                            getParentModule()->getParentModule()->getDisplayString().setTagArg("i",1,"");
+                            getParentModule()->getParentModule()->bubble("Testigo enviado");
+                        } 
+                    }
+                    DataFrame *testigo = new DataFrame("TESTIGO");
+                    sending(testigo,"hacia_fisico");
+                    par("holder").setBoolValue(false);
             	}
             }else if(direccion_host==2){
                 if(!colaDeTramas02.empty()){
-	                send(colaDeTramas02.front(),"hacia_arriba");
-	                colaDeTramas02.pop();
-            	}else if(cant_holder == 2){
+                    send(colaDeTramas02.front(),"hacia_arriba");
+                    colaDeTramas02.pop();
+            	}else if(cant_holder == 2 && desconectar){
             		if(!desconectar){
             			DataFrame *testigo = new DataFrame("TESTIGO");
             			send(testigo,"hacia_arriba");
@@ -316,14 +344,22 @@ void mac::processMsgFromLowerLayer(cMessage *dato){
 	            	}
             	}else{
             		//Suelta el testigo
-            		DataFrame *testigo = new DataFrame("TESTIGO");
-        			send(testigo,"hacia_arriba");
+                    bool conectado = par("conectado");
+                    if(conectado){
+                        if(ev.isGUI()){
+                            getParentModule()->getParentModule()->getDisplayString().setTagArg("i",1,"");
+                            getParentModule()->getParentModule()->bubble("Testigo enviado");
+                        } 
+                    }
+                    DataFrame *testigo = new DataFrame("TESTIGO");
+                    sending(testigo,"hacia_fisico");
+                    par("holder").setBoolValue(false);
             	}
             }else if(direccion_host==3){
                 if(!colaDeTramas03.empty()){
-	                send(colaDeTramas03.front(),"hacia_arriba");
+                    send(colaDeTramas03.front(),"hacia_arriba");
 	                colaDeTramas03.pop();
-            	}else if(cant_holder == 2){
+            	}else if(cant_holder == 2 && desconectar){
             		if(!desconectar){
             			DataFrame *testigo = new DataFrame("TESTIGO");
             			send(testigo,"hacia_arriba");
@@ -334,12 +370,20 @@ void mac::processMsgFromLowerLayer(cMessage *dato){
 	            	}
             	}else{
             		//Suelta el testigo
-            		DataFrame *testigo = new DataFrame("TESTIGO");
-        			send(testigo,"hacia_arriba");
+                    bool conectado = par("conectado");
+                    if(conectado){
+                        if(ev.isGUI()){
+                            getParentModule()->getParentModule()->getDisplayString().setTagArg("i",1,"");
+                            getParentModule()->getParentModule()->bubble("Testigo enviado");
+                        } 
+                    }
+                    DataFrame *testigo = new DataFrame("TESTIGO");
+                    sending(testigo,"hacia_fisico");
+                    par("holder").setBoolValue(false);
             	}
             }
         }
-	}else if(cant_holder == 3){
+	}else if(cant_holder == 3 && desconectar){
 		//Borra el "TESTIGO"
 		delete dato;
 	}else{
@@ -347,7 +391,7 @@ void mac::processMsgFromLowerLayer(cMessage *dato){
 		DataFrame *dataframe = check_and_cast<DataFrame *>(dato);
 
 		int direccion = FuncionesExtras::bitArrayToInt(dataframe->getAddress(),8);
-		if(packet_name[0]!='U'){
+		if(packet_name[0]!='U' && desconectar){
 			par("cant_holder").setLongValue(0);
 		}
 
