@@ -27,6 +27,7 @@
 class Informacion : public ::cMessage
 {
   protected:
+    int destino;
     int address_dest_var[8];
     int *informacion_var; // array ptr
     unsigned int informacion_arraysize;
@@ -57,6 +58,8 @@ class Informacion : public ::cMessage
     virtual int* getInformacion();
     virtual int getInformacion(unsigned int k) const;
     virtual void setInformacion(unsigned int k, int informacion);
+    virtual void setDestino(int dest);
+    virtual int getDestino();
 
     //Permite crear una trama de información, destino debe ser menor que 512
     void createFrame(int destino,int* informacion, int tamInfo);

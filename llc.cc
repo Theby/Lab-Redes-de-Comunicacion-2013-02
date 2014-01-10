@@ -260,7 +260,7 @@ void llc::processMsgFromHigherLayer(cMessage *dato){
             ev << "Host " << direccion_host << ": " << "Mandando un REJ," << id_dato << " a si mismo en caso que no llegue el RR," << id_dato << " en " << timer << " segundos." << endl;
             ev << "Host " << direccion_host << ": " << "Tiempo esperado para mandar el REJ: " << simTime()+10 << endl;
             
-            int direccion_actual = FuncionesExtras::bitArrayToInt(informacion->getAddress(),8);
+            int direccion_actual = informacion->getDestino();
             par("direccion_dest").setLongValue(direccion_actual);
             
             DataFrame *tramaInformacion = new DataFrame(FuncionesExtras::nombrandoTrama(nombre_dato.c_str(),"I,"));
@@ -300,6 +300,7 @@ void llc::processMsgFromHigherLayer(cMessage *dato){
             par("cant_tramasVentana").setLongValue(cant_tramasVentana);
 
             string tipo_error;
+            correguido = true;
             if (prob_error < error && error != 0 && !correguido){
                 if(rand()%100 < 100){
                     tipo_error = "BadSending";

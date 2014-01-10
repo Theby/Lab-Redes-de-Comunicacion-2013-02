@@ -193,11 +193,8 @@ void aplicacion::handleMessage(cMessage* msg){
                             tramaComunicacion->createFrame(direccion_dest,buffer01[valor_id]->getInformacion(),buffer01[valor_id]->getInformacionArraySize());
                         }
 
-                        int direccion_actual = FuncionesExtras::bitArrayToInt(tramaComunicacion->getAddress(),8);
+                        int direccion_actual = tramaComunicacion->getDestino();
                         ev << "ACTUAL: " << direccion_actual << endl;
-                        for(int i=0;i<8;i++){
-                            ev << "-" << tramaComunicacion->getAddress_dest(i) << "-" << endl;
-                        }
 
                         //Se envia el mensaje a intermedio
                         send(tramaComunicacion, "hacia_abajo");

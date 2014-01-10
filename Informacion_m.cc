@@ -149,22 +149,25 @@ void Informacion::setInformacion(unsigned int k, int informacion)
     this->informacion_var[k] = informacion;
 }
 
-void Informacion::createFrame(int destino,int* informacion, int tamInfo){
-    //Transforma destino a un número binario
-    int * destinoBin = FuncionesExtras::intToBitArray(destino);
+void Informacion::setDestino(int dest){
+    this->destino = dest;
+}
 
+int Informacion::getDestino(){
+    return destino;
+}
+
+void Informacion::createFrame(int destino,int* informacion, int tamInfo){
     //Inicio Address
         //Asigna la direccion al sector address de la trama
-        for(int i=0;i<8;i++){
-            this->setAddress_dest(i,destinoBin[i]);
-        }
+        this->setDestino(destino);
     //Fin Address
 
     //Inicio Informacion
-        //Tama�o
+        //Tamaño
         this->setInformacionArraySize(tamInfo);
 
-        //Asignaci�n
+        //Asignación
         for(int i=0;i<tamInfo;i++){
             this->setInformacion(i,informacion[i]);
         }
