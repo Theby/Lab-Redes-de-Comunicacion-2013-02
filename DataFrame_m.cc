@@ -200,7 +200,7 @@ void DataFrame::createFrame(int destino, int tamInfo, int* informacion, int NS, 
     std::vector<int> destino_binario;
 
     //Transforma destino a un número binario
-    int * destinoBin = FuncionesExtras::intToBitArray(destino,8);
+    int * destinoBin = FuncionesExtras::intToBitArray(destino);
 
     //Lo pasa a vector para tener un manejo más directo
     for(int i=0;i<8;i++){

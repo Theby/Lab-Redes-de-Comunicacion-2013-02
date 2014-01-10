@@ -70,7 +70,11 @@ simple llc
         //Para saber si esta conectado o no
         volatile bool conectado = default(false);
         
+        //Para fijar la direccion actual tras recibir un ACK de aplicacion
         volatile int direccion_actual = default(0);
+        
+        //Para saber si es una trama correguida o una nueva
+        volatile bool correguido = default(false);
 
         @display("i=block/uparrow,black;is=n");
 

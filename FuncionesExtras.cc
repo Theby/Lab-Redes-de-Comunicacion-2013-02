@@ -11,6 +11,7 @@
 #include <string.h>
 #include <cstdlib>
 #include <iostream>
+ #include <stdio.h>
 
 using namespace std;
 
@@ -184,15 +185,37 @@ int* FuncionesExtras::intToBitArray(int numero, int tamano){
         for(int i=0;i < offset;i++){
             bitArray[i] = 0;
         }
-
+        cout << "---" << endl;
         for(int i=offset;i < tamano;i++){
             bitArray[i] = numero_binario.back();
             numero_binario.pop_back();
+            cout << bitArray[i] << endl;
         }
+        cout << "---" << endl;
     }else{
         for(int i=0;i<tamano;i++){
             bitArray[i] = 0;    
         }        
+    }
+
+    return bitArray;
+}
+
+int* FuncionesExtras::intToBitArray(int numero){
+    int* bitArray;
+    bitArray = (int*)malloc(sizeof(int)*8);
+
+    for(int i=0;i<8;i++){
+        bitArray[i]=0;
+    }
+
+    if(numero==1){
+        bitArray[7]=1;
+    }else if(numero==2){
+        bitArray[6]=1;
+    }else if(numero==3){
+        bitArray[6]=1;
+        bitArray[7]=1;
     }
 
     return bitArray;

@@ -151,7 +151,7 @@ void Informacion::setInformacion(unsigned int k, int informacion)
 
 void Informacion::createFrame(int destino,int* informacion, int tamInfo){
     //Transforma destino a un número binario
-    int * destinoBin = FuncionesExtras::intToBitArray(destino,8);
+    int * destinoBin = FuncionesExtras::intToBitArray(destino);
 
     //Inicio Address
         //Asigna la direccion al sector address de la trama

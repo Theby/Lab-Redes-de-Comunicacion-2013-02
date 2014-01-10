@@ -181,10 +181,9 @@ void aplicacion::handleMessage(cMessage* msg){
 
                     //Si ya fue enviado con anterioridad                    
                     }else{
-                        ev << "Host " << nombreHost << ": " << "remandando tama ya existente DATO," << valor_id << endl;
                         //Se envia una trama "nueva" con la información ya guardada con anterioridad
                         int direccion_dest = par("direccion_dest");
-
+                        
                         Informacion *tramaComunicacion = new Informacion(FuncionesExtras::nombrando("DATO,",valor_id));
 
                         //Asignando valores correspondientes
@@ -194,8 +193,15 @@ void aplicacion::handleMessage(cMessage* msg){
                             tramaComunicacion->createFrame(direccion_dest,buffer01[valor_id]->getInformacion(),buffer01[valor_id]->getInformacionArraySize());
                         }
 
+                        int direccion_actual = FuncionesExtras::bitArrayToInt(tramaComunicacion->getAddress(),8);
+                        ev << "ACTUAL: " << direccion_actual << endl;
+                        for(int i=0;i<8;i++){
+                            ev << "-" << tramaComunicacion->getAddress_dest(i) << "-" << endl;
+                        }
+
                         //Se envia el mensaje a intermedio
                         send(tramaComunicacion, "hacia_abajo");
+                        ev << "Host " << nombreHost << ": " << "remandando trama ya existente DATO," << valor_id << " al host: " << direccion_dest << endl;
                     }
                 }
             }

@@ -139,6 +139,8 @@ void llc::processMsgFromHigherLayer(cMessage *dato){
     int direccion_dest = par("direccion_dest");
     string nombre_dato = dato->getName();
 
+    bool correguido = par("correguido");
+
     //Para guardar la cantidad de tramas de la ventana
     unsigned int cant_tramasVentana;
 
@@ -257,10 +259,10 @@ void llc::processMsgFromHigherLayer(cMessage *dato){
             scheduleAt(simTime()+timer,esperandoRR);
             ev << "Host " << direccion_host << ": " << "Mandando un REJ," << id_dato << " a si mismo en caso que no llegue el RR," << id_dato << " en " << timer << " segundos." << endl;
             ev << "Host " << direccion_host << ": " << "Tiempo esperado para mandar el REJ: " << simTime()+10 << endl;
-
+            
             int direccion_actual = FuncionesExtras::bitArrayToInt(informacion->getAddress(),8);
             par("direccion_dest").setLongValue(direccion_actual);
-
+            
             DataFrame *tramaInformacion = new DataFrame(FuncionesExtras::nombrandoTrama(nombre_dato.c_str(),"I,"));
             DataFrame *copiaParaVentana = new DataFrame(FuncionesExtras::nombrandoTrama(nombre_dato.c_str(),"I,"));
 
@@ -298,8 +300,8 @@ void llc::processMsgFromHigherLayer(cMessage *dato){
             par("cant_tramasVentana").setLongValue(cant_tramasVentana);
 
             string tipo_error;
-            if (prob_error < error && error != 0){
-                if(rand()%100 < 0){
+            if (prob_error < error && error != 0 && !correguido){
+                if(rand()%100 < 100){
                     tipo_error = "BadSending";
                     ev << "Host " << direccion_host << ": " << "Error en la informacion de la trama" << endl;
                 }else{
@@ -318,6 +320,7 @@ void llc::processMsgFromHigherLayer(cMessage *dato){
 
             //Revisa bajo que condiciones se enviará la trama
             if (tipo_error == "NONE"){
+                par("correguido").setBoolValue(false);
                 send(tramaInformacion,"hacia_abajo");
                 ev << "Host " << direccion_host << ": " << "Mandando trama de Información " << id_dato << " al host: " << direccion_dest << endl;
             }else if(tipo_error == "Lost"){
@@ -492,7 +495,7 @@ void llc::processMsgFromLowerLayer(cMessage *packet){
                         valor_id++;
 
                         ev << "Tramas en la ventana: " << cant_tramasVentana << " - Ventana de: " << tamVentana << " - queue: " << tamActVentana << endl;
-                        int tramas_no_asentidas = par("tramas_no_asentidas");
+
                         //Solo si hay espacio en la ventana y no se piden más datos de los que se deben enviar
                         if(tamActVentana != tamVentana && valor_id < numTramas_env && valor_id < tramasPorHost){
                             //Crea un ACK,N               
@@ -795,8 +798,7 @@ void llc::processMsgFromLowerLayer(cMessage *packet){
                             send(unnumberedFrame,"hacia_abajo");
                             ev << "Host " << direccion_host << ": " << "Se envia UP para confirmar las ultimas tramas" << endl;
                         }
-                    }                    
-                
+                    }                                    
                 //Se recibe un REJ
                 }else if(M1 == 1){
                     delete dataframe;
@@ -883,6 +885,8 @@ void llc::processMsgFromLowerLayer(cMessage *packet){
                     //Mandar un ACK,N al modulo de aplicación
                     cMessage *ack = new cMessage(FuncionesExtras::nombrando("ACK,",id_tramaVD));
 
+                    par("correguido").setBoolValue(true);
+
                     //Actualiza el valor del ultimo ack pedido
                     int ult_ack_enviado = id_tramaVD;
                     par("ult_ack_enviado").setLongValue(ult_ack_enviado%tramasPorHost);
@@ -949,7 +953,6 @@ void llc::processMsgFromLowerLayer(cMessage *packet){
                             //Se envia hacia abajo
                             send(dataframe,"hacia_abajo");
                         }
-
                     //Se recibe un UA
                     }else if(M2 == 6){
                         delete dataframe;
