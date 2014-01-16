@@ -3,14 +3,14 @@
 
 class Mesa{
 	private:
-		//Listas de jugadores en la mesa, incluyendo el Crupier
+		//Listas de jugadores en la mesa
 		std::vector<Jugador> Jugadores;
 
 		//Listas de apuestas donde la posicion representa al jugador
 		std::vector<unsigned int> Apuestas;
 
-		//Maso de la mesa
-		Mazo Mazo;
+		//Para saber si el jugador esta listo con su turno
+		std::vector<bool> Ready;
 
 	public:
 		//Constructor
@@ -19,14 +19,22 @@ class Mesa{
 		//Sets y Gets
 		void setJugadores(std::vector<Jugador> Jugadores);
 		void setJugadores(Jugador Jugador);
+		void setJugadores(unsigned int posicion, Jugador Jugador);
 		std::vector<Jugador> getJugadores();
 		Jugador getJugadores(unsigned int posicion);
+
 		void setApuestas(std::vector<unsigned int> Apuestas);
 		void setApuestas(unsigned int apuesta);
+		void setApuestas(unsigned int posicion, unsigned int apuesta);
 		std::vector<unsigned int> getApuestas();
 		unsigned int getApuestas(unsigned int posicion);
-		void setMazo(Mazo Mazo);
-		Mazo getMazo();
+
+		void setReady(std::vector<bool> Ready);
+		void setReady(bool ready);
+		void setReady(unsigned int posicion, bool ready);
+		std::vector<bool> getReady();
+		bool getReady(unsigned int posicion);
+
 };
 
 #endif /** _MESA_H_ **/
