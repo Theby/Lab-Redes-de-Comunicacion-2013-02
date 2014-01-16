@@ -1,0 +1,5 @@
+http://www.chuidiang.com/clinux/sockets/sockets_simp.php
+
+http://es.tldp.org/Tutoriales/PROG-SOCKETS/prog-sockets.html
+
+http://www.linuxhowtos.org/C_C++/socket.htm
