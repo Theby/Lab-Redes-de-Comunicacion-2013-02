@@ -2,6 +2,16 @@
 
 using namespace std;
 
+/** Privadas **/
+	int Mazo::randomNumber(int i){ 
+		int number = std::rand()%i;
+
+		if(number<0)
+			number *= -1;
+
+		return number;
+	}
+
 /** Constructores **/
 	Mazo::Mazo(){
 		this->Cartas = new vector();
@@ -13,4 +23,53 @@ using namespace std;
 		this->Cartas = Cartas;
 		this->num_cartas_repartidas=0;
 		this->num_cartas_mazo=Cartas.size();
+	}
+
+/** Sets y Gets **/
+	void Mazo::setCartas(std::vector<Carta> Cartas){
+		this->Cartas = Cartas;
+	}
+
+	void Mazo::setCartas(Carta Carta){
+		this->Cartas.push_back(Carta);
+	}
+
+	void Mazo::setCartas(int posicion,Carta Carta){
+		this->Cartas(posicion) = Carta;
+	}
+
+	std::vector<Carta> Cartas Mazo::getCartas(){ return this->Cartas; }
+
+	Carta Mazo::getCartas(int posicion){ return this->Cartas(posicion); }
+
+	void Mazo::setNumCartasRepartidas(int num_cartas_repartidas){
+		this->num_cartas_repartidas = num_cartas_repartidas;
+	}
+
+	int Mazo::getNumCartasRepartidas(){ return this->num_cartas_repartidas; }
+	
+	void Mazo::setNumCartasMazo(int num_cartas_mazo){
+		this->num_cartas_mazo = num_cartas_mazo;
+	}
+
+	int Mazo::getNumCartasMazo(){ return this->num_cartas_mazo; }
+
+/** Funcionales **/
+	void Mazo::revolverMazo(){
+		std::srand(unsigned(std::time(0)));
+
+		//Valores entre 3 y 5
+		int veces = this->randomNumber(3)+3;
+
+		for (int i = 0; i < veces; i++){
+			std::random_shuffle(this->Cartas.begin(), this->Cartas.end());
+		}		
+	}
+
+	Carta Mazo::repartirCarta(){
+		Carta CartaAux = this->Cartas.back();
+
+		this->Cartas.pop_back();
+
+		return CartaAux;
 	}
