@@ -25,11 +25,11 @@ using namespace std;
 	void Carta::setPinta(string pinta){
 		this->pinta = pinta;
 	}
-
+	
 	string Carta::getPinta(){ return this->pinta; }
 	
 	void Carta::setNumero(int numero){
 		this->numero = numero;
 	}
-		
+
 	int Carta::getNumero(){ return this->numero; }

@@ -9,7 +9,7 @@ class Carta{
 		//Para saber si es corazón, pica, diamante o trebol
 		string pinta;
 
-		//Para saber si es as, 2, 3, ..., jota(11), queena(12) o kayser(13).
+		//Para saber si es AS(1), 2, 3, ..., jota(11), queena(12) o kayser(13).
 		int numero;
 
 	public:
@@ -20,8 +20,10 @@ class Carta{
 		//Sets y Gets
 		void setValor(int valor);
 		int getValor();
+
 		void setPinta(string pinta);
 		string getPinta();
+
 		void setNumero(int numero);
 		int getNumero();
 };
