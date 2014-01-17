@@ -4,22 +4,6 @@
 
 =============== TESTING ==============
 
-1) Solo un host envia: 0 - envia 5, RR cada 3.
-	Working
-2) Ambos host envian: 0/1 envian 5, RR cada 3. 
-	Working
-3) Solo un host envia: 0 - tiene 6 para enviar, la ventana es de 4, RR cada 2.
-	Working
-4) Solo un host envia: 0 - tiene 6 para enviar, la ventana es de 5, RR cada 4.
-	Working
-5) Solo un host envia: 0 - tiene 7 para enviar, la ventana es de 4, RR cada 3.	
-	Working
-6) Ambos host envian: 0/1 envian 1/2, la ventana es de 2, RR cada 1.
-	Working
-7) solo un host envia: 0 - tiene 4 para enviar, la ventana es de 2, RR cada 2.
-	Working
-
 =============== ENTRADAS TODO ==============
-
 
 =============== TRABAJANDO EN ==============
