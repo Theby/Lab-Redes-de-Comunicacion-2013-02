@@ -15,23 +15,27 @@ using namespace std;
 /** Constructores **/
 	Mazo::Mazo(){
 		this->Cartas = new vector();
-		this->num_cartas_repartidas=0;
+		this->num_cartas_repartidas=this->max_num_cartas_mazo;
 		this->num_cartas_mazo=0;
 	}
 
 	Mazo::Mazo(std::vector<Carta> Cartas){
 		this->Cartas = Cartas;
-		this->num_cartas_repartidas=0;
-		this->num_cartas_mazo=Cartas.size();
+		this->num_cartas_mazo = Cartas.size();
+		this->num_cartas_repartidas = this->max_num_cartas_mazo-this->num_cartas_mazo;
 	}
 
 /** Sets y Gets **/
 	void Mazo::setCartas(std::vector<Carta> Cartas){
 		this->Cartas = Cartas;
+		this->num_cartas_mazo = Cartas.size();
+		this->num_cartas_repartidas = this->max_num_cartas_mazo-this->num_cartas_mazo;
 	}
 
 	void Mazo::setCartas(Carta Carta){
 		this->Cartas.push_back(Carta);
+		this->num_cartas_mazo += 1;
+		this->num_cartas_repartidas -= 1;
 	}
 
 	void Mazo::setCartas(int posicion,Carta Carta){
@@ -70,6 +74,8 @@ using namespace std;
 		Carta CartaAux = this->Cartas.back();
 
 		this->Cartas.pop_back();
+		this->num_cartas_repartidas += 1;
+		this->num_cartas_mazo -= 1;
 
 		return CartaAux;
 	}

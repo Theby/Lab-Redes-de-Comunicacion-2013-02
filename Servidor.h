@@ -14,22 +14,30 @@ class Servidor{
 		Mazo Mazo;
 
 		/**
+		 * Mazo usado cómo deposito, en el cuál se almacenan las cartas retiradas de los jugadores
+		 **/
+		Mazo Deposito;
+
+		/** 
+		 * Variable que guarda la cantidad total de fichas retiradas de los juegadores
+		 * Por otra parte el Servidor tiene infinitas fichas
+		 **/
+		int fichas_ganadas;
+
+		/**
 		 * Socket para iniciar las primitivas de conexión
 		 * de modo que es asignado a un socket disponible
 		 * o almacenado en una cola
 		 **/
 
+
 		/**
 		 * 7 Sockets para jugar contra 7 usuarios
 		 **/
-		 
-
+		
 
 	public:
 		Servidor();
-		~Servidor();
-
-		/* data */
 };
 
 #endif /** _SERVIDOR_H_ **/

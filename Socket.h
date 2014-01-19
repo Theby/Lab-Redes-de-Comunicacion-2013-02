@@ -14,7 +14,6 @@ class Socket{
 
 	public:
 		Socket();
-		~Socket();
 
 		void setLeidoEscrito(int leido_escrito);
 		int getLeidoEscrito();

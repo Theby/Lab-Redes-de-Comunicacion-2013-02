@@ -6,17 +6,23 @@
 #include <stdio.h>
 #include "Socket.h"
 
-void setLeidoEscrito(int leido_escrito){
+Socket::Socket(){
+	this->leido_escrito = 0;
+	this->aux = 0;
+	this->accion = "escribir" ;
+}
+
+void Socket::setLeidoEscrito(int leido_escrito){
 	this->leido_escrito = leido_escrito;
 }
 		
-int getLeidoEscrito(){ return this->leido_escrito; }
+int Socket::getLeidoEscrito(){ return this->leido_escrito; }
 
-void setAux(int aux){
+void Socket::setAux(int aux){
 	this->aux = aux;
 }
 	
-int getAux(){ return this->aux; }
+int Socket::getAux(){ return this->aux; }
 
 /**
  * Lee datos del socket para realizar la lectura
