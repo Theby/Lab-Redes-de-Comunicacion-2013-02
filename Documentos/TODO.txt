@@ -1,5 +1,7 @@
 =============== TODO ==============
 
+Instansiar los vectores con "= new Vector();"
+
 =============== ERRORES ==============
 
 =============== TESTING ==============
