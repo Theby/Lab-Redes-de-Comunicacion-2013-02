@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "Carta.h"
 
 using namespace std;
@@ -33,3 +34,18 @@ using namespace std;
 	}
 
 	int Carta::getNumero(){ return this->numero; }
+
+/** Serialización **/
+	char* serializar(){
+
+		/** 
+		  * Los primeros dos seran para el valor
+		  * El siguiente para la pinta
+		  * Finalmente dos para el numero
+		  */
+		char serializado[5];
+
+		
+
+		return serializado;
+	}
