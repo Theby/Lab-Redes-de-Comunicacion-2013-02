@@ -121,7 +121,7 @@ int main(){
 			std::cout << "3.- Salir" << std::endl << std::endl;
 
 			std::cout << "Tu apuesa actual:" << C_BlackJack.getApuesta(0) << std::endl;
-			std::cout << "Numero de fichas restantes: "  << C_BlackJack.getJugador().getFichas() << std::endl << std::endl;
+			std::cout << "Numero de fichas restantes: "  << C_BlackJack.getJugador().getFichas()-C_BlackJack.getApuesta(0) << std::endl << std::endl;
 			std::cout << "Tus cartas:" << std::endl;
 			valor_t = 0;
 
@@ -349,7 +349,7 @@ int main(){
 						}
 					}
 
-					C_BlackJack.setApuestas(0,apuesta_n);
+					C_BlackJack.setApuestas(0,C_BlackJack.getApuesta(0)+apuesta_n);
 					system("clear");
 					break;
 				}

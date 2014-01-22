@@ -20,11 +20,6 @@
 
 	void Cliente::setApuestas(int posicion, int apuesta){
 		this->apuestas[posicion] = apuesta;
-
-		int nuevo_valor = this->mJugador.getFichas();
-		nuevo_valor -= apuesta;	
-
-		this->mJugador.setFichas(apuesta);
 	}
 
 	int* Cliente::getApuesta(){ return this->apuestas; }
