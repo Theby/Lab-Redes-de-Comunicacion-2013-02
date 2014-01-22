@@ -15,13 +15,16 @@ class Cliente : public SocketCliente{
 		//Para saber si el jugador esta listo con su turno
 		bool ready;
 
+		//Para saber que numero de cliente es
+		int identificador;
+
 	public:
 		//Constructor
 		Cliente();
 
 		//Sets y Gets
-		void setJugadores(Jugador mJugador);
-		Jugador getJugadores();
+		void setJugador(Jugador mJugador);
+		Jugador getJugador();
 
 		void setApuestas(int posicion, int apuesta);
 		int* getApuesta();
@@ -29,6 +32,9 @@ class Cliente : public SocketCliente{
 
 		void setReady(bool ready);
 		bool getReady();
+
+		void setIdentificador(int identificador);
+		int getIdentificador();
 };
 
 #endif /** _CLIENTE_H_ **/

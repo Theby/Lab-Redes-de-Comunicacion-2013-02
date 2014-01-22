@@ -80,3 +80,36 @@
 
 		return CartaAux;
 	}
+
+	std::vector<Carta> Mazo::generarCartas(){
+		std::vector<Carta> Cartas;
+
+		//Genera de manera ordenada las 52 cartas
+		for (int j = 0; j < 4; j++){
+			for (int i = 0; i < 13; i++){
+				Carta moldeC;
+
+				moldeC.setPinta(3+j);
+				if(i == 0){
+					moldeC.setValor(11);
+				}else if(i > 0 && i < 10){
+					moldeC.setValor(i+1);
+				}else{
+					moldeC.setValor(10);
+				}
+				moldeC.setNumero(i+1);
+
+				Cartas.push_back(moldeC);
+			}
+		}
+
+		//Replica las cartas 3 veces para tener 208 cartas
+		for (int i = 0; i < 3; i++){
+			for (int k = 0; k < 52; k++){
+				Carta replica = Cartas[k];
+				Cartas.push_back(replica);
+			}
+		}
+
+		return Cartas;
+	}

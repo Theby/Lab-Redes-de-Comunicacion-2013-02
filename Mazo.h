@@ -47,6 +47,7 @@ class Mazo{
 		//Funcionales
 		void revolverMazo();
 		Carta repartirCarta();
+		std::vector<Carta> generarCartas();
 };
 
 #endif /** _MAZO_H_ **/

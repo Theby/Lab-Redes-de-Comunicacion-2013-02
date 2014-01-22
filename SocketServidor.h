@@ -15,7 +15,7 @@
 
 
 class SocketServidor : public Socket{
-	private:
+	public:
 		//Estructura que guarda los datos relacionados al servicio que se esta atendiendo
 		struct servent* Puerto;
 
@@ -47,7 +47,7 @@ class SocketServidor : public Socket{
 
 		//Funcionales
 		int abreSocketINET(char *Servicio);
-		int aceptaCliente(int DescriptorServidor);
+		//int aceptaCliente(int DescriptorServidor);
 };
 
 #endif /* _SOCKETSERVIDOR_H_ */

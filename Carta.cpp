@@ -60,17 +60,17 @@
 		numero = FuncionesExtras::intToString(this->numero);
 
 		if(this->numero > 9){
-			serializado[3] = numero[3];
-			serializado[4] = numero[4];
+			serializado[3] = numero[0];
+			serializado[4] = numero[1];
 		}else{
 			serializado[3] = 48;
-			serializado[4] = numero[3];
+			serializado[4] = numero[0];
 		}
 
 		return serializado;
 	}
 
-	void Carta::deserializar(char serializado[5]){
+	void Carta::deserializar(char* serializado){
 		//Asignando Valor
 		if(serializado[0] == 0){
 			this->valor = serializado[1] - 48;

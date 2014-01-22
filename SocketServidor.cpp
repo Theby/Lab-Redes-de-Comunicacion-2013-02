@@ -79,11 +79,13 @@
 	 * Se le pasa un socket de servidor y acepta conexiones mediante el
 	 * uso de select()
 	 */
-	int SocketServidor::aceptaCliente(int DescriptorServidor){
+	/*int SocketServidor::aceptaCliente(int DescriptorServidor){
 		std::cout << std::endl << "~~~ Comenzando proceso de aceptacion de clientes ~~~" << std::endl << std::endl;
 		
 		char* buffer_lectura = (char*)malloc(sizeof(char)*1);
 		char* buffer_num_cliente = (char*)malloc(sizeof(char)*1);
+		char* buffer_carta;
+		char* tipo = (char*)malloc(sizeof(char)*1);
 		int contador;
 
 		//Limpia el vector de descriptores de los clientes ya desconetados
@@ -153,14 +155,21 @@
 					contador = 0;		
 					this->setAccion("escribir");
 
-					//escribe al cliente
+					tipo[0] = '0';
+
+					buffer_num_cliente[0] = DescriptorClientes.back()+48%10;
+
+					//escribe al cliente su identificador
 					std::cout << "   Comenzando escritura en el socket" << std::endl;
 					std::cout << "   Se enviará el numero de cliente: " << DescriptorClientes.size() << std::endl;
-					std::cout << "      Comenzando a escribir usando el socket" << std::endl;
-					buffer_num_cliente[0] = DescriptorClientes.size()+48;
+					std::cout << "      Comenzando a escribir tipo usando el socket" << std::endl;
+					contador = this->usarSocket(this->DescriptorClientes.back(),tipo,sizeof(char));
+					std::cout << "      Terminado de escribir el tipo en el socket, con " << contador << " escrituras" << std::endl;
+					std::cout << "      Comenzando a escribir identificador usando el socket" << std::endl;
 					contador = this->usarSocket(this->DescriptorClientes.back(),buffer_num_cliente,sizeof(char));
-					std::cout << "      Terminado de escribir en el socket, con " << contador << " escrituras" << std::endl;
+					std::cout << "      Terminado de escribir identificador en el socket, con " << contador << " escrituras" << std::endl;
 					std::cout << "   Cliente aceptado" << std::endl;
+
 				}
 				std::cout << "Proceso de aceptacion del Cliente terminado" << std::endl << std::endl; 
 			}
@@ -202,4 +211,4 @@
 
 		//Todo terminó bien
 		return 1;
-	}
+	}*/

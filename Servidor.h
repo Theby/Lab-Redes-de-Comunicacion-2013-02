@@ -44,6 +44,8 @@ class Servidor : public SocketServidor{
 
 		void setFichasGanadas(int fichas_ganadas);
 		int getFichasGanadas();
+
+		int aceptaCliente(int DescriptorServidor);
 };
 
 #endif /** _SERVIDOR_H_ **/

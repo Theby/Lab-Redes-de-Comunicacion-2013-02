@@ -31,7 +31,7 @@ class Carta{
 
 		//Serializacion
 		char* serializar();
-		void deserializar(char serializado[5]);
+		void deserializar(char* serializado);
 };
 
 #endif /** _CARTA_H_ **/

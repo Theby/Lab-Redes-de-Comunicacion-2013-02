@@ -6,6 +6,8 @@
 	Jugador::Jugador(){
 		this->num_jugador = 0;
 		this->separado=false;
+		this->num_cartas_mano_1=0;
+		this->num_cartas_mano_2=0;
 		this->puntaje_1 = 0;
 		this->puntaje_2 = 0;
 		this->fichas = 100;
@@ -14,6 +16,8 @@
 	Jugador::Jugador(int num_jugador){
 		this->num_jugador = num_jugador;
 		this->separado=false;
+		this->num_cartas_mano_1=0;
+		this->num_cartas_mano_2=0;
 		this->puntaje_1 = 0;
 		this->puntaje_2 = 0;
 		this->fichas = 100;

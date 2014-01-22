@@ -8,14 +8,15 @@
 		this->apuestas[0]=0;
 		this->apuestas[1]=0;
 		this->ready=false;
+		this->identificador=0;
 	}
 
 /** Sets y Gets **/
-	void Cliente::setJugadores(Jugador mJugador){
+	void Cliente::setJugador(Jugador mJugador){
 		this->mJugador = mJugador;
 	}
 
-	Jugador Cliente::getJugadores(){ return this->mJugador; }
+	Jugador Cliente::getJugador(){ return this->mJugador; }
 
 	void Cliente::setApuestas(int posicion, int apuesta){
 		this->apuestas[posicion] = apuesta;
@@ -30,3 +31,9 @@
 	}
 
 	bool Cliente::getReady(){ return this->ready; }
+
+	void Cliente::setIdentificador(int identificador){
+		this->identificador = identificador;
+	}
+
+	int Cliente::getIdentificador(){ return this->identificador; }

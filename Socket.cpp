@@ -31,7 +31,6 @@ int Socket::usarSocket(int fd, char* Datos, int Longitud){
 	this->leido_escrito = 0;
 	this->aux = 0;
 
-	std::cout << std::endl << "" << fd << "/" << Datos[0] << "/" << Longitud << std::endl << std::endl;
 	//Si la orden no corresponde
 	if(this->accion != "leer" && this->accion != "escribir"){
 		std::cout << std::endl << "La accion debe ser leer o escribir" << std::endl << std::endl;
