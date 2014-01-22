@@ -7,3 +7,5 @@
 #Ejecutables
 Cliente_BlackJack
 Servidor_BlackJack
+out/*.o
+*.o
