@@ -1,9 +1,3 @@
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/un.h>
-#include <unistd.h>
-#include <errno.h>
-#include <stdio.h>
 #include "Socket.h"
 
 Socket::Socket(){
@@ -24,12 +18,23 @@ void Socket::setAux(int aux){
 	
 int Socket::getAux(){ return this->aux; }
 
+void Socket::setAccion(std::string accion){
+	this->accion = accion;
+}
+
+std::string Socket::getAccion(){ return this->accion; }
+
 /**
  * Lee datos del socket para realizar la lectura
  */
-int Socket::usarSocket(int fd, char *Datos, int Longitud){
+int Socket::usarSocket(int fd, char* Datos, int Longitud){
+	this->leido_escrito = 0;
+	this->aux = 0;
+
+	std::cout << std::endl << "" << fd << "/" << Datos[0] << "/" << Longitud << std::endl << std::endl;
 	//Si la orden no corresponde
 	if(this->accion != "leer" && this->accion != "escribir"){
+		std::cout << std::endl << "La accion debe ser leer o escribir" << std::endl << std::endl;
 		return -1;
 	}
 
@@ -37,15 +42,16 @@ int Socket::usarSocket(int fd, char *Datos, int Longitud){
 	 * Comprueba los datos de entradas
 	 **/
 	if ((fd == -1) || (Datos == NULL) || (Longitud < 1)){
+		std::cout << std::endl << "O fd es -1, o Datos es Null, o Longitud es < 1 causando errores" << std::endl;
 		return -1;
 	}
 
 	// Mientras queden datos por leer	 
 	while (this->leido_escrito < Longitud){
 		if (this->accion == "leer"){
-			this->aux = read (fd, Datos + this->leido_escrito, Longitud - this->leido_escrito);
+			this->aux = read(fd, Datos + this->leido_escrito, Longitud - this->leido_escrito);
 		}else if(this->accion == "escribir"){
-			this->aux = write (fd, Datos + this->leido_escrito, Longitud - this->leido_escrito);
+			this->aux = write(fd, Datos + this->leido_escrito, Longitud - this->leido_escrito);
 		}
 		
 		if (this->aux > 0){
@@ -77,9 +83,11 @@ int Socket::usarSocket(int fd, char *Datos, int Longitud){
 							usleep (100);
 							break;
 						default:
+							std::cout << std::endl << "Error al leer" << std::endl << std::endl;
 							return -1;
 					}
 				}else if(this->accion == "escribir"){
+					std::cout << std::endl << "Error al escribir" << std::endl << std::endl;
 					return -1;
 				}
 			}

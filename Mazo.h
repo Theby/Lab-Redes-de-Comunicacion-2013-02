@@ -1,10 +1,16 @@
 #ifndef _MAZO_H_
 #define _MAZO_H_
 
+#include "Carta.h"
+#include <vector>
+#include <cstdlib>
+#include <ctime>
+#include <algorithm>
+
 class Mazo{
 	private:
 		//Para guardar el tamaño maximo del mazo, son 4 mazos
-		const int max_num_cartas_mazo = 208;
+		int max_num_cartas_mazo;
 
 		//Para guardar todas las cartas linealmente como si fuera un mazo real
 		std::vector<Carta> Cartas;
@@ -27,9 +33,9 @@ class Mazo{
 		int getMaxNumCartasMazo();
 
 		void setCartas(std::vector<Carta> Cartas);
-		void setCartas(Carta Carta);
-		void setCartas(int posicion,Carta Carta);
-		std::vector<Carta> Cartas getCartas();
+		void setCartas(Carta mCarta);
+		void setCartas(int posicion,Carta mCarta);
+		std::vector<Carta> getCartas();
 		Carta getCartas(int posicion);
 
 		void setNumCartasRepartidas(int num_cartas_repartidas);
@@ -40,7 +46,7 @@ class Mazo{
 
 		//Funcionales
 		void revolverMazo();
-		Carta repartirCarta():
+		Carta repartirCarta();
 };
 
 #endif /** _MAZO_H_ **/

@@ -1,10 +1,10 @@
 #include "Mazo.h"
 
-using namespace std;
+//using namespace std;
 
 /** Privadas **/
 	int Mazo::randomNumber(int i){ 
-		int number = std::rand()%i;
+		int number = std::rand()%i;//std::rand()%i;
 
 		if(number<0)
 			number *= -1;
@@ -14,12 +14,13 @@ using namespace std;
 
 /** Constructores **/
 	Mazo::Mazo(){
-		this->Cartas = new vector();
+		this->max_num_cartas_mazo = 208;
 		this->num_cartas_repartidas=this->max_num_cartas_mazo;
 		this->num_cartas_mazo=0;
 	}
 
 	Mazo::Mazo(std::vector<Carta> Cartas){
+		this->max_num_cartas_mazo = 208;
 		this->Cartas = Cartas;
 		this->num_cartas_mazo = Cartas.size();
 		this->num_cartas_repartidas = this->max_num_cartas_mazo-this->num_cartas_mazo;
@@ -32,19 +33,19 @@ using namespace std;
 		this->num_cartas_repartidas = this->max_num_cartas_mazo-this->num_cartas_mazo;
 	}
 
-	void Mazo::setCartas(Carta Carta){
-		this->Cartas.push_back(Carta);
+	void Mazo::setCartas(Carta mCarta){
+		this->Cartas.push_back(mCarta);
 		this->num_cartas_mazo += 1;
 		this->num_cartas_repartidas -= 1;
 	}
 
-	void Mazo::setCartas(int posicion,Carta Carta){
-		this->Cartas(posicion) = Carta;
+	void Mazo::setCartas(int posicion,Carta mCarta){
+		this->Cartas[posicion] = mCarta;
 	}
 
-	std::vector<Carta> Cartas Mazo::getCartas(){ return this->Cartas; }
+	std::vector<Carta> Mazo::getCartas(){ return this->Cartas; }
 
-	Carta Mazo::getCartas(int posicion){ return this->Cartas(posicion); }
+	Carta Mazo::getCartas(int posicion){ return this->Cartas[posicion]; }
 
 	void Mazo::setNumCartasRepartidas(int num_cartas_repartidas){
 		this->num_cartas_repartidas = num_cartas_repartidas;
@@ -60,7 +61,7 @@ using namespace std;
 
 /** Funcionales **/
 	void Mazo::revolverMazo(){
-		std::srand(unsigned(std::time(0)));
+		srand(unsigned(time(0)));
 
 		//Valores entre 3 y 5
 		int veces = this->randomNumber(3)+3;

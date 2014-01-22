@@ -1,32 +1,32 @@
-#include "Mesa.h"
+#include "Cliente.h"
 
-using namespace std;
+//using namespace std;
+
+/** Constructores **/
+	Cliente::Cliente(){
+		this->apuestas = (int*)malloc(sizeof(int)*2);
+		this->apuestas[0]=0;
+		this->apuestas[1]=0;
+		this->ready=false;
+	}
 
 /** Sets y Gets **/
-	void Mesa::setJugadores(std::vector<Jugador> Jugadres){
-		this->Jugadores = Jugadores;
+	void Cliente::setJugadores(Jugador mJugador){
+		this->mJugador = mJugador;
 	}
 
-	void Mesa::setJugadores(Jugador Jugador){
-		this->Jugadores.push_back(Jugador);
+	Jugador Cliente::getJugadores(){ return this->mJugador; }
+
+	void Cliente::setApuestas(int posicion, int apuesta){
+		this->apuestas[posicion] = apuesta;
 	}
 
-	std::vector<Jugador> Mesa::getJugadores(){ return this->Jugadores; }
-	Jugador Mesa::getJugadores(unsigned int posicion){ return this->Jugadores[posicion]; }
+	int* Cliente::getApuesta(){ return this->apuestas; }
+	int Cliente::getApuesta(int posicion){ return this->apuestas[posicion]; }
 
-	void Mesa::setApuestas(std::vector<unsigned int> Apuestas){
-		this->Apuestas = Apuestas;
+
+	void Cliente::setReady(bool ready){
+		this->ready = ready;
 	}
 
-	void Mesa::setApuestas(unsigned int apuesta){
-		this->Apuestas.push_back(apuesta);
-	}
-
-	std::vector<unsigned int> Mesa::getApuesta(){ return this->Apuestas; }
-	unsigned int Mesa::getApuesta(unsigned int posicion){ return this->Apuestas[posicion]; }
-
-	void Mesa::setMazo(Mazo Mazo){
-		this->Mazo = Mazo;
-	}
-
-	Mazo Mesa::getMazo(){ return this->Mazo; }
+	bool Cliente::getReady(){ return this->ready; }

@@ -1,6 +1,9 @@
 #ifndef _JUGADOR_H_
 #define _JUGADOR_H_
 
+#include "Carta.h"
+#include <vector>
+
 class Jugador{
 	private:
 		//permite identificar que jugador es, el jugador 0 es el Crupier
@@ -32,6 +35,7 @@ class Jugador{
 
 	public:
 		//Constructores
+		Jugador();
 		Jugador(int num_jugador);
 
 		//Sets y Gets
@@ -74,4 +78,4 @@ class Jugador{
 		void separar();
 };
 
-#endif /** _JUGADOR_H_ **//
+#endif /** _JUGADOR_H_ **/

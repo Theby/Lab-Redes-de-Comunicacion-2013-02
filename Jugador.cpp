@@ -1,18 +1,26 @@
 #include "Jugador.h"
 
-using namespace std;
+//using namespace std;
 
 /** Constructores **/
+	Jugador::Jugador(){
+		this->num_jugador = 0;
+		this->separado=false;
+		this->puntaje_1 = 0;
+		this->puntaje_2 = 0;
+		this->fichas = 100;
+	}
+
 	Jugador::Jugador(int num_jugador){
 		this->num_jugador = num_jugador;
-		this->doblar=false;
+		this->separado=false;
 		this->puntaje_1 = 0;
 		this->puntaje_2 = 0;
 		this->fichas = 100;
 	}
 
 /** Sets y Gets **/
-	void setNumJugador(int num_jugador){
+	void Jugador::setNumJugador(int num_jugador){
 		this->num_jugador = num_jugador;
 	}
 
@@ -129,7 +137,7 @@ using namespace std;
 		this->puntaje_1=0;
 		this->num_cartas_mano_1=0;
 
-		his->Mano_2.clear();
+		this->Mano_2.clear();
 		this->puntaje_2=0;
 		this->num_cartas_mano_2=0;
 	}

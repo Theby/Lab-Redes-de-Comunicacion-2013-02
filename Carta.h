@@ -1,6 +1,8 @@
 #ifndef _CARTA_H_
 #define _CARTA_H_
 
+#include <cstdlib>
+
 class Carta{
 	private:
 		//Para guardar cuanto vale esa carta en el BlackJack

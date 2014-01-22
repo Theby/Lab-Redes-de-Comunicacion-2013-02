@@ -1,40 +1,34 @@
-#ifndef _MESA_H_
-#define _MESA_H_
+#ifndef _CLIENTE_H_
+#define _CLIENTE_H_
 
-class Mesa{
+#include "Jugador.h"
+#include "SocketCliente.h"
+
+class Cliente : public SocketCliente{
 	private:
-		//Listas de jugadores en la mesa
-		std::vector<Jugador> Jugadores;
+		//Listas de jugadores
+		Jugador mJugador;
 
-		//Listas de apuestas donde la posicion representa al jugador
-		std::vector<unsigned int> Apuestas;
+		//Cantidad apostada, para la mano 1 y la mano 2
+		int* apuestas;
 
 		//Para saber si el jugador esta listo con su turno
-		std::vector<bool> Ready;
+		bool ready;
 
 	public:
 		//Constructor
-		Mesa();
+		Cliente();
 
 		//Sets y Gets
-		void setJugadores(std::vector<Jugador> Jugadores);
-		void setJugadores(Jugador Jugador);
-		void setJugadores(unsigned int posicion, Jugador Jugador);
-		std::vector<Jugador> getJugadores();
-		Jugador getJugadores(unsigned int posicion);
+		void setJugadores(Jugador mJugador);
+		Jugador getJugadores();
 
-		void setApuestas(std::vector<unsigned int> Apuestas);
-		void setApuestas(unsigned int apuesta);
-		void setApuestas(unsigned int posicion, unsigned int apuesta);
-		std::vector<unsigned int> getApuestas();
-		unsigned int getApuestas(unsigned int posicion);
+		void setApuestas(int posicion, int apuesta);
+		int* getApuesta();
+		int getApuesta(int posicion);
 
-		void setReady(std::vector<bool> Ready);
 		void setReady(bool ready);
-		void setReady(unsigned int posicion, bool ready);
-		std::vector<bool> getReady();
-		bool getReady(unsigned int posicion);
-
+		bool getReady();
 };
 
-#endif /** _MESA_H_ **/
+#endif /** _CLIENTE_H_ **/
