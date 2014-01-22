@@ -51,8 +51,8 @@
 			serializado[0] = numero[0];
 			serializado[1] = numero[1];
 		}else{
-			serializado[0] = 48;
-			serializado[1] = numero[0];
+			serializado[0] = '0';
+			serializado[1] = this->valor+48;
 		}
 
 		serializado[2] = this->pinta;
@@ -63,8 +63,8 @@
 			serializado[3] = numero[0];
 			serializado[4] = numero[1];
 		}else{
-			serializado[3] = 48;
-			serializado[4] = numero[0];
+			serializado[3] = '0';
+			serializado[4] = this->valor+48;
 		}
 
 		return serializado;

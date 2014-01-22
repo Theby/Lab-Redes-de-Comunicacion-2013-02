@@ -118,25 +118,28 @@
 					std::cout << "   Comenzando escritura en el socket" << std::endl;
 					std::cout << "   Se enviará el numero de cliente: " << DescriptorClientes.size() << std::endl;
 					std::cout << "      Comenzando a escribir tipo usando el socket" << std::endl;
-					contador = this->usarSocket(this->DescriptorClientes.back(),tipo,sizeof(char));
+					contador = this->usarSocket(this->DescriptorClientes.back(),tipo,sizeof(char)*1);
 					std::cout << "      Terminado de escribir el tipo en el socket, con " << contador << " escrituras" << std::endl;
 					std::cout << "      Comenzando a escribir identificador usando el socket" << std::endl;
-					contador = this->usarSocket(this->DescriptorClientes.back(),buffer_num_cliente,sizeof(char));
+					contador = this->usarSocket(this->DescriptorClientes.back(),buffer_num_cliente,sizeof(char)*1);
 					std::cout << "      Terminado de escribir identificador en el socket, con " << contador << " escrituras" << std::endl;
 					std::cout << "   Cliente aceptado" << std::endl;
 
 					for(int i=0; i<2 ; i++){
 						tipo[0] = '1';
-						buffer_carta = this->getMazo().repartirCarta().serializar();
+						Mazo test = this->getMazo();
+						Carta prototipo = test.repartirCarta();
+						this->setMazo(test);
+						buffer_carta = prototipo.serializar();
 
 						//Manda una carta
 						std::cout << "   Comenzando escritura en el socket" << std::endl;
-						std::cout << "   Se enviará una carta: " << (const char*)buffer_carta << std::endl;
+						std::cout << "   Se enviará una carta: " << std::endl;
 						std::cout << "      Comenzando a escribir tipo usando el socket" << std::endl;
-						contador = this->usarSocket(this->DescriptorClientes.back(),tipo,sizeof(char));
+						contador = this->usarSocket(this->DescriptorClientes.back(),tipo,sizeof(char)*2);
 						std::cout << "      Terminado de escribir el tipo en el socket, con " << contador << " escrituras" << std::endl;
 						std::cout << "      Comenzando a escribir carta usando el socket" << std::endl;
-						contador = this->usarSocket(this->DescriptorClientes.back(),buffer_carta,sizeof(char)*5);
+						contador = this->usarSocket(this->DescriptorClientes.back(),buffer_carta,sizeof(char)*6);
 						std::cout << "      Terminado de escribir carta en el socket, con " << contador << " escrituras" << std::endl;
 						
 					}

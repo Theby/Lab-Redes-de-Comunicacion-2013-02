@@ -12,7 +12,7 @@ int main(){
 	int tipo_n;
 
 	//Abre el socket y se conecta a el
-	C_BlackJack.abreConexionINET((char*)"leen",(char*)"blackjack");
+	C_BlackJack.abreConexionINET((char*)"localhost",(char*)"blackjack");
 
 	//Empieza las consecutivas lecturas
 	while(true){
@@ -65,12 +65,19 @@ int main(){
 				Carta prototipo;
 				prototipo.deserializar(c_cartas);
 
-				/*C_BlackJack.getJugador().setMano1(prototipo);
+				Jugador player = C_BlackJack.getJugador();
+				player.setMano1(prototipo);
 
-				std::cout << "" + C_BlackJack.getJugador().getMano1(0).getPinta()  << std::endl;
-				std::cout << "" + C_BlackJack.getJugador().getMano1(0).getNumero()  << std::endl;
-				std::cout << "" + C_BlackJack.getJugador().getMano1(0).getValor()  << std::endl;
-*/
+				C_BlackJack.setJugador(player);
+
+				std::cout << " " + prototipo.getPinta()  << std::endl;
+				std::cout << " " + prototipo.getNumero()  << std::endl;
+				std::cout << " " + prototipo.getValor()  << std::endl;
+
+				std::cout << " " + C_BlackJack.getJugador().getMano1(0).getPinta()  << std::endl;
+				std::cout << " " + C_BlackJack.getJugador().getMano1(0).getNumero()  << std::endl;
+				std::cout << " " + C_BlackJack.getJugador().getMano1(0).getValor()  << std::endl;
+
 				break;
 			}
 
