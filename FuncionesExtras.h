@@ -13,7 +13,7 @@ class FuncionesExtras {
         /*
          * Transforma de entero a string
          */
-        static const char* intToString(int numero);
+        static std::string intToString(int numero);
 
         /*
          * Transforma un entero en un arreglo de int* donde cada posicion es un número binario

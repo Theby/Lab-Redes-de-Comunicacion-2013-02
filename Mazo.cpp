@@ -4,7 +4,7 @@
 
 /** Privadas **/
 	int Mazo::randomNumber(int i){ 
-		int number = std::rand()%i;//std::rand()%i;
+		int number = rand()%i;//std::rand()%i;
 
 		if(number<0)
 			number *= -1;
@@ -63,12 +63,16 @@
 	void Mazo::revolverMazo(){
 		srand(unsigned(time(0)));
 
+		std::vector<Carta> auxVector = this->Cartas;
+
 		//Valores entre 3 y 5
 		int veces = this->randomNumber(3)+3;
 
 		for (int i = 0; i < veces; i++){
-			std::random_shuffle(this->Cartas.begin(), this->Cartas.end());
-		}		
+			std::random_shuffle(auxVector.begin(), auxVector.end());
+		}
+
+		this->Cartas = auxVector;
 	}
 
 	Carta Mazo::repartirCarta(){
@@ -89,7 +93,7 @@
 			for (int i = 0; i < 13; i++){
 				Carta moldeC;
 
-				moldeC.setPinta(3+j);
+				moldeC.setPinta(65+j);
 				if(i == 0){
 					moldeC.setValor(11);
 				}else if(i > 0 && i < 10){
@@ -97,7 +101,7 @@
 				}else{
 					moldeC.setValor(10);
 				}
-				moldeC.setNumero(i+1);
+				moldeC.setNumero((i%13)+1);
 
 				Cartas.push_back(moldeC);
 			}

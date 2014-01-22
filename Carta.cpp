@@ -45,7 +45,7 @@
 		  */
 		char* serializado = (char*)malloc(sizeof(char)*5);
 
-		const char* numero = FuncionesExtras::intToString(this->valor);
+		std::string numero = FuncionesExtras::intToString(this->valor);
 
 		if(this->valor > 9){
 			serializado[0] = numero[0];
@@ -64,7 +64,7 @@
 			serializado[4] = numero[1];
 		}else{
 			serializado[3] = '0';
-			serializado[4] = this->valor+48;
+			serializado[4] = this->numero+48;
 		}
 
 		return serializado;
@@ -72,19 +72,19 @@
 
 	void Carta::deserializar(char* serializado){
 		//Asignando Valor
-		if(serializado[0] == 0){
-			this->valor = serializado[1] - 48;
+		if(serializado[0] == 48){
+			this->valor = serializado[1]-48;
 		}else{
-			this->valor = (serializado[0]-48)*10 + (serializado[1] - 48);
+			this->valor = (serializado[0]-48)*10 + (serializado[1]-48);
 		}
 
 		//Asignando pinta
 		this->pinta = serializado[2];
 
 		//Asignando numero
-		if(serializado[3] == 0){
-			this->numero = serializado[4] - 48;
+		if(serializado[3] == 48){
+			this->numero = serializado[4];
 		}else{
-			this->numero = (serializado[3]-48)*10 + (serializado[4] - 48);
+			this->numero = (serializado[3]-48)*10 + (serializado[4]-48);
 		}
 	}

@@ -2,7 +2,7 @@
 
 //using namespace std;
 
-const char* FuncionesExtras::intToString(int numero){
+std::string FuncionesExtras::intToString(int numero){
     //String con el numero invertido
     std::string inv_numero;
 
@@ -27,7 +27,7 @@ const char* FuncionesExtras::intToString(int numero){
         real_numero.push_back(48);
     }
 
-    return real_numero.c_str();
+    return real_numero;
 }
 
 int* FuncionesExtras::intToBitArray(int numero, int tamano){

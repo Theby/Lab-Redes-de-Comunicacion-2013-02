@@ -19,6 +19,9 @@ class Cliente : public SocketCliente{
 		int identificador;
 
 	public:
+		//Para las cartas del crupier
+		std::vector<Carta> CartasCrupier;
+
 		//Constructor
 		Cliente();
 

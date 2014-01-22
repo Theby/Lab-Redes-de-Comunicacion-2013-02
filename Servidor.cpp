@@ -125,21 +125,25 @@
 					std::cout << "      Terminado de escribir identificador en el socket, con " << contador << " escrituras" << std::endl;
 					std::cout << "   Cliente aceptado" << std::endl;
 
-					for(int i=0; i<2 ; i++){
+					for(int i=0; i<3 ; i++){
 						tipo[0] = '1';
 						Mazo test = this->getMazo();
 						Carta prototipo = test.repartirCarta();
 						this->setMazo(test);
 						buffer_carta = prototipo.serializar();
 
+						std::cout << " " << prototipo.getPinta()  << std::endl;
+						std::cout << " " << prototipo.getNumero()  << std::endl;
+						std::cout << " " << prototipo.getValor()  << std::endl;
+
 						//Manda una carta
 						std::cout << "   Comenzando escritura en el socket" << std::endl;
 						std::cout << "   Se enviará una carta: " << std::endl;
 						std::cout << "      Comenzando a escribir tipo usando el socket" << std::endl;
-						contador = this->usarSocket(this->DescriptorClientes.back(),tipo,sizeof(char)*2);
+						contador = this->usarSocket(this->DescriptorClientes.back(),tipo,sizeof(char)*1);
 						std::cout << "      Terminado de escribir el tipo en el socket, con " << contador << " escrituras" << std::endl;
 						std::cout << "      Comenzando a escribir carta usando el socket" << std::endl;
-						contador = this->usarSocket(this->DescriptorClientes.back(),buffer_carta,sizeof(char)*6);
+						contador = this->usarSocket(this->DescriptorClientes.back(),buffer_carta,sizeof(char)*5);
 						std::cout << "      Terminado de escribir carta en el socket, con " << contador << " escrituras" << std::endl;
 						
 					}
