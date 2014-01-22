@@ -930,7 +930,7 @@ void llc::processMsgFromLowerLayer(cMessage *packet){
                     //Se recibe un UP
                     }else if(M2 == 4){
 
-                        int direccion = FuncionesExtras::bitArrayToInt(dataframe->getAddress(),8);
+                        int direccion = dataframe->getDestino();
 
                         if(direccion == direccion_host){
                             //Se responde con la última RR

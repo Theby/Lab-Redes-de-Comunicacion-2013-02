@@ -29,6 +29,7 @@
 class DataFrame : public ::cMessage
 {
   protected:
+    int destino;
     int address_var[8];
     int control_var[8];
     int *information_var; // array ptr
@@ -38,19 +39,19 @@ class DataFrame : public ::cMessage
   private:
     void copy(const DataFrame& other);
 
-    void tramaI(std::vector<int> destino, int tamInfo, int* informacion, std::vector<int> NS, int PF, std::vector<int> NR);
+    void tramaI(int destino, int tamInfo, int* informacion, std::vector<int> NS, int PF, std::vector<int> NR);
 
-    void tramaRR(std::vector<int> destino, int PF, std::vector<int> NR);
-    void tramaREJ(std::vector<int> destino, int PF, std::vector<int> NR);
+    void tramaRR(int destino, int PF, std::vector<int> NR);
+    void tramaREJ(int destino, int PF, std::vector<int> NR);
         void tramaRNR();
         void tramaSREJ();
 
         void tramaUI();
         void tramaSNRM();
-    void tramaDISC(std::vector<int> destino);
+    void tramaDISC(int destino);
         void tramaRD();
-    void tramaUP(std::vector<int> destino);
-    void tramaUA(std::vector<int> destino);
+    void tramaUP(int destino);
+    void tramaUA(int destino);
         void tramaNR0();
         void tramaNR1();
         void tramaNR2();
@@ -63,7 +64,7 @@ class DataFrame : public ::cMessage
         void tramaRSET();
         void tramaSARME();
         void tramaSNRME();
-    void tramaSABM(std::vector<int> destino);
+    void tramaSABM(int destino);
         void tramaXID();
         void tramaSABME();
 
@@ -96,6 +97,8 @@ class DataFrame : public ::cMessage
     virtual unsigned int getFCSArraySize() const;
     virtual int getFCS(unsigned int k) const;
     virtual void setFCS(unsigned int k, int FCS);
+    virtual void setDestino(int dest);
+    virtual int getDestino();
 
     /*
      * Crea la trama según su nombre, asignando el campo de control según corresponda

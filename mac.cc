@@ -231,7 +231,7 @@ void mac::processMsgFromHigherLayer(cMessage *dato){
 
         if(packet_name[0] == 'I'){
             DataFrame *dataframe = check_and_cast<DataFrame *>(dato);
-            int direccion = FuncionesExtras::bitArrayToInt(dataframe->getAddress(),8);
+            int direccion = dataframe->getDestino();
 
             par("direccion_dest").setLongValue(direccion);
         }
@@ -390,7 +390,7 @@ void mac::processMsgFromLowerLayer(cMessage *dato){
 		//Le ha llegado cualquier otra trama por lo que debe guardarse si es suya o redirigirla si es para otro
 		DataFrame *dataframe = check_and_cast<DataFrame *>(dato);
 
-		int direccion = FuncionesExtras::bitArrayToInt(dataframe->getAddress(),8);
+		int direccion = dataframe->getDestino();
 		if(packet_name[0]!='U' && desconectar){
 			par("cant_holder").setLongValue(0);
 		}

@@ -197,15 +197,6 @@ void DataFrame::setFCS(unsigned int k, int FCS)
 
 void DataFrame::createFrame(int destino, int tamInfo, int* informacion, int NS, int PF, int NR){
     std::string name = FuncionesExtras::getNombreTrama(this->getName());
-    std::vector<int> destino_binario;
-
-    //Transforma destino a un número binario
-    int * destinoBin = FuncionesExtras::intToBitArray(destino);
-
-    //Lo pasa a vector para tener un manejo más directo
-    for(int i=0;i<8;i++){
-        destino_binario.push_back(destinoBin[i]);
-    }
 
     if(name == "I"){
         // Transforman N(R) y N(S) a binario
@@ -220,7 +211,7 @@ void DataFrame::createFrame(int destino, int tamInfo, int* informacion, int NS, 
             NR_binario.push_back(nrBin[i]);
         }
 
-        this->tramaI(destino_binario, tamInfo, informacion, NS_binario, PF, NR_binario);
+        this->tramaI(destino, tamInfo, informacion, NS_binario, PF, NR_binario);
     }else if(name == "RR"){
         // Transforman N(R) a binario
         int *nrBin = FuncionesExtras::intToBitArray(NR,3);
@@ -231,7 +222,7 @@ void DataFrame::createFrame(int destino, int tamInfo, int* informacion, int NS, 
             NR_binario.push_back(nrBin[i]);
         }
 
-        this->tramaRR(destino_binario, PF, NR_binario);
+        this->tramaRR(destino, PF, NR_binario);
     }else if(name == "REJ"){
         PF = 1;
 
@@ -244,7 +235,7 @@ void DataFrame::createFrame(int destino, int tamInfo, int* informacion, int NS, 
             NR_binario.push_back(nrBin[i]);
         }
 
-        this->tramaREJ(destino_binario, PF, NR_binario);
+        this->tramaREJ(destino, PF, NR_binario);
     }else if(name == "RNR"){
         this->tramaRNR();
     }else if(name == "SREJ"){
@@ -255,15 +246,15 @@ void DataFrame::createFrame(int destino, int tamInfo, int* informacion, int NS, 
         this->tramaSNRM();
     }else if(name == "DISC"){
         //solo necesita destino
-        this->tramaDISC(destino_binario);
+        this->tramaDISC(destino);
     }else if(name == "RD"){
         this->tramaRD();
     }else if(name == "UP"){
         //solo necesita destino
-        this->tramaUP(destino_binario);
+        this->tramaUP(destino);
     }else if(name == "UA"){
         //solo necesita destino
-        this->tramaUA(destino_binario);
+        this->tramaUA(destino);
     }else if(name == "NR0"){
         this->tramaNR0();
     }else if(name == "NR1"){
@@ -290,7 +281,7 @@ void DataFrame::createFrame(int destino, int tamInfo, int* informacion, int NS, 
         this->tramaSNRME();
     }else if(name == "SABM"){
         //solo necesita destino
-        this->tramaSABM(destino_binario);
+        this->tramaSABM(destino);
     }else if(name == "XID"){
         this->tramaXID();
     }else if(name == "SABME"){
@@ -298,14 +289,11 @@ void DataFrame::createFrame(int destino, int tamInfo, int* informacion, int NS, 
     }
 }
 
-void DataFrame::tramaI(std::vector<int> destino, int tamInfo, int* informacion, std::vector<int> NS, int PF, std::vector<int> NR){
+void DataFrame::tramaI(int destino, int tamInfo, int* informacion, std::vector<int> NS, int PF, std::vector<int> NR){
     std::string nombre;
 
     //Inicio Address
-        //Copiando Address
-        for(unsigned int i=0;i<destino.size();i++){
-            this->setAddress(i,destino[i]);
-        }
+        this->setDestino(destino);
     //Fin Address
 
     //Inicio Control: Informacion
@@ -346,14 +334,11 @@ void DataFrame::tramaI(std::vector<int> destino, int tamInfo, int* informacion, 
 }
 
 
-void DataFrame::tramaRR(std::vector<int> destino, int PF, std::vector<int> NR){
+void DataFrame::tramaRR(int destino, int PF, std::vector<int> NR){
     std::string nombre;
 
     //Inicio Address
-        //Asigna la direccion al sector address de la trama
-        for(unsigned int i=0;i<destino.size();i++){
-            this->setAddress(i,destino[i]);
-        }
+        this->setDestino(destino);
     //Fin Address
 
     //Inicio Control: Supervisory RR
@@ -385,14 +370,11 @@ void DataFrame::tramaRR(std::vector<int> destino, int PF, std::vector<int> NR){
     //Fin FCS
 }
 
-void DataFrame::tramaREJ(std::vector<int> destino, int PF, std::vector<int> NR){
+void DataFrame::tramaREJ(int destino, int PF, std::vector<int> NR){
     std::string name;
 
     //Inicio Address
-        //Asigna la direccion al sector address de la trama
-        for(unsigned int i=0;i<destino.size();i++){
-            this->setAddress(i,destino[i]);
-        }
+        this->setDestino(destino);
     //Fin Address
 
     //Inicio Control: Supervisory RR
@@ -440,12 +422,9 @@ void DataFrame::tramaSNRM(){
     //No Implementado
 }
 
-void DataFrame::tramaDISC(std::vector<int> destino){
+void DataFrame::tramaDISC(int destino){
     //Inicio Address
-        //Asigna la direccion al sector address de la trama
-        for(unsigned int i=0;i<destino.size();i++){
-            this->setAddress(i,destino[i]);
-        }
+        this->setDestino(destino);
     //Fin Address
 
     //Inicio Control: Unnumbered DISC
@@ -477,12 +456,9 @@ void DataFrame::tramaRD(){
     //No Implementado
 }
 
-void DataFrame::tramaUP(std::vector<int> destino){
+void DataFrame::tramaUP(int destino){
     //Inicio Address
-        //Asigna la direccion al sector address de la trama
-        for(unsigned int i=0;i<destino.size();i++){
-            this->setAddress(i,destino[i]);
-        }
+        this->setDestino(destino);
     //Fin Address
 
     //Inicio Control: Unnumbered UP
@@ -510,12 +486,9 @@ void DataFrame::tramaUP(std::vector<int> destino){
     //Fin FCS
 }
 
-void DataFrame::tramaUA(std::vector<int> destino){
+void DataFrame::tramaUA(int destino){
     //Inicio Address
-        //Asigna la direccion al sector address de la trama
-        for(unsigned int i=0;i<destino.size();i++){
-            this->setAddress(i,destino[i]);
-        }
+        this->setDestino(destino);
     //Fin Address
 
     //Inicio Control: Unnumbered UA
@@ -591,12 +564,9 @@ void DataFrame::tramaSNRME(){
     //No Implementado
 }
 
-void DataFrame::tramaSABM(std::vector<int> destino){
+void DataFrame::tramaSABM(int destino){
     //Inicio Address
-        //Asigna la direccion al sector address de la trama
-        for(unsigned int i=0;i<destino.size();i++){
-            this->setAddress(i,destino[i]);
-        }
+        this->setDestino(destino);
     //Fin Address
 
     //Inicio Control: Unnumbered SABM
@@ -630,6 +600,14 @@ void DataFrame::tramaXID(){
 
 void DataFrame::tramaSABME(){
     //No Implementado
+}
+
+void DataFrame::setDestino(int dest){
+    this->destino = dest;
+}
+
+int DataFrame::getDestino(){
+    return destino;
 }
 
 class DataFrameDescriptor : public cClassDescriptor
